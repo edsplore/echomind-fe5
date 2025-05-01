@@ -575,7 +575,7 @@ export default function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-lg text-gray-400 mb-6 font-lato">
-            Join thousands of businesses using EchoMind to transform their
+            Join thousands of businesses using XpressVoice to transform their
             customer interactions.
           </p>
           <motion.div
