@@ -45,8 +45,8 @@ const Navbar = () => {
             className="flex items-center"
           >
             <Link to="/" className="flex items-center space-x-2">
-              <img src="/echomind-logo.png" alt="EchoMind" className="w-8 h-8" />
-              <span className="text-xl font-display font-bold text-black">EchoMind</span>
+              <img src="/XpressVoice-logo.png" alt="XpressVoice" className="w-8 h-8" />
+              <span className="text-xl font-display font-bold text-black">XpressVoice</span>
             </Link>
           </motion.div>
 

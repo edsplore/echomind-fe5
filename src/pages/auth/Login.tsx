@@ -39,17 +39,17 @@ const Login = () => {
           className="flex items-center justify-center space-x-2 group"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
-            <img src="/echomind-logo.png" alt="EchoMind" className="w-6 h-6" />
+            <img src="/XpressVoice-logo.png" alt="XpressVoice" className="w-6 h-6" />
           </div>
           <span className="text-2xl font-heading font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary-600 transition-all duration-300">
-            EchoMind
+            XpressVoice
           </span>
         </Link>
         <h2 className="mt-6 text-center text-2xl font-heading font-bold text-white">
           Welcome back
         </h2>
         <p className="mt-2 text-center text-sm text-gray-400">
-          Sign in to your account to continue
+          Sign in to your XpressVoice account to continue
         </p>
       </motion.div>
 
