@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Loader2,
@@ -14,14 +14,15 @@ import {
   Clock,
   Eye,
   ExternalLink,
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { cn } from '../../lib/utils';
+  Speech,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { cn } from "../../lib/utils";
 
 interface KnowledgeBaseDocument {
   id: string;
   name: string;
-  type: 'file' | 'url';
+  type: "file" | "url";
   extracted_inner_html: string;
   mime_type?: string;
   size?: number;
@@ -38,14 +39,14 @@ interface DependentAgentsResponse {
   agents: DependentAgent[];
 }
 
-const BACKEND_URL = 'https://11-labs-backend.replit.app';
+const BACKEND_URL = "https://11-labs-backend.replit.app";
 
 const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 const KnowledgeBaseDetails = () => {
@@ -55,7 +56,7 @@ const KnowledgeBaseDetails = () => {
   const [dependentAgents, setDependentAgents] = useState<DependentAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAgents, setLoadingAgents] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showRawHtml, setShowRawHtml] = useState(false);
 
   useEffect(() => {
@@ -68,21 +69,21 @@ const KnowledgeBaseDetails = () => {
           `${BACKEND_URL}/knowledge-base/${user.uid}/${documentId}`,
           {
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
               Authorization: `Bearer ${await user.getIdToken()}`,
             },
-          }
+          },
         );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch document details');
+          throw new Error("Failed to fetch document details");
         }
 
         const data = await response.json();
         setDocument(data);
       } catch (error) {
-        console.error('Error fetching document:', error);
-        setError('Failed to load document details. Please try again.');
+        console.error("Error fetching document:", error);
+        setError("Failed to load document details. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -97,20 +98,20 @@ const KnowledgeBaseDetails = () => {
           `${BACKEND_URL}/knowledge-base/${user.uid}/${documentId}/dependent-agents`,
           {
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
               Authorization: `Bearer ${await user.getIdToken()}`,
             },
-          }
+          },
         );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch dependent agents');
+          throw new Error("Failed to fetch dependent agents");
         }
 
         const data: DependentAgentsResponse = await response.json();
         setDependentAgents(data.agents || []);
       } catch (error) {
-        console.error('Error fetching dependent agents:', error);
+        console.error("Error fetching dependent agents:", error);
         setDependentAgents([]);
       } finally {
         setLoadingAgents(false);
@@ -136,7 +137,7 @@ const KnowledgeBaseDetails = () => {
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
             <h2 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-2">
-              {error || 'Document not found'}
+              {error || "Document not found"}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               The document you're looking for doesn't exist or you don't have
@@ -176,7 +177,7 @@ const KnowledgeBaseDetails = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
-                    {document.type === 'file' ? (
+                    {document.type === "file" ? (
                       <FileText className="w-6 h-6 text-primary dark:text-primary-400" />
                     ) : (
                       <LinkIcon className="w-6 h-6 text-primary dark:text-primary-400" />
@@ -215,14 +216,16 @@ const KnowledgeBaseDetails = () => {
                         <div className="flex items-center space-x-2">
                           <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                           <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {new Date(document.created_at * 1000).toLocaleDateString()}
+                            {new Date(
+                              document.created_at * 1000,
+                            ).toLocaleDateString()}
                           </span>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
-                {document.type === 'url' && (
+                {document.type === "url" && (
                   <a
                     href={document.name}
                     target="_blank"
@@ -260,10 +263,14 @@ const KnowledgeBaseDetails = () => {
                 </button>
               </div>
 
-              <div className={cn(
-                "bg-gray-50 dark:bg-dark-100 rounded-xl p-6 overflow-auto max-h-[600px]",
-                showRawHtml ? "font-mono text-sm" : "prose dark:prose-invert max-w-none"
-              )}>
+              <div
+                className={cn(
+                  "bg-gray-50 dark:bg-dark-100 rounded-xl p-6 overflow-auto max-h-[600px]",
+                  showRawHtml
+                    ? "font-mono text-sm"
+                    : "prose dark:prose-invert max-w-none",
+                )}
+              >
                 {showRawHtml ? (
                   <pre className="whitespace-pre-wrap break-words">
                     {document.extracted_inner_html}
@@ -304,7 +311,7 @@ const KnowledgeBaseDetails = () => {
                 <div className="px-6 py-8">
                   <div className="text-center">
                     <div className="mx-auto h-12 w-12 rounded-full bg-gray-50 dark:bg-dark-100 flex items-center justify-center">
-                      <Bot className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                      <Speech className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                     </div>
                     <h3 className="mt-3 text-sm font-medium text-gray-900 dark:text-white">
                       No agents connected
@@ -325,7 +332,7 @@ const KnowledgeBaseDetails = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center min-w-0">
                           <div className="h-10 w-10 rounded-lg bg-primary/5 dark:bg-primary-400/10 flex items-center justify-center flex-shrink-0">
-                            <Bot className="h-5 w-5 text-primary dark:text-primary-400" />
+                            <Speech className="h-5 w-5 text-primary dark:text-primary-400" />
                           </div>
                           <div className="ml-4 truncate">
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -337,7 +344,10 @@ const KnowledgeBaseDetails = () => {
                               </span>
                               {agent.last_used && (
                                 <span className="text-xs text-gray-400 dark:text-gray-500">
-                                  Last used {new Date(agent.last_used * 1000).toLocaleDateString()}
+                                  Last used{" "}
+                                  {new Date(
+                                    agent.last_used * 1000,
+                                  ).toLocaleDateString()}
                                 </span>
                               )}
                             </div>

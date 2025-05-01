@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
   Clock,
@@ -18,10 +18,10 @@ import {
   User,
   ChevronDown,
   Volume2,
-  Phone
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { Loader, PageLoader } from '../../components/Loader';
+  Phone,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { Loader, PageLoader } from "../../components/Loader";
 import {
   LineChart,
   Line,
@@ -30,7 +30,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 
 interface Conversation {
   agent_id: string;
@@ -65,27 +65,30 @@ interface ConversationDetails {
   audio: string;
 }
 
-const BACKEND_URL = 'https://11-labs-backend.replit.app';
+const BACKEND_URL = "https://11-labs-backend.replit.app";
 
 const statusOptions = [
-  { value: '', label: 'All Status', icon: Filter },
-  { value: 'success', label: 'Success', icon: CheckCircle2 },
-  { value: 'failed', label: 'Failed', icon: XCircle },
-  { value: 'unknown', label: 'Unknown', icon: HelpCircle },
+  { value: "", label: "All Status", icon: Filter },
+  { value: "success", label: "Success", icon: CheckCircle2 },
+  { value: "failed", label: "Failed", icon: XCircle },
+  { value: "unknown", label: "Unknown", icon: HelpCircle },
 ];
 
 const CallHistory = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [conversationDetails, setConversationDetails] = useState<ConversationDetails | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<
+    string | null
+  >(null);
+  const [conversationDetails, setConversationDetails] =
+    useState<ConversationDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -95,9 +98,9 @@ const CallHistory = () => {
     try {
       setLoading(true);
       const response = await fetch(`${BACKEND_URL}/list-conversations`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
         body: JSON.stringify({
@@ -106,13 +109,13 @@ const CallHistory = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch conversations');
+        throw new Error("Failed to fetch conversations");
       }
 
       const data = await response.json();
       setConversations(data.conversations);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error("Error fetching conversations:", error);
     } finally {
       setLoading(false);
     }
@@ -126,19 +129,19 @@ const CallHistory = () => {
       const response = await fetch(
         `${BACKEND_URL}/get-conversation/${conversationId}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
           body: JSON.stringify({
             user_id: user.uid,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch conversation details');
+        throw new Error("Failed to fetch conversation details");
       }
 
       const data = await response.json();
@@ -147,20 +150,20 @@ const CallHistory = () => {
       // Create audio element with time update handling
       if (data.audio) {
         const newAudio = new Audio(`data:audio/wav;base64,${data.audio}`);
-        newAudio.addEventListener('loadedmetadata', () => {
+        newAudio.addEventListener("loadedmetadata", () => {
           setDuration(newAudio.duration);
         });
-        newAudio.addEventListener('timeupdate', () => {
+        newAudio.addEventListener("timeupdate", () => {
           setCurrentTime(newAudio.currentTime);
         });
-        newAudio.addEventListener('ended', () => {
+        newAudio.addEventListener("ended", () => {
           setIsPlaying(false);
           setCurrentTime(0);
         });
         setAudio(newAudio);
       }
     } catch (error) {
-      console.error('Error fetching conversation details:', error);
+      console.error("Error fetching conversation details:", error);
     } finally {
       setLoadingDetails(false);
     }
@@ -207,7 +210,7 @@ const CallHistory = () => {
   const handleDownloadAudio = () => {
     if (!conversationDetails?.audio) return;
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = `data:audio/wav;base64,${conversationDetails.audio}`;
     link.download = `conversation-${selectedConversation}.wav`;
     link.click();
@@ -216,14 +219,14 @@ const CallHistory = () => {
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success':
+      case "success":
         return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-      case 'unknown':
+      case "unknown":
         return <HelpCircle className="w-4 h-4 text-gray-400" />;
       default:
         return <XCircle className="w-4 h-4 text-red-500" />;
@@ -234,7 +237,8 @@ const CallHistory = () => {
     const matchesSearch = conversation.agent_name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesFilter = !filterStatus || conversation.call_successful === filterStatus;
+    const matchesFilter =
+      !filterStatus || conversation.call_successful === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
@@ -283,12 +287,16 @@ const CallHistory = () => {
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`flex items-center space-x-2 px-4 py-2.5 text-sm rounded-lg border transition-colors ${
                 filterStatus
-                  ? 'border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400'
-                  : 'border-gray-200 dark:border-dark-100 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dark-50'
+                  ? "border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400"
+                  : "border-gray-200 dark:border-dark-100 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dark-50"
               }`}
             >
               <Filter className="w-4 h-4" />
-              <span>{filterStatus ? statusOptions.find(s => s.value === filterStatus)?.label : 'Filter Status'}</span>
+              <span>
+                {filterStatus
+                  ? statusOptions.find((s) => s.value === filterStatus)?.label
+                  : "Filter Status"}
+              </span>
               <ChevronDown className="w-4 h-4" />
             </button>
 
@@ -319,8 +327,8 @@ const CallHistory = () => {
                           }}
                           className={`w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors ${
                             filterStatus === option.value
-                              ? 'bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100'
+                              ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100"
                           }`}
                         >
                           <Icon className="w-4 h-4" />
@@ -346,8 +354,8 @@ const CallHistory = () => {
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
               {searchQuery || filterStatus
-                ? 'Try adjusting your search or filters'
-                : 'Start a conversation with one of your agents to see the history here'}
+                ? "Try adjusting your search or filters"
+                : "Start a conversation with one of your agents to see the history here"}
             </p>
           </div>
         ) : (
@@ -355,7 +363,9 @@ const CallHistory = () => {
             {filteredConversations.map((conversation) => (
               <div
                 key={conversation.conversation_id}
-                onClick={() => setSelectedConversation(conversation.conversation_id)}
+                onClick={() =>
+                  setSelectedConversation(conversation.conversation_id)
+                }
                 className="p-6 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center justify-between">
@@ -373,7 +383,9 @@ const CallHistory = () => {
                         <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
                           <Clock className="w-4 h-4" />
                           <span>
-                            {new Date(conversation.start_time_unix_secs * 1000).toLocaleString()}
+                            {new Date(
+                              conversation.start_time_unix_secs * 1000,
+                            ).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
@@ -414,11 +426,11 @@ const CallHistory = () => {
 
             {/* Sidebar */}
             <motion.div
-              initial={{ opacity: 0, x: '100%' }}
+              initial={{ opacity: 0, x: "100%" }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 w-2/5 h-full bg-white dark:bg-dark-200 shadow-2xl flex flex-col z-50"
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 w-[600px] h-full bg-white dark:bg-dark-200 shadow-2xl flex flex-col z-50 pb-24"
             >
               {/* Header */}
               <div className="flex-shrink-0 border-b border-gray-200 dark:border-dark-100">
@@ -463,10 +475,15 @@ const CallHistory = () => {
                       >
                         <div className="flex items-center space-x-2 mb-2">
                           <Clock className="w-4 h-4 text-primary dark:text-primary-400" />
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Duration</span>
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                            Duration
+                          </span>
                         </div>
                         <p className="text-2xl font-heading font-bold text-primary dark:text-primary-400">
-                          {formatDuration(conversationDetails.conversation.metadata.call_duration_secs)}
+                          {formatDuration(
+                            conversationDetails.conversation.metadata
+                              .call_duration_secs,
+                          )}
                         </p>
                       </motion.div>
 
@@ -478,7 +495,9 @@ const CallHistory = () => {
                       >
                         <div className="flex items-center space-x-2 mb-2">
                           <Activity className="w-4 h-4 text-primary dark:text-primary-400" />
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Messages</span>
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                            Messages
+                          </span>
                         </div>
                         <p className="text-2xl font-heading font-bold text-primary dark:text-primary-400">
                           {conversationDetails.conversation.transcript.length}
@@ -548,7 +567,10 @@ const CallHistory = () => {
                       </div>
                       <div className="p-4 bg-gray-50 dark:bg-dark-100 rounded-xl border border-gray-200 dark:border-dark-100">
                         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                          {conversationDetails.conversation.analysis.transcript_summary}
+                          {
+                            conversationDetails.conversation.analysis
+                              .transcript_summary
+                          }
                         </p>
                       </div>
                     </div>
@@ -566,54 +588,64 @@ const CallHistory = () => {
 
                       {/* Transcript Messages */}
                       <div className="space-y-4 max-h-[400px] overflow-y-auto pr-4">
-                        {conversationDetails.conversation.transcript.map((message, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 * index }}
-                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div className="flex items-end space-x-2 max-w-[80%]">
-                              {message.role !== 'user' && (
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center flex-shrink-0">
-                                  <Phone className="w-4 h-4 text-primary dark:text-primary-400" />
-                                </div>
-                              )}
-                              
-                              <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                className={`relative group rounded-2xl p-4 ${
-                                  message.role === 'user'
-                                    ? 'bg-gradient-to-br from-primary to-primary-600 text-white'
-                                    : 'bg-gray-100 dark:bg-dark-100 text-gray-900 dark:text-white'
-                                }`}
-                              >
-                                {/* Message Header */}
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-xs font-bold opacity-80">
-                                      {message.role === 'user' ? 'You' : 'Agent'}
-                                    </span>
+                        {conversationDetails.conversation.transcript.map(
+                          (message, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.1 * index }}
+                              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                            >
+                              <div className="flex items-end space-x-2 max-w-[80%]">
+                                {message.role !== "user" && (
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center flex-shrink-0">
+                                    <Phone className="w-4 h-4 text-primary dark:text-primary-400" />
                                   </div>
-                                  <div className="flex items-center space-x-1 text-xs opacity-60">
-                                    <Clock className="w-3 h-3" />
-                                    <span>{formatDuration(message.time_in_call_secs)}</span>
+                                )}
+
+                                <motion.div
+                                  whileHover={{ scale: 1.02 }}
+                                  className={`relative group rounded-2xl p-4 ${
+                                    message.role === "user"
+                                      ? "bg-gradient-to-br from-primary to-primary-600 text-white"
+                                      : "bg-gray-100 dark:bg-dark-100 text-gray-900 dark:text-white"
+                                  }`}
+                                >
+                                  {/* Message Header */}
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-xs font-bold opacity-80">
+                                        {message.role === "user"
+                                          ? "You"
+                                          : "Agent"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center space-x-1 text-xs opacity-60">
+                                      <Clock className="w-3 h-3" />
+                                      <span>
+                                        {formatDuration(
+                                          message.time_in_call_secs,
+                                        )}
+                                      </span>
+                                    </div>
                                   </div>
-                                </div>
 
-                                {/* Message Content */}
-                                <p className="text-sm leading-relaxed font-medium">{message.message}</p>
-                              </motion.div>
+                                  {/* Message Content */}
+                                  <p className="text-sm leading-relaxed font-medium">
+                                    {message.message}
+                                  </p>
+                                </motion.div>
 
-                              {message.role === 'user' && (
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center flex-shrink-0">
-                                  <User className="w-4 h-4 text-primary dark:text-primary-400" />
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        ))}
+                                {message.role === "user" && (
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center flex-shrink-0">
+                                    <User className="w-4 h-4 text-primary dark:text-primary-400" />
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          ),
+                        )}
                       </div>
                     </div>
                   </div>

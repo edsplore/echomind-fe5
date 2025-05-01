@@ -8,7 +8,7 @@ interface Tool {
   name: string;
   description: string;
   api_schema: {
-    url: string;
+    url?: string;
     request_body_schema?: {
       type: string;
       properties: {
@@ -52,6 +52,12 @@ const validateToolName = (name: string): string | null => {
   }
   return null;
 };
+
+const toolTypeOptions = [
+  { value: 'webhook', label: 'Webhook' },
+  { value: 'ghl_booking', label: 'GHL Booking' },
+  { value: 'calcom', label: 'Cal.com' },
+];
 
 export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigModalProps) => {
   const [editedTool, setEditedTool] = useState<Tool>(JSON.parse(JSON.stringify(tool)));
@@ -129,7 +135,7 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                       Tool Configuration
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Configure your webhook tool settings
+                      Configure your tool settings
                     </p>
                   </div>
                 </div>
@@ -161,6 +167,25 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                      Tool Type
+                    </label>
+                    <select
+                      value={editedTool.type}
+                      onChange={(e) =>
+                        setEditedTool((prev) => ({ ...prev, type: e.target.value }))
+                      }
+                      className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
+                    >
+                      {toolTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
                       Tool Name
                     </label>
                     <div className="relative">
@@ -169,7 +194,7 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                         value={editedTool.name}
                         onChange={(e) => {
                           const newName = e.target.value;
-                          setEditedTool(prev => ({ ...prev, name: newName }));
+                          setEditedTool((prev) => ({ ...prev, name: newName }));
                           setNameError(validateToolName(newName));
                         }}
                         className={cn(
@@ -192,66 +217,71 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                     </label>
                     <textarea
                       value={editedTool.description}
-                      onChange={(e) => setEditedTool(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) => setEditedTool((prev) => ({ ...prev, description: e.target.value }))}
                       className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
                       rows={3}
                       placeholder="Describe what this tool does and how it should be used"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                      Webhook URL
-                    </label>
-                    <input
-                      type="text"
-                      value={editedTool.api_schema.url}
-                      onChange={(e) => setEditedTool(prev => ({
-                        ...prev,
-                        api_schema: { ...prev.api_schema, url: e.target.value }
-                      }))}
-                      className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
-                      placeholder="https://api.example.com/endpoint"
-                    />
-                  </div>
+                  {/* Conditionally render Webhook URL only for the 'webhook' type */}
+                  {editedTool.type === 'webhook' && (
+                    <div>
+                      <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                        Webhook URL
+                      </label>
+                      <input
+                        type="text"
+                        value={editedTool.api_schema.url || ''}
+                        onChange={(e) => setEditedTool((prev) => ({
+                          ...prev,
+                          api_schema: { ...prev.api_schema, url: e.target.value }
+                        }))}
+                        className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
+                        placeholder="https://api.example.com/endpoint"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Request Body Schema Section */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                      Request Body Schema
-                    </label>
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Define the structure of the request body in JSON format
-                      </p>
-                      <button
-                        onClick={() => setShowSampleModal(true)}
-                        className="text-sm text-primary hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-lato font-semibold"
-                      >
-                        View Sample Schema
-                      </button>
+                {/* Conditionally render Request Body Schema only if type is 'webhook' */}
+                {editedTool.type === 'webhook' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                        Request Body Schema
+                      </label>
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Define the structure of the request body in JSON format
+                        </p>
+                        <button
+                          onClick={() => setShowSampleModal(true)}
+                          className="text-sm text-primary hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-lato font-semibold"
+                        >
+                          View Sample Schema
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <textarea
+                        value={JSON.stringify(editedTool.api_schema.request_body_schema || {}, null, 2)}
+                        onChange={(e) => handleJsonChange(e.target.value)}
+                        className={cn(
+                          "input font-mono text-sm h-[400px] focus:border-primary dark:focus:border-primary-400",
+                          jsonError && "border-red-500 dark:border-red-500"
+                        )}
+                        placeholder="Enter JSON schema..."
+                      />
+                      {jsonError && (
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                          {jsonError}
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  <div className="relative">
-                    <textarea
-                      value={JSON.stringify(editedTool.api_schema.request_body_schema || {}, null, 2)}
-                      onChange={(e) => handleJsonChange(e.target.value)}
-                      className={cn(
-                        "input font-mono text-sm h-[400px] focus:border-primary dark:focus:border-primary-400",
-                        jsonError && "border-red-500 dark:border-red-500"
-                      )}
-                      placeholder="Enter JSON schema..."
-                    />
-                    {jsonError && (
-                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                        {jsonError}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Footer */}
@@ -324,13 +354,10 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                                 },
                                 operating_system: {
                                   type: "string",
-                                  description: "version of the os"
+                                  description: "Version of the OS"
                                 }
                               },
-                              required: [
-                                "Screen_size",
-                                "operating_system"
-                              ],
+                              required: ["Screen_size", "operating_system"],
                               description: "Brand of the laptop"
                             },
                             new_date: {
@@ -341,18 +368,13 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                               type: "array",
                               items: {
                                 type: "string",
-                                description: "interests"
+                                description: "Interests"
                               },
-                              description: "user's interests "
+                              description: "User's interests"
                             }
                           },
-                          required: [
-                            "new_time",
-                            "Laptop",
-                            "new_date",
-                            "country_user"
-                          ],
-                          description: "Type of parameters from the transcript "
+                          required: ["new_time", "Laptop", "new_date", "country_user"],
+                          description: "Type of parameters from the transcript"
                         }, null, 2)}
                       </pre>
                     </div>
@@ -375,7 +397,7 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                                   },
                                   operating_system: {
                                     type: "string",
-                                    description: "version of the os"
+                                    description: "Version of the OS"
                                   }
                                 },
                                 required: ["Screen_size", "operating_system"],
@@ -389,13 +411,13 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                                 type: "array",
                                 items: {
                                   type: "string",
-                                  description: "interests"
+                                  description: "Interests"
                                 },
-                                description: "user's interests "
+                                description: "User's interests"
                               }
                             },
                             required: ["new_time", "Laptop", "new_date", "country_user"],
-                            description: "Type of parameters from the transcript "
+                            description: "Type of parameters from the transcript"
                           }, null, 2));
                           setShowSampleModal(false);
                         }}

@@ -3,19 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
-  Bot,
   Check,
   X,
   AlertCircle,
-  FileText,
-  Link as LinkIcon,
-  Database,
-  CheckCircle2,
-  Eye,
-  Brain,
-  Cpu,
-  Atom,
-  Lightbulb,
   MessageSquare,
   Volume2,
   Thermometer,
@@ -25,12 +15,13 @@ import {
   Speech,
   Webhook,
   ChevronRight,
-  Plus 
+  Plus,
+  Database,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import CallTesting from '../../components/CallTesting';
 import { KnowledgeBaseSelect } from '../../components/KnowledgeBaseSelect';
-import { VoiceModal } from '../../components/VoiceModal';
+import { VoiceModal } from '../../components/VoiceModal'; // <-- The updated VoiceModal
 import { ModelSelect } from '../../components/ModelSelect';
 import { ToolConfigModal } from '../../components/ToolConfigModal';
 import { LanguageSelect } from '../../components/LanguageSelect';
@@ -41,7 +32,6 @@ import {
   getLanguageName,
   llmOptions,
 } from '../../lib/constants';
-import { cn } from '../../lib/utils';
 
 interface AgentDetails {
   agent_id: string;
@@ -64,50 +54,6 @@ interface AgentDetails {
           api_schema: {
             url: string;
             method: string;
-            path_params_schema?: {
-              [key: string]: {
-                type: string;
-                description: string;
-                dynamic_variable: string;
-              };
-            };
-            query_params_schema?: {
-              properties: {
-                [key: string]: {
-                  type: string;
-                  description: string;
-                  dynamic_variable: string;
-                };
-              };
-              required?: string[];
-            };
-            request_body_schema?: {
-              type: string;
-              properties: {
-                [key: string]: {
-                  type: string;
-                  description: string;
-                  dynamic_variable: string;
-                  properties?: {
-                    [key: string]: {
-                      type: string;
-                      description: string;
-                      dynamic_variable: string;
-                    };
-                  };
-                  items?: {
-                    type: string;
-                    description: string;
-                    dynamic_variable: string;
-                  };
-                };
-              };
-              required?: string[];
-              description?: string;
-            };
-            request_headers?: {
-              [key: string]: string;
-            };
           };
         }[];
       };
@@ -121,10 +67,19 @@ interface AgentDetails {
   };
 }
 
+interface VoiceLabels {
+  accent?: string;
+  description?: string;
+  age?: string;
+  gender?: string;
+  use_case?: string;
+}
+
 interface Voice {
   voice_id: string;
   name: string;
   preview_url: string;
+  labels?: VoiceLabels;
 }
 
 interface KnowledgeBaseDocument {
@@ -155,60 +110,14 @@ interface EditForm {
     api_schema: {
       url: string;
       method: string;
-      path_params_schema?: {
-        [key: string]: {
-          type: string;
-          description: string;
-          dynamic_variable: string;
-        };
-      };
-      query_params_schema?: {
-        properties: {
-          [key: string]: {
-            type: string;
-            description: string;
-            dynamic_variable: string;
-          };
-        };
-        required?: string[];
-      };
-      request_body_schema?: {
-        type: string;
-        properties: {
-          [key: string]: {
-            type: string;
-            description: string;
-            dynamic_variable: string;
-            properties?: {
-              [key: string]: {
-                type: string;
-                description: string;
-                dynamic_variable: string;
-              };
-            };
-            items?: {
-              type: string;
-              description: string;
-              dynamic_variable: string;
-            };
-          };
-        };
-        required?: string[];
-        description?: string;
-      };
-      request_headers?: {
-        [key: string]: string;
-      };
     };
   }>;
 }
 
 const BACKEND_URL = 'https://11-labs-backend.replit.app';
 
-const agentIcons = [
-  { icon: Speech, color: 'primary' },
-];
-
+// Basic agent icon logic
+const agentIcons = [{ icon: Speech, color: 'primary' }];
 const getAgentIcon = (agentId: string) => {
   const index =
     Math.abs(
@@ -220,6 +129,7 @@ const getAgentIcon = (agentId: string) => {
 const AgentDetails = () => {
   const { agentId } = useParams<{ agentId: string }>();
   const { user } = useAuth();
+
   const [agent, setAgent] = useState<AgentDetails | null>(null);
   const [voice, setVoice] = useState<Voice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -228,20 +138,17 @@ const AgentDetails = () => {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [loadingVoices, setLoadingVoices] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseDocument[]>(
-    []
-  );
+  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseDocument[]>([]);
   const [loadingKnowledgeBase, setLoadingKnowledgeBase] = useState(false);
-  const [previewDocument, setPreviewDocument] =
-    useState<KnowledgeBaseDocument | null>(null);
 
-  // UI state
+  // UI toggles
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+  const [selectedTool, setSelectedTool] = useState<any>(null);
   const [isCreatingTool, setIsCreatingTool] = useState(false);
 
+  // The form data
   const [editForm, setEditForm] = useState<EditForm>({
     name: '',
     prompt: '',
@@ -252,8 +159,8 @@ const AgentDetails = () => {
     language: 'en',
     modelType: 'turbo',
     knowledge_base: [],
+    tools: [],
   });
-
   const [editedForm, setEditedForm] = useState<EditForm>(editForm);
 
   // Fetch agent details
@@ -262,6 +169,8 @@ const AgentDetails = () => {
 
     try {
       setLoading(true);
+
+      // 1) Fetch the Agent
       const response = await fetch(
         `${BACKEND_URL}/agents/${user.uid}/${agentId}`,
         {
@@ -270,11 +179,9 @@ const AgentDetails = () => {
           },
         }
       );
-
       if (!response.ok) {
         throw new Error('Failed to fetch agent details');
       }
-
       const agentData: AgentDetails = await response.json();
       setAgent(agentData);
 
@@ -292,14 +199,14 @@ const AgentDetails = () => {
         voice_id: agentData.conversation_config.tts.voice_id,
         language: agentData.conversation_config.agent.language || 'en',
         modelType,
-        knowledge_base: agentData.conversation_config.agent.prompt.knowledge_base || [],
+        knowledge_base:
+          agentData.conversation_config.agent.prompt.knowledge_base || [],
         tools: agentData.conversation_config.agent.prompt.tools || [],
       };
-
       setEditForm(initialForm);
       setEditedForm(initialForm);
 
-      // Fetch voice details
+      // 2) Fetch details of the currently selected voice
       const voiceResponse = await fetch(
         `${BACKEND_URL}/voices/get-voice/${agentData.conversation_config.tts.voice_id}`,
         {
@@ -308,20 +215,18 @@ const AgentDetails = () => {
           },
         }
       );
-
       if (voiceResponse.ok) {
         const voiceData: Voice = await voiceResponse.json();
         setVoice(voiceData);
       }
 
-      // Fetch available voices
+      // 3) Fetch ALL voices
       setLoadingVoices(true);
       const voicesResponse = await fetch(`${BACKEND_URL}/voices/list-voices`, {
         headers: {
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
       });
-
       if (voicesResponse.ok) {
         const data = await voicesResponse.json();
         if (data.voices && Array.isArray(data.voices)) {
@@ -329,7 +234,7 @@ const AgentDetails = () => {
         }
       }
 
-      // Fetch knowledge base
+      // 4) Fetch knowledge base docs
       setLoadingKnowledgeBase(true);
       const kbResponse = await fetch(
         `${BACKEND_URL}/knowledge-base/${user.uid}`,
@@ -339,13 +244,12 @@ const AgentDetails = () => {
           },
         }
       );
-
       if (kbResponse.ok) {
-        const data = await kbResponse.json();
-        setKnowledgeBase(data.documents || []);
+        const kbData = await kbResponse.json();
+        setKnowledgeBase(kbData.documents || []);
       }
-    } catch (error) {
-      console.error('Error fetching agent details:', error);
+    } catch (err) {
+      console.error('Error fetching agent details:', err);
       setError('Failed to load agent details. Please try again.');
     } finally {
       setLoading(false);
@@ -356,11 +260,12 @@ const AgentDetails = () => {
 
   useEffect(() => {
     fetchAgentDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, agentId]);
 
+  // Save changes to backend
   const handleSave = async () => {
     if (!user || !agentId) return;
-
     try {
       setSaving(true);
       setError('');
@@ -395,31 +300,33 @@ const AgentDetails = () => {
           }),
         }
       );
-
       if (!response.ok) {
         throw new Error('Failed to update agent');
       }
-
       await fetchAgentDetails();
       setHasChanges(false);
-    } catch (error) {
-      console.error('Error updating agent:', error);
+    } catch (err) {
+      console.error('Error updating agent:', err);
       setError('Failed to update agent. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
+  // Cancel changes
   const handleCancel = () => {
     setEditedForm(editForm);
     setHasChanges(false);
+
     // Reset voice display to original voice
-    const originalVoice = voices.find((v) => v.voice_id === editForm.voice_id) || null;
-    setVoice(originalVoice);
+    const originalVoice = voices.find((v) => v.voice_id === editForm.voice_id);
+    setVoice(originalVoice || null);
+
     setShowModelDropdown(false);
     setShowLanguageDropdown(false);
   };
 
+  // Utility for updating editedForm and marking unsaved changes
   const handleChange = (
     field: keyof EditForm,
     value: string | number | any[]
@@ -428,8 +335,9 @@ const AgentDetails = () => {
     setHasChanges(true);
   };
 
+  // Create a new tool
   const handleCreateTool = () => {
-    const newTool: Tool = {
+    const newTool = {
       type: 'webhook',
       name: '',
       description: '',
@@ -439,46 +347,47 @@ const AgentDetails = () => {
         request_body_schema: {
           type: 'object',
           properties: {},
-          required: []
-        }
-      }
+          required: [],
+        },
+      },
     };
     setSelectedTool(newTool);
     setIsCreatingTool(true);
   };
 
-  const handleToolSave = (updatedTool: Tool) => {
+  // Save a tool (either new or edited)
+  const handleToolSave = (updatedTool: any) => {
     if (isCreatingTool) {
-      setEditedForm(prev => ({
+      setEditedForm((prev) => ({
         ...prev,
-        tools: [...(prev.tools || []), { ...updatedTool, method: 'POST' }]
+        tools: [...(prev.tools || []), { ...updatedTool, method: 'POST' }],
       }));
       setIsCreatingTool(false);
     } else {
-      const updatedTools = editedForm.tools.map(tool => 
+      const updatedTools = editedForm.tools.map((tool) =>
         tool.name === selectedTool?.name ? { ...updatedTool, method: 'POST' } : tool
       );
-      setEditedForm(prev => ({
+      setEditedForm((prev) => ({
         ...prev,
-        tools: updatedTools
+        tools: updatedTools,
       }));
     }
     setSelectedTool(null);
     setHasChanges(true);
   };
 
-  const handleVoiceChange = (voiceId: string) => {
-    handleChange('voice_id', voiceId);
-    const newVoice = voices.find((v) => v.voice_id === voiceId) || null;
-    // Only update displayed voice when selecting in modal
-    setVoice(newVoice);
-  };
-
-  const handleToolUpdate = (updatedTool: Tool) => {
-    const updatedTools = editedForm.tools.map(tool => 
+  const handleToolUpdate = (updatedTool: any) => {
+    const updatedTools = editedForm.tools.map((tool) =>
       tool.name === updatedTool.name ? updatedTool : tool
     );
     handleChange('tools', updatedTools);
+  };
+
+  // Called when user picks a new voice in the VoiceModal
+  const handleVoiceChange = (voiceId: string) => {
+    handleChange('voice_id', voiceId);
+    const newVoice = voices.find((v) => v.voice_id === voiceId) || null;
+    setVoice(newVoice);
   };
 
   if (loading) {
@@ -510,7 +419,7 @@ const AgentDetails = () => {
   }
 
   const { icon: Icon, color } = getAgentIcon(agent.agent_id);
-  const colorClasses = {
+  const colorClasses: Record<string, string> = {
     primary:
       'from-primary/20 to-primary/10 text-primary dark:from-primary/30 dark:to-primary/20',
     indigo: 'from-indigo-500/20 to-indigo-500/10 text-indigo-500',
@@ -611,7 +520,7 @@ const AgentDetails = () => {
                   )}
                 </button>
 
-                {/* Voice Card */}
+                {/* Voice Card (opens VoiceModal) */}
                 <button
                   onClick={() => setShowVoiceModal(true)}
                   className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 relative cursor-pointer hover:from-primary/10 hover:to-primary/20 transition-all"
@@ -622,9 +531,41 @@ const AgentDetails = () => {
                       Voice
                     </h3>
                   </div>
+                  {/* Selected voice name */}
                   <p className="text-2xl font-heading font-bold text-primary dark:text-primary-400">
                     {voice?.name || 'Not Set'}
                   </p>
+
+                  {/* Additional labels */}
+                  {voice?.labels && (
+                    <ul className="mt-2 text-sm text-gray-600 dark:text-gray-300 space-y-0.5">
+                      {voice.labels.accent && (
+                        <li>
+                          <strong>Accent:</strong> {voice.labels.accent}
+                        </li>
+                      )}
+                      {voice.labels.description && (
+                        <li>
+                          <strong>Description:</strong> {voice.labels.description}
+                        </li>
+                      )}
+                      {voice.labels.age && (
+                        <li>
+                          <strong>Age:</strong> {voice.labels.age}
+                        </li>
+                      )}
+                      {voice.labels.gender && (
+                        <li>
+                          <strong>Gender:</strong> {voice.labels.gender}
+                        </li>
+                      )}
+                      {voice.labels.use_case && (
+                        <li>
+                          <strong>Use Case:</strong> {voice.labels.use_case}
+                        </li>
+                      )}
+                    </ul>
+                  )}
                 </button>
 
                 {/* Language Card */}
@@ -839,7 +780,9 @@ const AgentDetails = () => {
                         )}
                         onSelectionChange={(selectedIds) => {
                           const selectedDocs = selectedIds.map((id) => {
-                            const doc = knowledgeBase.find((kb) => kb.id === id);
+                            const doc = knowledgeBase.find(
+                              (kb) => kb.id === id
+                            );
                             return {
                               id: doc!.id,
                               name: doc!.name,
@@ -863,13 +806,14 @@ const AgentDetails = () => {
         </div>
       </div>
 
-      {/* Voice Modal */}
+      {/* Voice Modal - uses the updated VoiceModal above */}
       <VoiceModal
         isOpen={showVoiceModal}
         onClose={() => setShowVoiceModal(false)}
         voices={voices}
         selectedVoiceId={editedForm.voice_id}
-        onVoiceChange={handleVoiceChange} />
+        onVoiceChange={handleVoiceChange}
+      />
 
       {/* Tool Configuration Modal */}
       {selectedTool && (
@@ -880,7 +824,8 @@ const AgentDetails = () => {
             setIsCreatingTool(false);
           }}
           tool={selectedTool}
-          onSave={handleToolSave} />
+          onSave={handleToolSave}
+        />
       )}
 
       {/* Sticky Save/Cancel Buttons */}

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
+  Trash2,
   X,
   Bot,
   Loader2,
@@ -21,13 +22,13 @@ import {
   Lightbulb,
   Microscope,
   AlertCircle,
-  Speech
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { Link } from 'react-router-dom';
-import { AudioPlayer } from '../../components/AudioPlayer';
-import { KnowledgeBaseSelect } from '../../components/KnowledgeBaseSelect';
-import { cn } from '../../lib/utils';
+  Speech,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { Link } from "react-router-dom";
+import { AudioPlayer } from "../../components/AudioPlayer";
+import { KnowledgeBaseSelect } from "../../components/KnowledgeBaseSelect";
+import { cn } from "../../lib/utils";
 
 interface Voice {
   voice_id: string;
@@ -41,6 +42,10 @@ interface CreateAgentPayload {
     tts: {
       voice_id: string;
       model_id: string;
+      agent_output_audio_format: string;
+    };
+    asr: {
+      user_input_audio_format: string;
     };
     turn: Record<string, never>;
     agent: {
@@ -96,87 +101,87 @@ interface AgentListResponse {
 interface KnowledgeBaseDocument {
   id: string;
   name: string;
-  type: 'file' | 'url';
+  type: "file" | "url";
   extracted_inner_html: string;
 }
 
 const languages = [
-  { code: 'ar', name: 'Arabic' },
-  { code: 'bg', name: 'Bulgarian' },
-  { code: 'zh', name: 'Chinese' },
-  { code: 'hr', name: 'Croatian' },
-  { code: 'cs', name: 'Czech' },
-  { code: 'da', name: 'Danish' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'en', name: 'English' },
-  { code: 'fi', name: 'Finnish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'el', name: 'Greek' },
-  { code: 'hi', name: 'Hindi' },
-  { code: 'hu', name: 'Hungarian' },
-  { code: 'id', name: 'Indonesian' },
-  { code: 'it', name: 'Italian' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'ms', name: 'Malay' },
-  { code: 'no', name: 'Norwegian' },
-  { code: 'pl', name: 'Polish' },
-  { code: 'pt-br', name: 'Portuguese (Brazil)' },
-  { code: 'pt', name: 'Portuguese (Portugal)' },
-  { code: 'ro', name: 'Romanian' },
-  { code: 'ru', name: 'Russian' },
-  { code: 'sk', name: 'Slovak' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'sv', name: 'Swedish' },
-  { code: 'ta', name: 'Tamil' },
-  { code: 'tr', name: 'Turkish' },
-  { code: 'uk', name: 'Ukrainian' },
-  { code: 'vi', name: 'Vietnamese' }
+  { code: "ar", name: "Arabic" },
+  { code: "bg", name: "Bulgarian" },
+  { code: "zh", name: "Chinese" },
+  { code: "hr", name: "Croatian" },
+  { code: "cs", name: "Czech" },
+  { code: "da", name: "Danish" },
+  { code: "nl", name: "Dutch" },
+  { code: "en", name: "English" },
+  { code: "fi", name: "Finnish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "el", name: "Greek" },
+  { code: "hi", name: "Hindi" },
+  { code: "hu", name: "Hungarian" },
+  { code: "id", name: "Indonesian" },
+  { code: "it", name: "Italian" },
+  { code: "ja", name: "Japanese" },
+  { code: "ko", name: "Korean" },
+  { code: "ms", name: "Malay" },
+  { code: "no", name: "Norwegian" },
+  { code: "pl", name: "Polish" },
+  { code: "pt-br", name: "Portuguese (Brazil)" },
+  { code: "pt", name: "Portuguese (Portugal)" },
+  { code: "ro", name: "Romanian" },
+  { code: "ru", name: "Russian" },
+  { code: "sk", name: "Slovak" },
+  { code: "es", name: "Spanish" },
+  { code: "sv", name: "Swedish" },
+  { code: "ta", name: "Tamil" },
+  { code: "tr", name: "Turkish" },
+  { code: "uk", name: "Ukrainian" },
+  { code: "vi", name: "Vietnamese" },
 ];
 
 const llmOptions = [
-  'gemini-1.0-pro',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-  'gemini-2.0-flash-001',
-  'gpt-3.5-turbo',
-  'gpt-4-turbo',
-  'gpt-4o',
-  'gpt-4o-mini',
-  'grok-beta',
+  "gemini-1.0-pro",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-2.0-flash-001",
+  "gpt-3.5-turbo",
+  "gpt-4-turbo",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "grok-beta",
 ];
 
-const BACKEND_URL = 'https://11-labs-backend.replit.app';
+const BACKEND_URL =
+  "https://11-labs-backend.replit.app";
 
-const agentIcons = [
-  { icon: Speech, color: 'primary' }
-];
+const agentIcons = [{ icon: Speech, color: "primary" }];
 
 const modelOptions = [
-  { 
-    id: 'turbo', 
-    name: 'Eleven Turbo', 
-    description: 'Fast, high quality'
+  {
+    id: "turbo",
+    name: "Eleven Turbo",
+    description: "Fast, high quality",
   },
-  { 
-    id: 'flash', 
-    name: 'Eleven Flash', 
-    description: 'Fastest, medium quality'
-  }
+  {
+    id: "flash",
+    name: "Eleven Flash",
+    description: "Fastest, medium quality",
+  },
 ];
 
 const getModelId = (modelType: string, language: string) => {
-  if (modelType === 'turbo') {
-    return language === 'en' ? 'eleven_turbo_v2' : 'eleven_turbo_v2_5';
+  if (modelType === "turbo") {
+    return language === "en" ? "eleven_turbo_v2" : "eleven_turbo_v2_5";
   }
-  return language === 'en' ? 'eleven_flash_v2' : 'eleven_flash_v2_5';
+  return language === "en" ? "eleven_flash_v2" : "eleven_flash_v2_5";
 };
 
 const getAgentIcon = (agentId: string) => {
-  const index = Math.abs(
-    agentId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  ) % agentIcons.length;
+  const index =
+    Math.abs(
+      agentId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0),
+    ) % agentIcons.length;
   return agentIcons[index];
 };
 
@@ -188,20 +193,54 @@ const Agents = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [voices, setVoices] = useState<Voice[]>([]);
   const [loadingVoices, setLoadingVoices] = useState(false);
-  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseDocument[]>([]);
+  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseDocument[]>(
+    [],
+  );
   const [loadingKnowledgeBase, setLoadingKnowledgeBase] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "inactive"
+  >("all");
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    prompt: '',
-    llm: 'gpt-4o',
+    name: "",
+    prompt: "",
+    llm: "gpt-4o",
     temperature: 0.7,
-    voiceId: '',
-    language: 'en',
-    modelType: 'turbo'
+    voiceId: "",
+    language: "en",
+    modelType: "turbo",
   });
-  const [nameError, setNameError] = useState('');
+  const [nameError, setNameError] = useState("");
+
+  const handleDeleteAgent = async (agentId: string) => {
+    if (!user || !window.confirm("Are you sure you want to delete this agent?"))
+      return;
+
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/agents/${user.uid}/${agentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${await user.getIdToken()}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete agent");
+      }
+
+      await fetchAgents();
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      alert("Failed to delete agent. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const fetchVoices = async () => {
@@ -216,7 +255,7 @@ const Agents = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch voices');
+          throw new Error("Failed to fetch voices");
         }
 
         const data = await response.json();
@@ -230,7 +269,7 @@ const Agents = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching voices:', error);
+        console.error("Error fetching voices:", error);
       } finally {
         setLoadingVoices(false);
       }
@@ -251,7 +290,7 @@ const Agents = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch agents');
+        throw new Error("Failed to fetch agents");
       }
 
       const data: AgentListResponse = await response.json();
@@ -264,7 +303,7 @@ const Agents = () => {
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
-        }
+        },
       );
 
       if (kbResponse.ok) {
@@ -276,7 +315,7 @@ const Agents = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoadingAgents(false);
       setLoadingKnowledgeBase(false);
@@ -293,13 +332,13 @@ const Agents = () => {
 
     // Validate agent name
     if (!formData.name.trim()) {
-      setNameError('Please enter a name for your agent');
+      setNameError("Please enter a name for your agent");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       const knowledgeBaseArray = selectedDocuments.map((docId) => {
         const doc = knowledgeBase.find((kb) => kb.id === docId);
@@ -315,7 +354,11 @@ const Agents = () => {
         conversation_config: {
           tts: {
             voice_id: formData.voiceId,
-            model_id: getModelId(formData.modelType, formData.language)
+            model_id: getModelId(formData.modelType, formData.language),
+            agent_output_audio_format: "ulaw_8000",
+          },
+          asr: {
+            user_input_audio_format: "ulaw_8000",
           },
           turn: {},
           agent: {
@@ -326,7 +369,7 @@ const Agents = () => {
               knowledge_base: knowledgeBaseArray,
               tool_ids: [],
             },
-            language: formData.language
+            language: formData.language,
           },
         },
         name: formData.name,
@@ -335,35 +378,35 @@ const Agents = () => {
       const response = await fetch(
         `${BACKEND_URL}/agents/create?use_tool_ids=true`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error('Failed to create agent');
+        throw new Error("Failed to create agent");
       }
 
       setIsCreating(false);
       setFormData({
-        name: '',
-        prompt: '',
-        llm: 'gpt-4o',
+        name: "",
+        prompt: "",
+        llm: "gpt-4o",
         temperature: 0.7,
-        voiceId: '',
-        language: 'en',
-        modelType: 'turbo'
+        voiceId: "",
+        language: "en",
+        modelType: "turbo",
       });
       setSelectedDocuments([]);
 
       await fetchAgents();
     } catch (error) {
-      console.error('Error creating agent:', error);
-      setError('Failed to create agent. Please try again.');
+      console.error("Error creating agent:", error);
+      setError("Failed to create agent. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -402,7 +445,7 @@ const Agents = () => {
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-100">
                 <div className="flex items-center space-x-2">
-                  <Bot className="w-6 h-6 text-primary dark:text-primary-400" />
+                  <Speech className="w-6 h-6 text-primary dark:text-primary-400" />
                   <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
                     Create New Agent
                   </h2>
@@ -415,7 +458,11 @@ const Agents = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateAgent} className="p-6 space-y-8 relative" noValidate>
+              <form
+                onSubmit={handleCreateAgent}
+                className="p-6 space-y-8 relative"
+                noValidate
+              >
                 <div className="space-y-4">
                   <label
                     htmlFor="name"
@@ -431,13 +478,14 @@ const Agents = () => {
                     onChange={(e) => {
                       setFormData({ ...formData, name: e.target.value });
                       if (e.target.value.trim()) {
-                        setNameError('');
+                        setNameError("");
                       }
                     }}
                     placeholder="Enter a name for your agent"
                     className={cn(
                       "input",
-                      nameError && "border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-500"
+                      nameError &&
+                        "border-red-500 dark:border-red-500 focus:ring-red-500 dark:focus:ring-red-500",
                     )}
                     required
                   />
@@ -467,7 +515,8 @@ const Agents = () => {
                     required
                   />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Describe how your agent should behave and interact with users.
+                    Describe how your agent should behave and interact with
+                    users.
                   </p>
                 </div>
 
@@ -537,11 +586,13 @@ const Agents = () => {
                       <button
                         key={model.id}
                         type="button"
-                        onClick={() => setFormData({ ...formData, modelType: model.id })}
+                        onClick={() =>
+                          setFormData({ ...formData, modelType: model.id })
+                        }
                         className={`p-4 rounded-xl border-2 text-left transition-all ${
                           formData.modelType === model.id
-                            ? 'border-primary bg-primary-50/50 dark:border-primary-400 dark:bg-primary-400/10'
-                            : 'border-gray-200 dark:border-dark-100 hover:border-primary/50 dark:hover:border-primary-400/50'
+                            ? "border-primary bg-primary-50/50 dark:border-primary-400 dark:bg-primary-400/10"
+                            : "border-gray-200 dark:border-dark-100 hover:border-primary/50 dark:hover:border-primary-400/50"
                         }`}
                       >
                         <div className="font-medium text-gray-900 dark:text-white mb-1">
@@ -585,11 +636,17 @@ const Agents = () => {
                           </option>
                         ))}
                       </select>
-                      {formData.voiceId && voices.find((v) => v.voice_id === formData.voiceId)?.preview_url && (
-                        <AudioPlayer 
-                          audioUrl={voices.find((v) => v.voice_id === formData.voiceId)!.preview_url} 
-                        />
-                      )}
+                      {formData.voiceId &&
+                        voices.find((v) => v.voice_id === formData.voiceId)
+                          ?.preview_url && (
+                          <AudioPlayer
+                            audioUrl={
+                              voices.find(
+                                (v) => v.voice_id === formData.voiceId,
+                              )!.preview_url
+                            }
+                          />
+                        )}
                     </div>
                   )}
                 </div>
@@ -604,7 +661,9 @@ const Agents = () => {
                   <select
                     id="language"
                     value={formData.language}
-                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, language: e.target.value })
+                    }
                     className="input"
                   >
                     {languages.map((lang) => (
@@ -671,7 +730,7 @@ const Agents = () => {
                           Creating...
                         </>
                       ) : (
-                        'Create Agent'
+                        "Create Agent"
                       )}
                     </button>
                   </div>
@@ -686,11 +745,13 @@ const Agents = () => {
         {loadingAgents ? (
           <div className="p-8 flex justify-center items-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-primary-400" />
-            <span className="ml-2 text-gray-600 dark:text-gray-400">Loading agents...</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              Loading agents...
+            </span>
           </div>
         ) : agents.length === 0 ? (
           <div className="p-8 text-center">
-            <Bot className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <Speech className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
             <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white mb-2">
               No agents yet
             </h3>
@@ -711,15 +772,16 @@ const Agents = () => {
             {agents.map((agent) => {
               const { icon: Icon, color } = getAgentIcon(agent.agent_id);
               const colorClasses = {
-                primary: 'from-primary/20 to-primary/10 text-primary',
-                indigo: 'from-indigo-500/20 to-indigo-500/10 text-indigo-500',
-                rose: 'from-rose-500/20 to-rose-500/10 text-rose-500',
-                sky: 'from-sky-500/20 to-sky-500/10 text-sky-500',
-                amber: 'from-amber-500/20 to-amber-500/10 text-amber-500',
-                yellow: 'from-yellow-500/20 to-yellow-500/10 text-yellow-500',
-                purple: 'from-purple-500/20 to-purple-500/10 text-purple-500',
-                orange: 'from-orange-500/20 to-orange-500/10 text-orange-500',
-                emerald: 'from-emerald-500/20 to-emerald-500/10 text-emerald-500',
+                primary: "from-primary/20 to-primary/10 text-primary",
+                indigo: "from-indigo-500/20 to-indigo-500/10 text-indigo-500",
+                rose: "from-rose-500/20 to-rose-500/10 text-rose-500",
+                sky: "from-sky-500/20 to-sky-500/10 text-sky-500",
+                amber: "from-amber-500/20 to-amber-500/10 text-amber-500",
+                yellow: "from-yellow-500/20 to-yellow-500/10 text-yellow-500",
+                purple: "from-purple-500/20 to-purple-500/10 text-purple-500",
+                orange: "from-orange-500/20 to-orange-500/10 text-orange-500",
+                emerald:
+                  "from-emerald-500/20 to-emerald-500/10 text-emerald-500",
               };
 
               return (
@@ -737,7 +799,7 @@ const Agents = () => {
                               colorClasses[color]
                             } dark:from-opacity-30 dark:to-opacity-20 flex items-center justify-center`}
                           >
-                            <Icon className="w-6 h-6" />
+                            <Icon className="w-6 h-6 text-lime-500 dark:text-lime-500" />
                           </div>
                         </div>
                         <div>
@@ -746,13 +808,12 @@ const Agents = () => {
                           </h3>
                           <div className="flex items-center space-x-3 mt-1">
                             <p className="text-sm font-menu text-gray-500 dark:text-gray-400">
-                              Created{' '}
+                              Created{" "}
                               {new Date(
-                                agent.created_at_unix_secs * 1000
+                                agent.created_at_unix_secs * 1000,
                               ).toLocaleString()}
                             </p>
-                            <div className="flex items-center space-x-1 text-xs font-menu">
-                            </div>
+                            <div className="flex items-center space-x-1 text-xs font-menu"></div>
                             {agent.conversation_config?.tts?.voice_id && (
                               <div className="flex items-center space-x-1 text-xs font-menu">
                                 <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
@@ -765,6 +826,16 @@ const Agents = () => {
                         </div>
                       </div>
                       <div className="flex items-center text-gray-400 dark:text-gray-500 hover:text-primary dark:hover:text-primary-400 transition-colors">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteAgent(agent.agent_id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors mr-2"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                         <ArrowRight className="w-5 h-5" />
                       </div>
                     </div>

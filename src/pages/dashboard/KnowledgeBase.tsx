@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Database, 
-  Plus, 
-  X, 
-  Loader2, 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Database,
+  Plus,
+  X,
+  Loader2,
   FileText,
   Link as LinkIcon,
   Trash2,
@@ -16,15 +16,16 @@ import {
   ChevronDown,
   Bot,
   Clock,
-  AlertCircle
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { cn } from '../../lib/utils';
+  AlertCircle,
+  Speech,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { cn } from "../../lib/utils";
 
 interface KnowledgeBaseDocument {
   id: string;
   name: string;
-  type: 'file' | 'url';
+  type: "file" | "url";
   dependent_agents: string[];
   access_level: string;
   created_at?: number;
@@ -36,7 +37,7 @@ interface KnowledgeBaseListResponse {
   next_cursor: string | null;
 }
 
-const BACKEND_URL = 'https://11-labs-backend.replit.app';
+const BACKEND_URL = "https://11-labs-backend.replit.app";
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -45,14 +46,14 @@ const KnowledgeBase = () => {
   const [loading, setLoading] = useState(false);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [documents, setDocuments] = useState<KnowledgeBaseDocument[]>([]);
-  const [createType, setCreateType] = useState<'file' | 'url'>('file');
+  const [createType, setCreateType] = useState<"file" | "url">("file");
   const [formData, setFormData] = useState({
-    url: '',
+    url: "",
     file: null as File | null,
   });
-  const [error, setError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'file' | 'url'>('all');
+  const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "file" | "url">("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const fetchDocuments = async () => {
@@ -64,20 +65,20 @@ const KnowledgeBase = () => {
         `${BACKEND_URL}/knowledge-base/${user.uid}`,
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch knowledge base documents');
+        throw new Error("Failed to fetch knowledge base documents");
       }
 
       const data: KnowledgeBaseListResponse = await response.json();
       setDocuments(data.documents);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      console.error("Error fetching documents:", error);
     } finally {
       setLoadingDocuments(false);
     }
@@ -93,14 +94,14 @@ const KnowledgeBase = () => {
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       let response;
-      if (createType === 'url') {
+      if (createType === "url") {
         response = await fetch(`${BACKEND_URL}/knowledge-base/create`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
           body: JSON.stringify({
@@ -110,16 +111,16 @@ const KnowledgeBase = () => {
         });
       } else {
         if (!formData.file) {
-          setError('Please select a file');
+          setError("Please select a file");
           return;
         }
 
         const formDataObj = new FormData();
-        formDataObj.append('file', formData.file);
-        formDataObj.append('user_id', user.uid);
+        formDataObj.append("file", formData.file);
+        formDataObj.append("user_id", user.uid);
 
         response = await fetch(`${BACKEND_URL}/knowledge-base/create`, {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
@@ -128,52 +129,58 @@ const KnowledgeBase = () => {
       }
 
       if (!response.ok) {
-        throw new Error('Failed to create knowledge base document');
+        throw new Error("Failed to create knowledge base document");
       }
 
       setIsCreating(false);
-      setFormData({ url: '', file: null });
+      setFormData({ url: "", file: null });
       await fetchDocuments();
     } catch (error) {
-      console.error('Error creating document:', error);
-      setError('Failed to create document. Please try again.');
+      console.error("Error creating document:", error);
+      setError("Failed to create document. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteDocument = async (documentId: string) => {
-    if (!user || !window.confirm('Are you sure you want to delete this document?')) return;
+    if (
+      !user ||
+      !window.confirm("Are you sure you want to delete this document?")
+    )
+      return;
 
     try {
       setLoading(true);
       const response = await fetch(
         `${BACKEND_URL}/knowledge-base/${user.uid}/${documentId}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error('Failed to delete document');
+        throw new Error("Failed to delete document");
       }
 
       await fetchDocuments();
     } catch (error) {
-      console.error('Error deleting document:', error);
-      alert('Failed to delete document. Please try again.');
+      console.error("Error deleting document:", error);
+      alert("Failed to delete document. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === 'all' || doc.type === filterType;
+    const matchesSearch = doc.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesType = filterType === "all" || doc.type === filterType;
     return matchesSearch && matchesType;
   });
 
@@ -188,10 +195,7 @@ const KnowledgeBase = () => {
             Manage your documents and URLs for AI training
           </p>
         </div>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="btn btn-primary"
-        >
+        <button onClick={() => setIsCreating(true)} className="btn btn-primary">
           <Plus className="w-4 h-4 mr-2" />
           Add Document
         </button>
@@ -216,14 +220,18 @@ const KnowledgeBase = () => {
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={cn(
                 "flex items-center space-x-2 px-4 py-2.5 text-sm rounded-lg border transition-colors",
-                filterType !== 'all'
-                  ? 'border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400'
-                  : 'border-gray-200 dark:border-dark-100 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dark-50'
+                filterType !== "all"
+                  ? "border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400"
+                  : "border-gray-200 dark:border-dark-100 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dark-50",
               )}
             >
               <Filter className="w-4 h-4" />
               <span>
-                {filterType === 'all' ? 'All Types' : filterType === 'file' ? 'Files Only' : 'URLs Only'}
+                {filterType === "all"
+                  ? "All Types"
+                  : filterType === "file"
+                    ? "Files Only"
+                    : "URLs Only"}
               </span>
               <ChevronDown className="w-4 h-4" />
             </button>
@@ -246,14 +254,14 @@ const KnowledgeBase = () => {
                   >
                     <button
                       onClick={() => {
-                        setFilterType('all');
+                        setFilterType("all");
                         setIsFilterOpen(false);
                       }}
                       className={cn(
                         "w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors",
-                        filterType === 'all'
-                          ? 'bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100'
+                        filterType === "all"
+                          ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100",
                       )}
                     >
                       <Database className="w-4 h-4" />
@@ -261,14 +269,14 @@ const KnowledgeBase = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setFilterType('file');
+                        setFilterType("file");
                         setIsFilterOpen(false);
                       }}
                       className={cn(
                         "w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors",
-                        filterType === 'file'
-                          ? 'bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100'
+                        filterType === "file"
+                          ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100",
                       )}
                     >
                       <FileText className="w-4 h-4" />
@@ -276,14 +284,14 @@ const KnowledgeBase = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setFilterType('url');
+                        setFilterType("url");
                         setIsFilterOpen(false);
                       }}
                       className={cn(
                         "w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors",
-                        filterType === 'url'
-                          ? 'bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100'
+                        filterType === "url"
+                          ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100",
                       )}
                     >
                       <LinkIcon className="w-4 h-4" />
@@ -330,12 +338,12 @@ const KnowledgeBase = () => {
                 <div className="mb-6">
                   <div className="flex space-x-4">
                     <button
-                      onClick={() => setCreateType('file')}
+                      onClick={() => setCreateType("file")}
                       className={cn(
                         "flex-1 py-3 px-4 rounded-lg border transition-colors",
-                        createType === 'file'
-                          ? 'border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400'
-                          : 'border-gray-200 dark:border-dark-100 text-gray-600 dark:text-gray-400 hover:border-primary/50 dark:hover:border-primary-400/50'
+                        createType === "file"
+                          ? "border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400"
+                          : "border-gray-200 dark:border-dark-100 text-gray-600 dark:text-gray-400 hover:border-primary/50 dark:hover:border-primary-400/50",
                       )}
                     >
                       <div className="flex items-center justify-center space-x-2">
@@ -344,12 +352,12 @@ const KnowledgeBase = () => {
                       </div>
                     </button>
                     <button
-                      onClick={() => setCreateType('url')}
+                      onClick={() => setCreateType("url")}
                       className={cn(
                         "flex-1 py-3 px-4 rounded-lg border transition-colors",
-                        createType === 'url'
-                          ? 'border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400'
-                          : 'border-gray-200 dark:border-dark-100 text-gray-600 dark:text-gray-400 hover:border-primary/50 dark:hover:border-primary-400/50'
+                        createType === "url"
+                          ? "border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400"
+                          : "border-gray-200 dark:border-dark-100 text-gray-600 dark:text-gray-400 hover:border-primary/50 dark:hover:border-primary-400/50",
                       )}
                     >
                       <div className="flex items-center justify-center space-x-2">
@@ -368,7 +376,7 @@ const KnowledgeBase = () => {
                     </div>
                   )}
 
-                  {createType === 'url' ? (
+                  {createType === "url" ? (
                     <div className="space-y-2">
                       <label
                         htmlFor="url"
@@ -434,7 +442,7 @@ const KnowledgeBase = () => {
                           Adding...
                         </>
                       ) : (
-                        'Add Document'
+                        "Add Document"
                       )}
                     </button>
                   </div>
@@ -449,22 +457,24 @@ const KnowledgeBase = () => {
         {loadingDocuments ? (
           <div className="p-8 flex justify-center items-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-primary-400" />
-            <span className="ml-2 text-gray-600 dark:text-gray-400">Loading documents...</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              Loading documents...
+            </span>
           </div>
         ) : filteredDocuments.length === 0 ? (
           <div className="p-8 text-center">
             <Database className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
             <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white mb-2">
-              {searchQuery || filterType !== 'all'
-                ? 'No matching documents found'
-                : 'No documents yet'}
+              {searchQuery || filterType !== "all"
+                ? "No matching documents found"
+                : "No documents yet"}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
-              {searchQuery || filterType !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'Add documents or URLs to your knowledge base to get started'}
+              {searchQuery || filterType !== "all"
+                ? "Try adjusting your search or filters"
+                : "Add documents or URLs to your knowledge base to get started"}
             </p>
-            {!searchQuery && filterType === 'all' && (
+            {!searchQuery && filterType === "all" && (
               <button
                 onClick={() => setIsCreating(true)}
                 className="btn btn-outline"
@@ -487,7 +497,7 @@ const KnowledgeBase = () => {
                   <div className="flex items-center space-x-6">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
-                        {document.type === 'file' ? (
+                        {document.type === "file" ? (
                           <FileText className="w-6 h-6 text-primary dark:text-primary-400" />
                         ) : (
                           <LinkIcon className="w-6 h-6 text-primary dark:text-primary-400" />
@@ -509,9 +519,12 @@ const KnowledgeBase = () => {
                         </div>
                         {document.dependent_agents?.length > 0 && (
                           <div className="flex items-center space-x-2">
-                            <Bot className="w-4 h-4 text-primary dark:text-primary-400" />
+                            <Speech className="w-4 h-4 text-primary dark:text-primary-400" />
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {document.dependent_agents.length} Connected Agent{document.dependent_agents.length === 1 ? '' : 's'}
+                              {document.dependent_agents.length} Connected Agent
+                              {document.dependent_agents.length === 1
+                                ? ""
+                                : "s"}
                             </span>
                           </div>
                         )}
@@ -519,7 +532,9 @@ const KnowledgeBase = () => {
                           <div className="flex items-center space-x-2">
                             <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {new Date(document.created_at * 1000).toLocaleDateString()}
+                              {new Date(
+                                document.created_at * 1000,
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         )}
@@ -528,7 +543,9 @@ const KnowledgeBase = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => navigate(`/dashboard/knowledge/${document.id}`)}
+                      onClick={() =>
+                        navigate(`/dashboard/knowledge/${document.id}`)
+                      }
                       className="p-2 text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary-400 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors"
                     >
                       <ExternalLink className="w-5 h-5" />
