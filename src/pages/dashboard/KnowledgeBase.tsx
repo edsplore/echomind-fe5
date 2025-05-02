@@ -37,7 +37,7 @@ interface KnowledgeBaseListResponse {
   next_cursor: string | null;
 }
 
-const BACKEND_URL = "https://11-labs-backend.replit.app";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const KnowledgeBase = () => {
   const { user } = useAuth();

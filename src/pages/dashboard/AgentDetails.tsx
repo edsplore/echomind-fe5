@@ -114,7 +114,7 @@ interface EditForm {
   }>;
 }
 
-const BACKEND_URL = 'https://11-labs-backend.replit.app';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Basic agent icon logic
 const agentIcons = [{ icon: Speech, color: 'primary' }];
