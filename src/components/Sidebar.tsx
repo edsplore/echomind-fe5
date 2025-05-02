@@ -44,7 +44,7 @@ const Sidebar = () => {
       <div className="flex items-center h-14 px-4 border-b border-gray-100 dark:border-dark-100">
         <Link to="/" className="flex items-center space-x-2 group">
           <div className="w-7 h-7 rounded-md bg-lime-100 dark:bg-lime-700/20 flex items-center justify-center group-hover:shadow-lg transition-all duration-300">
-            <img src="/XpressVoice-logo.png" alt="XpressVoice" className="w-4 h-4" />
+            <img src="/XpressVoice-circle-logo.png" alt="XpressVoice" className="w-4 h-4" />
           </div>
 
           {/* Hide text if collapsed */}

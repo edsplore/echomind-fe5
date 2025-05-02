@@ -215,9 +215,6 @@ export default function LandingPage() {
                 </div>
                 <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-              <span className="text-xl font-lato font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary-400">
-                XpressVoice
-              </span>
             </Link>
 
             {/* Desktop Nav */}
