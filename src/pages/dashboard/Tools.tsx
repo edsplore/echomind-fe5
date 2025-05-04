@@ -210,6 +210,36 @@ const Tools = () => {
                       placeholder="Enter calendar ID"
                     />
                   </div>
+                  {/* Buttons below input fields */}
+                  <div className="flex gap-2 justify-end mt-4">
+                    {isEditing && hasChanges ? (
+                      <>
+                        <button
+                          onClick={handleCancel}
+                          className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-dark-100 dark:text-gray-400 dark:hover:bg-dark-100 transition flex items-center gap-2"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSave}
+                          disabled={isSaving}
+                          className="px-3 py-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary-600 transition flex items-center gap-2"
+                        >
+                          <Save className="w-4 h-4" />
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition flex items-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
