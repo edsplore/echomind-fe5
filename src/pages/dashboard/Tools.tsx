@@ -203,14 +203,22 @@ const Tools = () => {
                 onClick={toggleGhlFields}
                 className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition w-full sm:w-auto"
               >
-                {showGhlFields ? 'Hide GHL Settings' : 'Connect to GHL'}
+                {showGhlFields 
+                  ? 'Hide GHL Settings' 
+                  : ghlKey && ghlCalendarId 
+                    ? 'Connected to GHL' 
+                    : 'Connect to GHL'}
               </button>
 
               <button
                 onClick={toggleCalFields}
                 className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition w-full sm:w-auto"
               >
-                {showCalFields ? 'Hide Cal.com Settings' : 'Connect to Cal.com'}
+                {showCalFields 
+                  ? 'Hide Cal.com Settings' 
+                  : calApiKey 
+                    ? 'Connected to Cal.com' 
+                    : 'Connect to Cal.com'}
               </button>
             </div>
 
