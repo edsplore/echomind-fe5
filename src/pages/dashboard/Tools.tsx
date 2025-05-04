@@ -1,17 +1,84 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Webhook, ArrowRight } from 'lucide-react';
+import { Webhook, ArrowRight, Save, Edit, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { db } from '../../lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Tools = () => {
   const [showGhlFields, setShowGhlFields] = useState(false);
   const [showCalFields, setShowCalFields] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
 
   const [ghlKey, setGhlKey] = useState('');
   const [ghlCalendarId, setGhlCalendarId] = useState('');
-
   const [calApiKey, setCalApiKey] = useState('');
-  // Removed calCalendarId since we only need the API key for Cal.com
+
+  // Store original values for cancel functionality
+  const [originalGhlKey, setOriginalGhlKey] = useState('');
+  const [originalGhlCalendarId, setOriginalGhlCalendarId] = useState('');
+  const [originalCalApiKey, setOriginalCalApiKey] = useState('');
+
+  useEffect(() => {
+    fetchToolSettings();
+  }, [user]);
+
+  const fetchToolSettings = async () => {
+    if (!user) return;
+    
+    try {
+      const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setGhlKey(data.ghlKey || '');
+        setGhlCalendarId(data.ghlCalendarId || '');
+        setCalApiKey(data.calApiKey || '');
+        
+        setOriginalGhlKey(data.ghlKey || '');
+        setOriginalGhlCalendarId(data.ghlCalendarId || '');
+        setOriginalCalApiKey(data.calApiKey || '');
+      }
+    } catch (error) {
+      console.error('Error fetching tool settings:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
+      await setDoc(docRef, {
+        ghlKey,
+        ghlCalendarId,
+        calApiKey,
+        updatedAt: new Date(),
+      });
+      
+      setOriginalGhlKey(ghlKey);
+      setOriginalGhlCalendarId(ghlCalendarId);
+      setOriginalCalApiKey(calApiKey);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving tool settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setGhlKey(originalGhlKey);
+    setGhlCalendarId(originalGhlCalendarId);
+    setCalApiKey(originalCalApiKey);
+    setIsEditing(false);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,6 +94,38 @@ const Tools = () => {
             </span>
           </p>
         </div>
+        
+        {(originalGhlKey || originalCalApiKey) && (
+          <div>
+            {isEditing ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCancel}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-dark-100 dark:text-gray-400 dark:hover:bg-dark-100 transition flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-3 py-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary-600 transition flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Edit
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="bg-white dark:bg-dark-200 rounded-xl shadow-sm border border-gray-100 dark:border-dark-100 overflow-hidden">
@@ -35,24 +134,14 @@ const Tools = () => {
             <Webhook className="w-8 h-8 text-primary dark:text-primary-400" />
           </div>
           <h3 className="text-xl font-heading font-bold text-gray-900 dark:text-white mb-3">
-            Tools Coming Soon
+            Tools Configuration
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-lg mx-auto">
-            We're working on bringing you powerful tools and integrations.
-            In the meantime, you can use tools directly in your agents.
+            Configure your integration settings below.
           </p>
-          <Link
-            to="/dashboard/agents"
-            className="inline-flex items-center text-primary hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 mb-4"
-          >
-            <span>Go to Agents</span>
-            <ArrowRight className="w-4 h-4 ml-1" />
-          </Link>
 
-          {/* Integration Buttons */}
           <div className="mt-8">
             <div className="flex flex-col sm:flex-row sm:justify-center gap-4">
-              {/* GHL Button */}
               <button
                 onClick={() => setShowGhlFields((prev) => !prev)}
                 className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition w-full sm:w-auto"
@@ -60,7 +149,6 @@ const Tools = () => {
                 {showGhlFields ? 'Hide GHL Settings' : 'Connect to GHL'}
               </button>
 
-              {/* Cal.com Button */}
               <button
                 onClick={() => setShowCalFields((prev) => !prev)}
                 className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition w-full sm:w-auto"
@@ -69,7 +157,6 @@ const Tools = () => {
               </button>
             </div>
 
-            {/* GHL Fields */}
             <AnimatePresence>
               {showGhlFields && (
                 <motion.div
@@ -86,7 +173,8 @@ const Tools = () => {
                       type="text"
                       value={ghlKey}
                       onChange={(e) => setGhlKey(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none"
+                      disabled={!isEditing && originalGhlKey}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter your GHL key"
                     />
                   </div>
@@ -98,7 +186,8 @@ const Tools = () => {
                       type="text"
                       value={ghlCalendarId}
                       onChange={(e) => setGhlCalendarId(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none"
+                      disabled={!isEditing && originalGhlCalendarId}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter calendar ID"
                     />
                   </div>
@@ -106,7 +195,6 @@ const Tools = () => {
               )}
             </AnimatePresence>
 
-            {/* Cal.com Fields (only API key needed) */}
             <AnimatePresence>
               {showCalFields && (
                 <motion.div
@@ -123,7 +211,8 @@ const Tools = () => {
                       type="text"
                       value={calApiKey}
                       onChange={(e) => setCalApiKey(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none"
+                      disabled={!isEditing && originalCalApiKey}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter your Cal.com API key"
                     />
                   </div>
