@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Webhook, ArrowRight, Save, Edit, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Webhook, Save, Edit, X } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,19 +8,22 @@ import { useAuth } from '../../contexts/AuthContext';
 const Tools = () => {
   const [showGhlFields, setShowGhlFields] = useState(false);
   const [showCalFields, setShowCalFields] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingGhl, setEditingGhl] = useState(false);
+  const [editingCal, setEditingCal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
   const { user } = useAuth();
 
+  // Current values
   const [ghlKey, setGhlKey] = useState('');
   const [ghlCalendarId, setGhlCalendarId] = useState('');
   const [calApiKey, setCalApiKey] = useState('');
 
+  // Original values for tracking changes
   const [originalGhlKey, setOriginalGhlKey] = useState('');
   const [originalGhlCalendarId, setOriginalGhlCalendarId] = useState('');
   const [originalCalApiKey, setOriginalCalApiKey] = useState('');
 
+  // Load data on initial mount
   useEffect(() => {
     if (user) {
       fetchToolSettings();
@@ -37,64 +39,135 @@ const Tools = () => {
 
       if (docSnap.exists()) {
         const data = docSnap.data();
+
+        // Set current values
         setGhlKey(data.ghlKey || '');
         setGhlCalendarId(data.ghlCalendarId || '');
         setCalApiKey(data.calApiKey || '');
 
+        // Set original values
         setOriginalGhlKey(data.ghlKey || '');
         setOriginalGhlCalendarId(data.ghlCalendarId || '');
         setOriginalCalApiKey(data.calApiKey || '');
+
+        // Reset editing states
+        setEditingGhl(false);
+        setEditingCal(false);
       }
     } catch (error) {
       console.error('Error fetching tool settings:', error);
     }
   };
 
-  const handleSave = async () => {
-    if (!user) return;
+  // Check if GHL has changes
+  const hasGhlChanges = () => {
+    return ghlKey !== originalGhlKey || ghlCalendarId !== originalGhlCalendarId;
+  };
 
+  // Check if Cal has changes
+  const hasCalChanges = () => {
+    return calApiKey !== originalCalApiKey;
+  };
+
+  // Save GHL settings
+  const saveGhlSettings = async () => {
+    if (!user) return;
     setIsSaving(true);
+
     try {
       const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
       await setDoc(docRef, {
         ghlKey,
         ghlCalendarId,
-        calApiKey,
+        calApiKey: originalCalApiKey, // Keep the original cal value
         updatedAt: new Date(),
-      });
+      }, { merge: true });
 
+      // Update original values
       setOriginalGhlKey(ghlKey);
       setOriginalGhlCalendarId(ghlCalendarId);
-      setOriginalCalApiKey(calApiKey);
-      setIsEditing(false);
-      setHasChanges(false);
+      setEditingGhl(false);
+
+      // Return to initial state
+      setShowGhlFields(false);
     } catch (error) {
-      console.error('Error saving tool settings:', error);
+      console.error('Error saving GHL settings:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleCancel = () => {
-    setGhlKey(originalGhlKey);
-    setGhlCalendarId(originalGhlCalendarId);
-    setCalApiKey(originalCalApiKey);
-    setIsEditing(false);
-    setHasChanges(false);
+  // Save Cal settings
+  const saveCalSettings = async () => {
+    if (!user) return;
+    setIsSaving(true);
+
+    try {
+      const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
+      
+      await setDoc(docRef, {
+        calApiKey,
+        ghlKey: originalGhlKey, // Keep the original GHL values
+        ghlCalendarId: originalGhlCalendarId,
+        updatedAt: new Date(),
+      }, { merge: true });
+
+      // Update original value
+      setOriginalCalApiKey(calApiKey);
+      setEditingCal(false);
+
+      // Return to initial state
+      setShowCalFields(false);
+    } catch (error) {
+      console.error('Error saving Cal.com settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
+  // Cancel GHL edits
+  const cancelGhlEdit = () => {
+    setGhlKey(originalGhlKey);
+    setGhlCalendarId(originalGhlCalendarId);
+    setEditingGhl(false);
+    setShowGhlFields(false);
+  };
+
+  // Cancel Cal edits
+  const cancelCalEdit = () => {
+    setCalApiKey(originalCalApiKey);
+    setEditingCal(false);
+    setShowCalFields(false);
+  };
+
+  // Toggle visibility of sections
   const toggleGhlFields = () => {
+    // Cancel any ongoing edits
+    if (editingGhl) {
+      cancelGhlEdit();
+    }
+
+    if (editingCal) {
+      cancelCalEdit();
+    }
+
     setShowCalFields(false);
     setShowGhlFields(!showGhlFields);
   };
 
   const toggleCalFields = () => {
+    // Cancel any ongoing edits
+    if (editingGhl) {
+      cancelGhlEdit();
+    }
+
+    if (editingCal) {
+      cancelCalEdit();
+    }
+
     setShowGhlFields(false);
     setShowCalFields(!showCalFields);
   };
-
-  const showEditButton = originalGhlKey || originalGhlCalendarId || originalCalApiKey;
-  const hasAnyValue = ghlKey || ghlCalendarId || calApiKey;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -110,36 +183,6 @@ const Tools = () => {
             </span>
           </p>
         </div>
-
-        {showEditButton && !isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition flex items-center gap-2"
-          >
-            <Edit className="w-4 h-4" />
-            Edit
-          </button>
-        )}
-
-        {isEditing && hasChanges && (
-          <div className="flex gap-2">
-            <button
-              onClick={handleCancel}
-              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-dark-100 dark:text-gray-400 dark:hover:bg-dark-100 transition flex items-center gap-2"
-            >
-              <X className="w-4 h-4" />
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-3 py-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary-600 transition flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="bg-white dark:bg-dark-200 rounded-xl shadow-sm border border-gray-100 dark:border-dark-100 overflow-hidden">
@@ -186,11 +229,8 @@ const Tools = () => {
                     <input
                       type="text"
                       value={ghlKey}
-                      onChange={(e) => {
-                        setGhlKey(e.target.value);
-                        setHasChanges(true);
-                      }}
-                      disabled={hasAnyValue && !isEditing}
+                      onChange={(e) => setGhlKey(e.target.value)}
+                      disabled={!editingGhl}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter your GHL key"
                     />
@@ -202,14 +242,43 @@ const Tools = () => {
                     <input
                       type="text"
                       value={ghlCalendarId}
-                      onChange={(e) => {
-                        setGhlCalendarId(e.target.value);
-                        setHasChanges(true);
-                      }}
-                      disabled={hasAnyValue && !isEditing}
+                      onChange={(e) => setGhlCalendarId(e.target.value)}
+                      disabled={!editingGhl}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter calendar ID"
                     />
+                  </div>
+
+                  <div className="mt-4 flex justify-end gap-2">
+                    {!editingGhl ? (
+                      <button
+                        onClick={() => setEditingGhl(true)}
+                        className="px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition flex items-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={cancelGhlEdit}
+                          className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-dark-100 dark:text-gray-400 dark:hover:bg-dark-100 transition flex items-center gap-2"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </button>
+                        <button
+                          onClick={saveGhlSettings}
+                          disabled={isSaving || !hasGhlChanges()}
+                          className={`px-3 py-2 rounded-lg border ${
+                            hasGhlChanges() ? 'border-primary bg-primary text-white hover:bg-primary-600' : 'border-gray-300 bg-gray-100 text-gray-400'
+                          } transition flex items-center gap-2`}
+                        >
+                          <Save className="w-4 h-4" />
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -230,14 +299,43 @@ const Tools = () => {
                     <input
                       type="text"
                       value={calApiKey}
-                      onChange={(e) => {
-                        setCalApiKey(e.target.value);
-                        setHasChanges(true);
-                      }}
-                      disabled={hasAnyValue && !isEditing}
+                      onChange={(e) => setCalApiKey(e.target.value)}
+                      disabled={!editingCal}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter your Cal.com API key"
                     />
+                  </div>
+
+                  <div className="mt-4 flex justify-end gap-2">
+                    {!editingCal ? (
+                      <button
+                        onClick={() => setEditingCal(true)}
+                        className="px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition flex items-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={cancelCalEdit}
+                          className="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-dark-100 dark:text-gray-400 dark:hover:bg-dark-100 transition flex items-center gap-2"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </button>
+                        <button
+                          onClick={saveCalSettings}
+                          disabled={isSaving || !hasCalChanges()}
+                          className={`px-3 py-2 rounded-lg border ${
+                            hasCalChanges() ? 'border-primary bg-primary text-white hover:bg-primary-600' : 'border-gray-300 bg-gray-100 text-gray-400'
+                          } transition flex items-center gap-2`}
+                        >
+                          <Save className="w-4 h-4" />
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               )}
