@@ -34,7 +34,7 @@ const Tools = () => {
     if (!user) return;
 
     try {
-      const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
+      const docRef = doc(db, 'users', user.uid, 'tools', 'settings');
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -75,7 +75,7 @@ const Tools = () => {
     setIsSaving(true);
 
     try {
-      const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
+      const docRef = doc(db, 'users', user.uid, 'tools', 'settings');
       await setDoc(docRef, {
         ghlKey,
         ghlCalendarId,
@@ -103,8 +103,8 @@ const Tools = () => {
     setIsSaving(true);
 
     try {
-      const docRef = doc(db, 'users', user.uid, 'settings', 'tools');
-      
+      const docRef = doc(db, 'users', user.uid, 'tools', 'settings');
+
       await setDoc(docRef, {
         calApiKey,
         ghlKey: originalGhlKey, // Keep the original GHL values
