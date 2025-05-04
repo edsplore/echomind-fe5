@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Webhook, ArrowRight, Save, Edit, X } from 'lucide-react';
@@ -95,6 +94,7 @@ const Tools = () => {
   };
 
   const showEditButton = originalGhlKey || originalGhlCalendarId || originalCalApiKey;
+  const hasAnyValue = ghlKey || ghlCalendarId || calApiKey;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -190,7 +190,7 @@ const Tools = () => {
                         setGhlKey(e.target.value);
                         setHasChanges(true);
                       }}
-                      disabled={!isEditing}
+                      disabled={hasAnyValue && !isEditing}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter your GHL key"
                     />
@@ -206,7 +206,7 @@ const Tools = () => {
                         setGhlCalendarId(e.target.value);
                         setHasChanges(true);
                       }}
-                      disabled={!isEditing}
+                      disabled={hasAnyValue && !isEditing}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter calendar ID"
                     />
@@ -234,7 +234,7 @@ const Tools = () => {
                         setCalApiKey(e.target.value);
                         setHasChanges(true);
                       }}
-                      disabled={!isEditing}
+                      disabled={hasAnyValue && !isEditing}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter your Cal.com API key"
                     />
