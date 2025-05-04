@@ -1,15 +1,15 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCJK1HQP-SJyKR8U7S5wUBhaXJoQcPHxEw",
-  authDomain: "labs-whitelabelled.firebaseapp.com",
-  projectId: "labs-whitelabelled",
-  storageBucket: "labs-whitelabelled.firebasestorage.app",
-  messagingSenderId: "735408465417",
-  appId: "1:735408465417:web:b35694bd5943e7f336bad8",
-  measurementId: "G-KXT412Z064"
+  apiKey: "AIzaSyCwxtNAUJgw2QsKbKpkceRz7usb4Y4yIVY",
+  authDomain: "xpress-voice.firebaseapp.com",
+  projectId: "xpress-voice",
+  storageBucket: "xpress-voice.firebasestorage.app",
+  messagingSenderId: "206497091675",
+  appId: "1:206497091675:web:8d32cfce3cbd772f86ef7e",
+  measurementId: "G-VHEEE3KFPT",
 };
 
 const app = initializeApp(firebaseConfig);

@@ -65,7 +65,7 @@ interface ConversationDetails {
   audio: string;
 }
 
-const BACKEND_URL = "https://11-labs-backend.replit.app";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const statusOptions = [
   { value: "", label: "All Status", icon: Filter },
