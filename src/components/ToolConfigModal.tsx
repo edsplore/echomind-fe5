@@ -64,7 +64,7 @@ const getDisplayType = (name: string) => {
   return "webhook";
 };
 
-const toolTypeOptions = [
+const getAllToolTypeOptions = () => [
   { value: "webhook", label: "Webhook" },
   { value: "ghl_booking", label: "GHL Booking" },
   { value: "calcom", label: "Cal.com" },
@@ -75,7 +75,14 @@ export const ToolConfigModal = ({
   onClose,
   tool,
   onSave,
-}: ToolConfigModalProps) => {
+  existingTools,
+}: ToolConfigModalProps & { existingTools?: Tool[] }) => {
+  const toolTypeOptions = getAllToolTypeOptions().filter(option => {
+    if (option.value === 'webhook') return true;
+    if (option.value === 'ghl_booking' && existingTools?.some(t => t.name === 'GHL_BOOKING')) return false;
+    if (option.value === 'calcom' && existingTools?.some(t => t.name === 'CAL_BOOKING')) return false;
+    return true;
+  });
   const [editedTool, setEditedTool] = useState<Tool>(() => {
     const toolCopy = JSON.parse(JSON.stringify(tool));
     toolCopy.type = getDisplayType(toolCopy.name);

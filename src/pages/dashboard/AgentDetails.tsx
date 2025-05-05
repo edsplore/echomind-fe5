@@ -836,6 +836,7 @@ const AgentDetails = () => {
           }}
           tool={selectedTool}
           onSave={handleToolSave}
+          existingTools={editedForm.tools}
         />
       )}
 
