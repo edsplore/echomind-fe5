@@ -245,22 +245,58 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
 
                   {editedTool.type === 'ghl_booking' && (
                     <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                          Webhook URL
+                        </label>
+                        <input
+                          type="text"
+                          value={editedTool.api_schema.url || ''}
+                          onChange={(e) => setEditedTool((prev) => ({
+                            ...prev,
+                            api_schema: { ...prev.api_schema, url: e.target.value + '/ghl/book' }
+                          }))}
+                          className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
+                          placeholder="Enter backend URL"
+                        />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          The '/ghl/book' endpoint will be automatically appended
+                        </p>
+                      </div>
+                      
                       <div className="p-4 bg-gray-50 dark:bg-dark-100 rounded-lg">
                         <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
-                          Required Parameters
+                          Request Body Schema
                         </h3>
                         <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
-{`{
-  "locationId": "C2QujeCh8ZnC7al2InWR",
-  "startTime": "2021-06-23T03:30:00+05:30",
-  "endTime": "2021-06-23T04:30:00+05:30",
-  "title": "Test Event",
-  "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
-}`}
+{JSON.stringify({
+  type: "object",
+  properties: {
+    locationId: {
+      type: "string",
+      description: "GHL Location ID"
+    },
+    startTime: {
+      type: "string",
+      description: "Event start time in ISO format"
+    },
+    endTime: {
+      type: "string",
+      description: "Event end time in ISO format"
+    },
+    title: {
+      type: "string",
+      description: "Event title"
+    },
+    assignedUserId: {
+      type: "string",
+      description: "GHL User ID to assign the event to"
+    }
+  },
+  required: ["locationId", "startTime", "endTime", "title", "assignedUserId"],
+  description: "GHL Booking Parameters"
+}, null, 2)}
                         </pre>
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          These are the required parameters for GHL booking integration.
-                        </p>
                       </div>
                     </div>
                   )}
