@@ -131,7 +131,7 @@ export const ToolConfigModal = ({
           type: "webhook",
           expects_response: true,
           api_schema: {
-            url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book?userId=${user?.uid}`,
+            url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book/${user?.uid}`,
             method: 'POST',
             request_body_schema: {
               type: 'object',
@@ -157,7 +157,7 @@ export const ToolConfigModal = ({
                   description: 'GHL User ID to assign the event to'
                 }
               },
-              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId', 'userId'] // Added userId to required
+              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId'] // Added userId to required
             }
           }
         };
@@ -166,7 +166,7 @@ export const ToolConfigModal = ({
           name: "CAL_BOOKING",
           type: "webhook",
           api_schema: {
-            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule?userId=${user?.uid}`,
+            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule/${user?.uid}`,
             method: 'POST',
             request_body_schema: {
               type: 'object',
@@ -192,7 +192,7 @@ export const ToolConfigModal = ({
                   description: 'Attendee email'
                 }
               },
-              required: ['eventTypeId', 'startTime', 'endTime', 'name', 'email', 'userId'] // Added userId to required
+              required: ['eventTypeId', 'startTime', 'endTime', 'name', 'email'] // Added userId to required
             }
           }
         };
