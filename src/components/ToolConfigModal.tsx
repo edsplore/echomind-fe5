@@ -55,10 +55,16 @@ const validateToolName = (name: string): string | null => {
   return null;
 };
 
+const getDisplayType = (name: string) => {
+  if (name === "GHL_BOOKING_WEBHOOK") return "ghl_booking";
+  if (name === "CAL_BOOKING_WEBHOOK") return "calcom";
+  return "webhook";
+};
+
 const toolTypeOptions = [
   { value: "webhook", label: "Webhook" },
-  { value: "GHL_BOOKING_WEBHOOK", label: "GHL Booking" },
-  { value: "CAL_BOOKING_WEBHOOK", label: "Cal.com" },
+  { value: "ghl_booking", label: "GHL Booking" },
+  { value: "calcom", label: "Cal.com" },
 ];
 
 export const ToolConfigModal = ({
@@ -67,9 +73,11 @@ export const ToolConfigModal = ({
   tool,
   onSave,
 }: ToolConfigModalProps) => {
-  const [editedTool, setEditedTool] = useState<Tool>(
-    JSON.parse(JSON.stringify(tool)),
-  );
+  const [editedTool, setEditedTool] = useState<Tool>(() => {
+    const toolCopy = JSON.parse(JSON.stringify(tool));
+    toolCopy.type = getDisplayType(toolCopy.name);
+    return toolCopy;
+  });
   const [error, setError] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const [jsonError, setJsonError] = useState("");
@@ -93,7 +101,7 @@ export const ToolConfigModal = ({
       // Determine backend configuration based on tool name
       let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema: any } = { name: '', type: '', api_schema: {} };
 
-      if (editedTool.type === "GHL_BOOKING_WEBHOOK") {
+      if (editedTool.type === "ghl_booking") {
         backendConfig = {
           name: "GHL_BOOKING_WEBHOOK",
           type: "webhook",
@@ -129,7 +137,7 @@ export const ToolConfigModal = ({
             }
           }
         };
-      } else if (editedTool.type === "CAL_BOOKING_WEBHOOK") {
+      } else if (editedTool.type === "calcom") {
         backendConfig = {
           name: "CAL_BOOKING_WEBHOOK",
           type: "webhook",
