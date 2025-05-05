@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Webhook } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -78,6 +78,9 @@ export const ToolConfigModal = ({
     toolCopy.type = getDisplayType(toolCopy.name);
     return toolCopy;
   });
+  useEffect(() => {
+    console.log(editedTool)
+  }, [editedTool])
   const [error, setError] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const [jsonError, setJsonError] = useState("");
