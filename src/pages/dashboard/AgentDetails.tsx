@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Plus,
   Database,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import CallTesting from '../../components/CallTesting';
@@ -703,11 +704,10 @@ const AgentDetails = () => {
                       {editedForm.tools.map((tool, index) => (
                         <div
                           key={index}
-                          onClick={() => setSelectedTool(tool)}
-                          className="py-4 first:pt-0 last:pb-0 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors rounded-lg cursor-pointer"
+                          className="py-4 first:pt-0 last:pb-0 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors rounded-lg"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3" onClick={() => setSelectedTool(tool)} style={{ cursor: 'pointer' }}>
                               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
                                 <Webhook className="w-5 h-5 text-primary dark:text-primary-400" />
                               </div>
@@ -720,7 +720,18 @@ const AgentDetails = () => {
                                 </p>
                               </div>
                             </div>
-                            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => {
+                                  const updatedTools = editedForm.tools.filter((t, i) => i !== index);
+                                  handleChange('tools', updatedTools);
+                                }}
+                                className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" style={{ cursor: 'pointer' }} onClick={() => setSelectedTool(tool)} />
+                            </div>
                           </div>
                         </div>
                       ))}
