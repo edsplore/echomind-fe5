@@ -16,11 +16,13 @@ const Tools = () => {
   // Current values
   const [ghlKey, setGhlKey] = useState('');
   const [ghlCalendarId, setGhlCalendarId] = useState('');
+  const [ghlLocationId, setGhlLocationId] = useState('');
   const [calApiKey, setCalApiKey] = useState('');
 
   // Original values for tracking changes
   const [originalGhlKey, setOriginalGhlKey] = useState('');
   const [originalGhlCalendarId, setOriginalGhlCalendarId] = useState('');
+  const [originalGhlLocationId, setOriginalGhlLocationId] = useState('');
   const [originalCalApiKey, setOriginalCalApiKey] = useState('');
 
   // Load data on initial mount
@@ -43,11 +45,13 @@ const Tools = () => {
         // Set current values
         setGhlKey(data.ghlKey || '');
         setGhlCalendarId(data.ghlCalendarId || '');
+        setGhlLocationId(data.ghlLocationId || '');
         setCalApiKey(data.calApiKey || '');
 
         // Set original values
         setOriginalGhlKey(data.ghlKey || '');
         setOriginalGhlCalendarId(data.ghlCalendarId || '');
+        setOriginalGhlLocationId(data.ghlLocationId || '');
         setOriginalCalApiKey(data.calApiKey || '');
 
         // Reset editing states
@@ -61,7 +65,7 @@ const Tools = () => {
 
   // Check if GHL has changes
   const hasGhlChanges = () => {
-    return ghlKey !== originalGhlKey || ghlCalendarId !== originalGhlCalendarId;
+    return ghlKey !== originalGhlKey || ghlCalendarId !== originalGhlCalendarId || ghlLocationId !== originalGhlLocationId;
   };
 
   // Check if Cal has changes
@@ -79,6 +83,7 @@ const Tools = () => {
       await setDoc(docRef, {
         ghlKey,
         ghlCalendarId,
+        ghlLocationId,
         calApiKey: originalCalApiKey, // Keep the original cal value
         updatedAt: new Date(),
       }, { merge: true });
@@ -129,6 +134,7 @@ const Tools = () => {
   const cancelGhlEdit = () => {
     setGhlKey(originalGhlKey);
     setGhlCalendarId(originalGhlCalendarId);
+    setGhlLocationId(originalGhlLocationId);
     setEditingGhl(false);
     setShowGhlFields(false);
   };
@@ -254,6 +260,19 @@ const Tools = () => {
                       disabled={!editingGhl}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
                       placeholder="Enter calendar ID"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Location ID
+                    </label>
+                    <input
+                      type="text"
+                      value={ghlLocationId}
+                      onChange={(e) => setGhlLocationId(e.target.value)}
+                      disabled={!editingGhl}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-dark-100 bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-100"
+                      placeholder="Enter location ID"
                     />
                   </div>
 
