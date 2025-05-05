@@ -93,6 +93,7 @@ export const ToolConfigModal = ({
       if (editedTool.type === "ghl_booking") {
         const updatedTool = {
           ...editedTool,
+          type: "client",
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book`,
             method: 'POST',
@@ -320,45 +321,6 @@ export const ToolConfigModal = ({
 }`}
                         </pre>
                       </div>
-                      {/* Hidden but stored in tool configuration */}
-                      <input
-                        type="hidden"
-                        value={`${import.meta.env.VITE_BACKEND_URL}/ghl/book`}
-                        onChange={(e) => setEditedTool((prev) => ({
-                          ...prev,
-                          api_schema: {
-                            ...prev.api_schema,
-                            url: e.target.value,
-                            method: 'POST',
-                            request_body_schema: {
-                              type: 'object',
-                              properties: {
-                                locationId: {
-                                  type: 'string',
-                                  description: 'GHL Location ID'
-                                },
-                                startTime: {
-                                  type: 'string',
-                                  description: 'Event start time in ISO format'
-                                },
-                                endTime: {
-                                  type: 'string',
-                                  description: 'Event end time in ISO format'
-                                },
-                                title: {
-                                  type: 'string',
-                                  description: 'Event title'
-                                },
-                                assignedUserId: {
-                                  type: 'string',
-                                  description: 'GHL User ID to assign the event to'
-                                }
-                              },
-                              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId']
-                            }
-                          }
-                        }))}
-                      />
                     </div>
                   )}
                 </div>
