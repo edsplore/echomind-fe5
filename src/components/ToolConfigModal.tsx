@@ -131,7 +131,7 @@ export const ToolConfigModal = ({
           type: "webhook",
           expects_response: true,
           api_schema: {
-            url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book?id=${user?.uid}`,
+            url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book?userId=${user?.uid}`,
             method: 'POST',
             request_body_schema: {
               type: 'object',
@@ -166,7 +166,7 @@ export const ToolConfigModal = ({
           name: "CAL_BOOKING",
           type: "webhook",
           api_schema: {
-            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule`,
+            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule?userId=${user?.uid}`,
             method: 'POST',
             request_body_schema: {
               type: 'object',
