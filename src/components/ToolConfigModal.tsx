@@ -90,21 +90,13 @@ export const ToolConfigModal = ({
         return;
       }
 
-      // Map UI tool types to backend types
-      const getBackendType = (uiType: string) => {
-        if (uiType === "ghl_booking" || uiType === "calcom") {
-          // return "client";
-          return "webhook";
-        }
-        return "webhook";
-      };
+      // Determine backend configuration based on tool name
+      let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema: any } = { name: '', type: '', api_schema: {} };
 
-      // Set appropriate configuration based on tool type
       if (editedTool.type === "GHL_BOOKING_WEBHOOK") {
-        const updatedTool = {
-          ...editedTool,
-          name: editedTool.type,
-          type: getBackendType(editedTool.type),
+        backendConfig = {
+          name: "GHL_BOOKING_WEBHOOK",
+          type: "webhook",
           expects_response: true,
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book`,
@@ -137,12 +129,10 @@ export const ToolConfigModal = ({
             }
           }
         };
-        onSave(updatedTool);
       } else if (editedTool.type === "CAL_BOOKING_WEBHOOK") {
-        const updatedTool = {
-          ...editedTool,
-          name: editedTool.type,
-          type: getBackendType(editedTool.type),
+        backendConfig = {
+          name: "CAL_BOOKING_WEBHOOK",
+          type: "webhook",
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule`,
             method: 'POST',
@@ -174,14 +164,18 @@ export const ToolConfigModal = ({
             }
           }
         };
-        onSave(updatedTool);
       } else {
-        // For webhook type, keep the type as is
-        onSave({
-          ...editedTool,
-          type: getBackendType(editedTool.type)
-        });
+        backendConfig = { name: editedTool.name, type: "webhook", api_schema: {} };
       }
+
+      const updatedTool = {
+        ...editedTool,
+        name: backendConfig.name,
+        type: backendConfig.type,
+        expects_response: backendConfig.expects_response,
+        api_schema: backendConfig.api_schema,
+      };
+      onSave(updatedTool);
       onClose();
     } catch (err) {
       setError("Failed to save changes");
