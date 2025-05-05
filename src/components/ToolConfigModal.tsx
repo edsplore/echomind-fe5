@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Webhook } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Tool {
   type: string;
@@ -106,7 +107,7 @@ export const ToolConfigModal = ({
 
   const handleSaveAndClose = () => {
     try {
-      const nameValidationError = validateToolName(editedTool.name);
+      const nameValidationError = validateToolName(editedTool.name, editedTool.type);
       if (nameValidationError && editedTool.type === "webhook") {
         setNameError(nameValidationError);
         return;
@@ -632,6 +633,3 @@ export const ToolConfigModal = ({
     </AnimatePresence>
   );
 };
-
-// Assume useAuth hook exists elsewhere in the project
-const useAuth = () => ({ user: { uid: 'someUserId' } }); // Placeholder for AuthContext
