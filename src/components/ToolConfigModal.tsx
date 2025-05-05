@@ -33,6 +33,7 @@ interface Tool {
       required?: string[];
       description?: string;
     };
+    method?: string;
   };
 }
 
@@ -271,7 +272,7 @@ export const ToolConfigModal = ({
                         <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
                           Required Parameters Example
                         </h3>
-                        <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100 mb-6">
+                        <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
                           {`{
   "locationId": "C2QujeCh8ZnC7al2InWR",
   "startTime": "2021-06-23T03:30:00+05:30",
@@ -280,49 +281,46 @@ export const ToolConfigModal = ({
   "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
 }`}
                         </pre>
-                        <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
-                          Request Body Schema
-                        </h3>
-                        <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
-                          {JSON.stringify(
-                            {
-                              type: "object",
+                      </div>
+                      {/* Hidden but stored in tool configuration */}
+                      <input
+                        type="hidden"
+                        value={`${import.meta.env.VITE_BACKEND_URL}/ghl/book`}
+                        onChange={(e) => setEditedTool((prev) => ({
+                          ...prev,
+                          api_schema: {
+                            ...prev.api_schema,
+                            url: e.target.value,
+                            method: 'POST',
+                            request_body_schema: {
+                              type: 'object',
                               properties: {
                                 locationId: {
-                                  type: "string",
-                                  description: "GHL Location ID",
+                                  type: 'string',
+                                  description: 'GHL Location ID'
                                 },
                                 startTime: {
-                                  type: "string",
-                                  description: "Event start time in ISO format",
+                                  type: 'string',
+                                  description: 'Event start time in ISO format'
                                 },
                                 endTime: {
-                                  type: "string",
-                                  description: "Event end time in ISO format",
+                                  type: 'string',
+                                  description: 'Event end time in ISO format'
                                 },
                                 title: {
-                                  type: "string",
-                                  description: "Event title",
+                                  type: 'string',
+                                  description: 'Event title'
                                 },
                                 assignedUserId: {
-                                  type: "string",
-                                  description:
-                                    "GHL User ID to assign the event to",
-                                },
+                                  type: 'string',
+                                  description: 'GHL User ID to assign the event to'
+                                }
                               },
-                              required: [
-                                "locationId",
-                                "startTime",
-                                "endTime",
-                                "title",
-                                "assignedUserId",
-                              ]
-                            },
-                            null,
-                            2,
-                          )}
-                        </pre>
-                      </div>
+                              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId']
+                            }
+                          }
+                        }))}
+                      />
                     </div>
                   )}
                 </div>
