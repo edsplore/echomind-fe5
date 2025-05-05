@@ -7,6 +7,7 @@ interface Tool {
   type: string;
   name: string;
   description: string;
+  expects_response?: boolean;
   api_schema: {
     url?: string;
     request_body_schema?: {
@@ -56,8 +57,8 @@ const validateToolName = (name: string): string | null => {
 
 const toolTypeOptions = [
   { value: "webhook", label: "Webhook" },
-  { value: "ghl_booking", label: "GHL Booking" },
-  { value: "calcom", label: "Cal.com" },
+  { value: "GHL_BOOKING_WEBHOOK", label: "GHL Booking" },
+  { value: "CAL_BOOKING_WEBHOOK", label: "Cal.com" },
 ];
 
 export const ToolConfigModal = ({
@@ -92,16 +93,19 @@ export const ToolConfigModal = ({
       // Map UI tool types to backend types
       const getBackendType = (uiType: string) => {
         if (uiType === "ghl_booking" || uiType === "calcom") {
-          return "client";
+          // return "client";
+          return "webhook";
         }
         return "webhook";
       };
 
       // Set appropriate configuration based on tool type
-      if (editedTool.type === "ghl_booking") {
+      if (editedTool.type === "GHL_BOOKING_WEBHOOK") {
         const updatedTool = {
           ...editedTool,
+          name: editedTool.type,
           type: getBackendType(editedTool.type),
+          expects_response: true,
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book`,
             method: 'POST',
@@ -134,9 +138,10 @@ export const ToolConfigModal = ({
           }
         };
         onSave(updatedTool);
-      } else if (editedTool.type === "calcom") {
+      } else if (editedTool.type === "CAL_BOOKING_WEBHOOK") {
         const updatedTool = {
           ...editedTool,
+          name: editedTool.type,
           type: getBackendType(editedTool.type),
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule`,
