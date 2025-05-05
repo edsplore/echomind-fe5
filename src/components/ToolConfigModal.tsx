@@ -224,7 +224,7 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                     />
                   </div>
 
-                  {/* Conditionally render Webhook URL only for the 'webhook' type */}
+                  {/* Conditionally render based on tool type */}
                   {editedTool.type === 'webhook' && (
                     <div>
                       <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
@@ -240,6 +240,28 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                         className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
                         placeholder="https://api.example.com/endpoint"
                       />
+                    </div>
+                  )}
+
+                  {editedTool.type === 'ghl_booking' && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gray-50 dark:bg-dark-100 rounded-lg">
+                        <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
+                          Required Parameters
+                        </h3>
+                        <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
+{`{
+  "locationId": "C2QujeCh8ZnC7al2InWR",
+  "startTime": "2021-06-23T03:30:00+05:30",
+  "endTime": "2021-06-23T04:30:00+05:30",
+  "title": "Test Event",
+  "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
+}`}
+                        </pre>
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          These are the required parameters for GHL booking integration.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
