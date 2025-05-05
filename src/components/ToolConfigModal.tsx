@@ -167,28 +167,35 @@ export const ToolConfigModal = ({
             request_body_schema: {
               type: 'object',
               properties: {
-                eventTypeId: {
+                start: {
                   type: 'string',
-                  description: 'Cal.com Event Type ID'
+                  description: 'Event start time in ISO 8601 format with UTC timezone (e.g. 2024-08-13T09:00:00Z)'
                 },
-                startTime: {
+                end: {
                   type: 'string',
-                  description: 'Event start time in ISO format'
+                  description: 'Event end time in ISO 8601 format with UTC timezone (e.g. 2024-08-13T10:00:00Z)'
                 },
-                endTime: {
-                  type: 'string',
-                  description: 'Event end time in ISO format'
-                },
-                name: {
-                  type: 'string',
-                  description: 'Attendee name'
-                },
-                email: {
-                  type: 'string',
-                  description: 'Attendee email'
+                attendee: {
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'Full name of the attendee'
+                    },
+                    email: {
+                      type: 'string',
+                      description: 'Valid email address of the attendee'
+                    },
+                    timeZone: {
+                      type: 'string',
+                      description: 'IANA timezone identifier (e.g. America/New_York, Europe/London)'
+                    }
+                  },
+                  required: ['name', 'email', 'timeZone'],
+                  description: 'Attendee information for the booking'
                 }
               },
-              required: ['eventTypeId', 'startTime', 'endTime', 'name', 'email'] // Added userId to required
+              required: ['start', 'end', 'attendee'] // Added userId to required
             }
           }
         };
@@ -396,6 +403,27 @@ export const ToolConfigModal = ({
   "endTime": "2021-06-23T04:30:00+05:30",
   "title": "Test Event",
   "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {editedTool.type === "calcom" && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gray-50 dark:bg-dark-100 rounded-lg">
+                        <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
+                          Required Parameters Example
+                        </h3>
+                        <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
+                          {`{
+  "start": "2024-08-13T09:00:00Z",
+  "end": "2024-08-13T10:00:00Z",
+  "attendee": {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "timeZone": "America/New_York"
+  }
 }`}
                         </pre>
                       </div>
