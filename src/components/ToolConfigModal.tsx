@@ -95,6 +95,7 @@ export const ToolConfigModal = ({
   const [nameError, setNameError] = useState<string | null>(null);
   const [jsonError, setJsonError] = useState("");
   const [showSampleModal, setShowSampleModal] = useState(false);
+  const { user } = useAuth(); // Added useAuth hook
 
   const handleClose = () => {
     setNameError(null);
@@ -144,9 +145,14 @@ export const ToolConfigModal = ({
                 assignedUserId: {
                   type: 'string',
                   description: 'GHL User ID to assign the event to'
+                },
+                userId: { // Added userId property
+                  type: 'string',
+                  description: 'User ID',
+                  default: user?.uid // Set default value from AuthContext
                 }
               },
-              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId']
+              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId', 'userId'] // Added userId to required
             }
           }
         };
@@ -179,9 +185,14 @@ export const ToolConfigModal = ({
                 email: {
                   type: 'string',
                   description: 'Attendee email'
+                },
+                userId: { // Added userId property
+                  type: 'string',
+                  description: 'User ID',
+                  default: user?.uid // Set default value from AuthContext
                 }
               },
-              required: ['eventTypeId', 'startTime', 'endTime', 'name', 'email']
+              required: ['eventTypeId', 'startTime', 'endTime', 'name', 'email', 'userId'] // Added userId to required
             }
           }
         };
@@ -389,7 +400,8 @@ export const ToolConfigModal = ({
   "startTime": "2021-06-23T03:30:00+05:30",
   "endTime": "2021-06-23T04:30:00+05:30",
   "title": "Test Event",
-  "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
+  "assignedUserId": "CVokAlI8fgw4WYWoCtQz",
+  "userId": "someUserId" // Example userId
 }`}
                         </pre>
                       </div>
@@ -620,3 +632,6 @@ export const ToolConfigModal = ({
     </AnimatePresence>
   );
 };
+
+// Assume useAuth hook exists elsewhere in the project
+const useAuth = () => ({ user: { uid: 'someUserId' } }); // Placeholder for AuthContext
