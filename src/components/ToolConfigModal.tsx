@@ -89,7 +89,45 @@ export const ToolConfigModal = ({
         return;
       }
 
-      onSave(editedTool);
+      // If tool type is GHL, set the URL and schema
+      if (editedTool.type === "ghl_booking") {
+        const updatedTool = {
+          ...editedTool,
+          api_schema: {
+            url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book`,
+            method: 'POST',
+            request_body_schema: {
+              type: 'object',
+              properties: {
+                locationId: {
+                  type: 'string',
+                  description: 'GHL Location ID'
+                },
+                startTime: {
+                  type: 'string',
+                  description: 'Event start time in ISO format'
+                },
+                endTime: {
+                  type: 'string',
+                  description: 'Event end time in ISO format'
+                },
+                title: {
+                  type: 'string',
+                  description: 'Event title'
+                },
+                assignedUserId: {
+                  type: 'string',
+                  description: 'GHL User ID to assign the event to'
+                }
+              },
+              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId']
+            }
+          }
+        };
+        onSave(updatedTool);
+      } else {
+        onSave(editedTool);
+      }
       onClose();
     } catch (err) {
       setError("Failed to save changes");
