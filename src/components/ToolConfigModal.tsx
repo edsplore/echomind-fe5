@@ -80,17 +80,17 @@ export const ToolConfigModal = ({
 }: ToolConfigModalProps & { existingTools?: Tool[] }) => {
   const toolTypeOptions = getAllToolTypeOptions().filter(option => {
     if (option.value === 'webhook') return true;
-    
+
     // For GHL booking, show if it's the current tool being edited
     if (option.value === 'ghl_booking') {
       return !existingTools?.some(t => t.name === 'GHL_BOOKING') || tool.name === 'GHL_BOOKING';
     }
-    
+
     // For Cal.com, show if it's the current tool being edited
     if (option.value === 'calcom') {
       return !existingTools?.some(t => t.name === 'CAL_BOOKING') || tool.name === 'CAL_BOOKING';
     }
-    
+
     return true;
   });
   const [editedTool, setEditedTool] = useState<Tool>(() => {
@@ -138,22 +138,22 @@ export const ToolConfigModal = ({
               properties: {
                 startTime: {
                   type: 'string',
-                  description: 'Event start time in ISO format'
+                  description: 'Event start time in ISO 8601 format with timezone offset (e.g. 2021-06-23T03:30:00+05:30)'
                 },
                 endTime: {
                   type: 'string',
-                  description: 'Event end time in ISO format'
+                  description: 'Event end time in ISO 8601 format with timezone offset (e.g. 2021-06-23T04:30:00+05:30)'
                 },
                 title: {
                   type: 'string',
-                  description: 'Event title'
+                  description: 'Title or name of the event/appointment to be created in GHL calendar'
                 },
                 assignedUserId: {
                   type: 'string',
-                  description: 'GHL User ID to assign the event to'
+                  description: 'Unique identifier of the GHL user who will be assigned to this appointment (e.g. CVokAlI8fgw4WYWoCtQz)'
                 }
               },
-              required: ['startTime', 'endTime', 'title', 'assignedUserId'] // Added userId to required
+              required: ['startTime', 'endTime', 'title', 'assignedUserId']
             }
           }
         };
