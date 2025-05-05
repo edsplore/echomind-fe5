@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Webhook } from 'lucide-react';
-import { cn } from '../lib/utils';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Webhook } from "lucide-react";
+import { cn } from "../lib/utils";
 
 interface Tool {
   type: string;
@@ -45,31 +45,38 @@ interface ToolConfigModalProps {
 
 const validateToolName = (name: string): string | null => {
   if (!name.trim()) {
-    return 'Tool name is required';
+    return "Tool name is required";
   }
-  if (name.includes(' ')) {
-    return 'Tool name cannot contain spaces';
+  if (name.includes(" ")) {
+    return "Tool name cannot contain spaces";
   }
   return null;
 };
 
 const toolTypeOptions = [
-  { value: 'webhook', label: 'Webhook' },
-  { value: 'ghl_booking', label: 'GHL Booking' },
-  { value: 'calcom', label: 'Cal.com' },
+  { value: "webhook", label: "Webhook" },
+  { value: "ghl_booking", label: "GHL Booking" },
+  { value: "calcom", label: "Cal.com" },
 ];
 
-export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigModalProps) => {
-  const [editedTool, setEditedTool] = useState<Tool>(JSON.parse(JSON.stringify(tool)));
-  const [error, setError] = useState('');
+export const ToolConfigModal = ({
+  isOpen,
+  onClose,
+  tool,
+  onSave,
+}: ToolConfigModalProps) => {
+  const [editedTool, setEditedTool] = useState<Tool>(
+    JSON.parse(JSON.stringify(tool)),
+  );
+  const [error, setError] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
-  const [jsonError, setJsonError] = useState('');
+  const [jsonError, setJsonError] = useState("");
   const [showSampleModal, setShowSampleModal] = useState(false);
 
   const handleClose = () => {
     setNameError(null);
-    setError('');
-    setJsonError('');
+    setError("");
+    setJsonError("");
     onClose();
   };
 
@@ -84,23 +91,23 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
       onSave(editedTool);
       onClose();
     } catch (err) {
-      setError('Failed to save changes');
+      setError("Failed to save changes");
     }
   };
 
   const handleJsonChange = (value: string) => {
     try {
       const parsed = JSON.parse(value);
-      setJsonError('');
-      setEditedTool(prev => ({
+      setJsonError("");
+      setEditedTool((prev) => ({
         ...prev,
         api_schema: {
           ...prev.api_schema,
-          request_body_schema: parsed
-        }
+          request_body_schema: parsed,
+        },
       }));
     } catch (err) {
-      setJsonError('Invalid JSON format');
+      setJsonError("Invalid JSON format");
     }
   };
 
@@ -117,10 +124,10 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
           />
 
           <motion.div
-            initial={{ opacity: 0, x: '100%' }}
+            initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed top-0 right-0 w-[600px] h-full bg-white dark:bg-dark-200 shadow-2xl flex flex-col z-50"
           >
             {/* Header */}
@@ -153,7 +160,9 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
               <div className="p-6 space-y-8">
                 {nameError && (
                   <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-lg">
-                    <p className="text-sm text-red-600 dark:text-red-400">{nameError}</p>
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {nameError}
+                    </p>
                   </div>
                 )}
 
@@ -172,7 +181,10 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                     <select
                       value={editedTool.type}
                       onChange={(e) =>
-                        setEditedTool((prev) => ({ ...prev, type: e.target.value }))
+                        setEditedTool((prev) => ({
+                          ...prev,
+                          type: e.target.value,
+                        }))
                       }
                       className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
                     >
@@ -199,7 +211,7 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                         }}
                         className={cn(
                           "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
-                          nameError && "border-red-500 dark:border-red-500"
+                          nameError && "border-red-500 dark:border-red-500",
                         )}
                         placeholder="Enter tool name"
                       />
@@ -217,7 +229,12 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                     </label>
                     <textarea
                       value={editedTool.description}
-                      onChange={(e) => setEditedTool((prev) => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setEditedTool((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
                       className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
                       rows={3}
                       placeholder="Describe what this tool does and how it should be used"
@@ -225,77 +242,85 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                   </div>
 
                   {/* Conditionally render based on tool type */}
-                  {editedTool.type === 'webhook' && (
+                  {editedTool.type === "webhook" && (
                     <div>
                       <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
                         Webhook URL
                       </label>
                       <input
                         type="text"
-                        value={editedTool.api_schema.url || ''}
-                        onChange={(e) => setEditedTool((prev) => ({
-                          ...prev,
-                          api_schema: { ...prev.api_schema, url: e.target.value }
-                        }))}
+                        value={editedTool.api_schema.url || ""}
+                        onChange={(e) =>
+                          setEditedTool((prev) => ({
+                            ...prev,
+                            api_schema: {
+                              ...prev.api_schema,
+                              url: e.target.value,
+                            },
+                          }))
+                        }
                         className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
                         placeholder="https://api.example.com/endpoint"
                       />
                     </div>
                   )}
 
-                  {editedTool.type === 'ghl_booking' && (
+                  {editedTool.type === "ghl_booking" && (
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                          Webhook URL
-                        </label>
-                        <input
-                          type="text"
-                          value={editedTool.api_schema.url || ''}
-                          onChange={(e) => setEditedTool((prev) => ({
-                            ...prev,
-                            api_schema: { ...prev.api_schema, url: e.target.value + '/ghl/book' }
-                          }))}
-                          className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
-                          placeholder="Enter backend URL"
-                        />
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          The '/ghl/book' endpoint will be automatically appended
-                        </p>
-                      </div>
-                      
                       <div className="p-4 bg-gray-50 dark:bg-dark-100 rounded-lg">
+                        <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
+                          Required Parameters Example
+                        </h3>
+                        <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100 mb-6">
+                          {`{
+  "locationId": "C2QujeCh8ZnC7al2InWR",
+  "startTime": "2021-06-23T03:30:00+05:30",
+  "endTime": "2021-06-23T04:30:00+05:30",
+  "title": "Test Event",
+  "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
+}`}
+                        </pre>
                         <h3 className="text-sm font-lato font-semibold text-gray-900 dark:text-white mb-3">
                           Request Body Schema
                         </h3>
                         <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
-{JSON.stringify({
-  type: "object",
-  properties: {
-    locationId: {
-      type: "string",
-      description: "GHL Location ID"
-    },
-    startTime: {
-      type: "string",
-      description: "Event start time in ISO format"
-    },
-    endTime: {
-      type: "string",
-      description: "Event end time in ISO format"
-    },
-    title: {
-      type: "string",
-      description: "Event title"
-    },
-    assignedUserId: {
-      type: "string",
-      description: "GHL User ID to assign the event to"
-    }
-  },
-  required: ["locationId", "startTime", "endTime", "title", "assignedUserId"],
-  description: "GHL Booking Parameters"
-}, null, 2)}
+                          {JSON.stringify(
+                            {
+                              type: "object",
+                              properties: {
+                                locationId: {
+                                  type: "string",
+                                  description: "GHL Location ID",
+                                },
+                                startTime: {
+                                  type: "string",
+                                  description: "Event start time in ISO format",
+                                },
+                                endTime: {
+                                  type: "string",
+                                  description: "Event end time in ISO format",
+                                },
+                                title: {
+                                  type: "string",
+                                  description: "Event title",
+                                },
+                                assignedUserId: {
+                                  type: "string",
+                                  description:
+                                    "GHL User ID to assign the event to",
+                                },
+                              },
+                              required: [
+                                "locationId",
+                                "startTime",
+                                "endTime",
+                                "title",
+                                "assignedUserId",
+                              ]
+                            },
+                            null,
+                            2,
+                          )}
                         </pre>
                       </div>
                     </div>
@@ -303,7 +328,7 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                 </div>
 
                 {/* Conditionally render Request Body Schema only if type is 'webhook' */}
-                {editedTool.type === 'webhook' && (
+                {editedTool.type === "webhook" && (
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
@@ -311,7 +336,8 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                       </label>
                       <div className="flex items-center justify-between mb-4">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Define the structure of the request body in JSON format
+                          Define the structure of the request body in JSON
+                          format
                         </p>
                         <button
                           onClick={() => setShowSampleModal(true)}
@@ -324,11 +350,15 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
 
                     <div className="relative">
                       <textarea
-                        value={JSON.stringify(editedTool.api_schema.request_body_schema || {}, null, 2)}
+                        value={JSON.stringify(
+                          editedTool.api_schema.request_body_schema || {},
+                          null,
+                          2,
+                        )}
                         onChange={(e) => handleJsonChange(e.target.value)}
                         className={cn(
                           "input font-mono text-sm h-[400px] focus:border-primary dark:focus:border-primary-400",
-                          jsonError && "border-red-500 dark:border-red-500"
+                          jsonError && "border-red-500 dark:border-red-500",
                         )}
                         placeholder="Enter JSON schema..."
                       />
@@ -357,7 +387,8 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                     className={cn(
                       "px-4 py-2 text-sm font-lato font-semibold text-white bg-primary rounded-lg",
                       "hover:bg-primary-600 transition-colors",
-                      (!!nameError || !!jsonError) && "opacity-50 cursor-not-allowed"
+                      (!!nameError || !!jsonError) &&
+                        "opacity-50 cursor-not-allowed",
                     )}
                   >
                     Done
@@ -396,87 +427,112 @@ export const ToolConfigModal = ({ isOpen, onClose, tool, onSave }: ToolConfigMod
                     </div>
                     <div className="flex-1 p-4 overflow-auto">
                       <pre className="font-mono text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                        {JSON.stringify({
-                          type: "object",
-                          properties: {
-                            new_time: {
-                              type: "string",
-                              description: "The new time"
-                            },
-                            Laptop: {
-                              type: "object",
-                              properties: {
-                                Screen_size: {
-                                  type: "string",
-                                  description: "Size of the screen"
-                                },
-                                operating_system: {
-                                  type: "string",
-                                  description: "Version of the OS"
-                                }
-                              },
-                              required: ["Screen_size", "operating_system"],
-                              description: "Brand of the laptop"
-                            },
-                            new_date: {
-                              type: "string",
-                              description: "The new booking date"
-                            },
-                            country_user: {
-                              type: "array",
-                              items: {
-                                type: "string",
-                                description: "Interests"
-                              },
-                              description: "User's interests"
-                            }
-                          },
-                          required: ["new_time", "Laptop", "new_date", "country_user"],
-                          description: "Type of parameters from the transcript"
-                        }, null, 2)}
-                      </pre>
-                    </div>
-                    <div className="p-4 border-t border-gray-200 dark:border-dark-100">
-                      <button
-                        onClick={() => {
-                          handleJsonChange(JSON.stringify({
+                        {JSON.stringify(
+                          {
                             type: "object",
                             properties: {
                               new_time: {
                                 type: "string",
-                                description: "The new time"
+                                description: "The new time",
                               },
                               Laptop: {
                                 type: "object",
                                 properties: {
                                   Screen_size: {
                                     type: "string",
-                                    description: "Size of the screen"
+                                    description: "Size of the screen",
                                   },
                                   operating_system: {
                                     type: "string",
-                                    description: "Version of the OS"
-                                  }
+                                    description: "Version of the OS",
+                                  },
                                 },
                                 required: ["Screen_size", "operating_system"],
-                                description: "Brand of the laptop"
+                                description: "Brand of the laptop",
                               },
                               new_date: {
                                 type: "string",
-                                description: "The new booking date"
+                                description: "The new booking date",
                               },
                               country_user: {
                                 type: "array",
                                 items: {
                                   type: "string",
-                                  description: "Interests"
+                                  description: "Interests",
                                 },
-                                description: "User's interests"
-                              }
+                                description: "User's interests",
+                              },
                             },
-                            required: ["new_time", "Laptop", "new_date", "country_user"],
-                            description: "Type of parameters from the transcript"
-                          }, null, 2));
+                            required: [
+                              "new_time",
+                              "Laptop",
+                              "new_date",
+                              "country_user",
+                            ],
+                            description:
+                              "Type of parameters from the transcript",
+                          },
+                          null,
+                          2,
+                        )}
+                      </pre>
+                    </div>
+                    <div className="p-4 border-t border-gray-200 dark:border-dark-100">
+                      <button
+                        onClick={() => {
+                          handleJsonChange(
+                            JSON.stringify(
+                              {
+                                type: "object",
+                                properties: {
+                                  new_time: {
+                                    type: "string",
+                                    description: "The new time",
+                                  },
+                                  Laptop: {
+                                    type: "object",
+                                    properties: {
+                                      Screen_size: {
+                                        type: "string",
+                                        description: "Size of the screen",
+                                      },
+                                      operating_system: {
+                                        type: "string",
+                                        description: "Version of the OS",
+                                      },
+                                    },
+                                    required: [
+                                      "Screen_size",
+                                      "operating_system",
+                                    ],
+                                    description: "Brand of the laptop",
+                                  },
+                                  new_date: {
+                                    type: "string",
+                                    description: "The new booking date",
+                                  },
+                                  country_user: {
+                                    type: "array",
+                                    items: {
+                                      type: "string",
+                                      description: "Interests",
+                                    },
+                                    description: "User's interests",
+                                  },
+                                },
+                                required: [
+                                  "new_time",
+                                  "Laptop",
+                                  "new_date",
+                                  "country_user",
+                                ],
+                                description:
+                                  "Type of parameters from the transcript",
+                              },
+                              null,
+                              2,
+                            ),
+                          );
                           setShowSampleModal(false);
                         }}
                         className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 font-lato font-semibold transition-colors"
