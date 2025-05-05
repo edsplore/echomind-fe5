@@ -96,7 +96,7 @@ export const ToolConfigModal = ({
   const handleSaveAndClose = () => {
     try {
       const nameValidationError = validateToolName(editedTool.name);
-      if (nameValidationError) {
+      if (nameValidationError && editedTool.type === "webhook") {
         setNameError(nameValidationError);
         return;
       }
