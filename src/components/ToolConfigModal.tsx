@@ -137,12 +137,12 @@ export const ToolConfigModal = ({
               type: 'object',
               properties: {
                 startTime: {
-                  type: 'string',
-                  description: 'Event start time in ISO format'
+                  type: 'number',
+                  description: 'Event start time in milliseconds'
                 },
                 endTime: {
-                  type: 'string',
-                  description: 'Event end time in ISO format'
+                  type: 'number',
+                  description: 'Event end time in milliseconds'
                 },
                 title: {
                   type: 'string',
@@ -172,12 +172,12 @@ export const ToolConfigModal = ({
                   description: 'Cal.com Event Type ID'
                 },
                 startTime: {
-                  type: 'string',
-                  description: 'Event start time in ISO format'
+                  type: 'number',
+                  description: 'Event start time in milliseconds'
                 },
                 endTime: {
-                  type: 'string',
-                  description: 'Event end time in ISO format'
+                  type: 'number',
+                  description: 'Event end time in milliseconds'
                 },
                 name: {
                   type: 'string',
