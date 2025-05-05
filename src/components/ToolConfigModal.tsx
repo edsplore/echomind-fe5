@@ -45,12 +45,15 @@ interface ToolConfigModalProps {
   onSave: (updatedTool: Tool) => void;
 }
 
-const validateToolName = (name: string): string | null => {
+const validateToolName = (name: string, type: string): string | null => {
   if (!name.trim()) {
     return "Tool name is required";
   }
   if (name.includes(" ")) {
     return "Tool name cannot contain spaces";
+  }
+  if (type === "webhook" && (name === "GHL_BOOKING" || name === "CAL_BOOKING")) {
+    return "Reserved tool name. Please choose a different name.";
   }
   return null;
 };
@@ -306,7 +309,7 @@ export const ToolConfigModal = ({
                           if (editedTool.type === "webhook") {
                             const newName = e.target.value;
                             setEditedTool((prev) => ({ ...prev, name: newName }));
-                            setNameError(validateToolName(newName));
+                            setNameError(validateToolName(newName, editedTool.type));
                           }
                         }}
                         readOnly={editedTool.type !== "webhook"}
