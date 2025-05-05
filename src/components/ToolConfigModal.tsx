@@ -56,8 +56,8 @@ const validateToolName = (name: string): string | null => {
 };
 
 const getDisplayType = (name: string) => {
-  if (name === "GHL_BOOKING_WEBHOOK") return "ghl_booking";
-  if (name === "CAL_BOOKING_WEBHOOK") return "calcom";
+  if (name === "GHL_BOOKING") return "ghl_booking";
+  if (name === "CAL_BOOKING") return "calcom";
   return "webhook";
 };
 
@@ -106,7 +106,7 @@ export const ToolConfigModal = ({
 
       if (editedTool.type === "ghl_booking") {
         backendConfig = {
-          name: "GHL_BOOKING_WEBHOOK",
+          name: "GHL_BOOKING",
           type: "webhook",
           expects_response: true,
           api_schema: {
@@ -142,7 +142,7 @@ export const ToolConfigModal = ({
         };
       } else if (editedTool.type === "calcom") {
         backendConfig = {
-          name: "CAL_BOOKING_WEBHOOK",
+          name: "CAL_BOOKING",
           type: "webhook",
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule`,
@@ -294,34 +294,36 @@ export const ToolConfigModal = ({
                     </select>
                   </div>
 
-                  {editedTool.type === "webhook" && (
-                    <div>
-                      <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                        Tool Name
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={editedTool.name}
-                          onChange={(e) => {
+                  <div>
+                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                      Tool Name
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={editedTool.type === "ghl_booking" ? "GHL_BOOKING" : editedTool.type === "calcom" ? "CAL_BOOKING" : editedTool.name}
+                        onChange={(e) => {
+                          if (editedTool.type === "webhook") {
                             const newName = e.target.value;
                             setEditedTool((prev) => ({ ...prev, name: newName }));
                             setNameError(validateToolName(newName));
-                          }}
-                          className={cn(
-                            "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
-                            nameError && "border-red-500 dark:border-red-500",
-                          )}
-                          placeholder="Enter tool name"
-                        />
-                        {nameError && (
-                          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                            {nameError}
-                          </p>
+                          }
+                        }}
+                        readOnly={editedTool.type !== "webhook"}
+                        className={cn(
+                          "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
+                          nameError && "border-red-500 dark:border-red-500",
+                          editedTool.type !== "webhook" && "bg-gray-100 dark:bg-dark-100 cursor-not-allowed"
                         )}
-                      </div>
+                        placeholder="Enter tool name"
+                      />
+                      {nameError && editedTool.type === "webhook" && (
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                          {nameError}
+                        </p>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   <div>
                     <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
