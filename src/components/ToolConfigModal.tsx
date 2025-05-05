@@ -89,11 +89,19 @@ export const ToolConfigModal = ({
         return;
       }
 
-      // If tool type is GHL, set the URL and schema
+      // Map UI tool types to backend types
+      const getBackendType = (uiType: string) => {
+        if (uiType === "ghl_booking" || uiType === "calcom") {
+          return "client";
+        }
+        return "webhook";
+      };
+
+      // Set appropriate configuration based on tool type
       if (editedTool.type === "ghl_booking") {
         const updatedTool = {
           ...editedTool,
-          type: "client",
+          type: getBackendType(editedTool.type),
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book`,
             method: 'POST',
@@ -126,8 +134,48 @@ export const ToolConfigModal = ({
           }
         };
         onSave(updatedTool);
+      } else if (editedTool.type === "calcom") {
+        const updatedTool = {
+          ...editedTool,
+          type: getBackendType(editedTool.type),
+          api_schema: {
+            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule`,
+            method: 'POST',
+            request_body_schema: {
+              type: 'object',
+              properties: {
+                eventTypeId: {
+                  type: 'string',
+                  description: 'Cal.com Event Type ID'
+                },
+                startTime: {
+                  type: 'string',
+                  description: 'Event start time in ISO format'
+                },
+                endTime: {
+                  type: 'string',
+                  description: 'Event end time in ISO format'
+                },
+                name: {
+                  type: 'string',
+                  description: 'Attendee name'
+                },
+                email: {
+                  type: 'string',
+                  description: 'Attendee email'
+                }
+              },
+              required: ['eventTypeId', 'startTime', 'endTime', 'name', 'email']
+            }
+          }
+        };
+        onSave(updatedTool);
       } else {
-        onSave(editedTool);
+        // For webhook type, keep the type as is
+        onSave({
+          ...editedTool,
+          type: getBackendType(editedTool.type)
+        });
       }
       onClose();
     } catch (err) {
