@@ -294,32 +294,34 @@ export const ToolConfigModal = ({
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                      Tool Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={editedTool.name}
-                        onChange={(e) => {
-                          const newName = e.target.value;
-                          setEditedTool((prev) => ({ ...prev, name: newName }));
-                          setNameError(validateToolName(newName));
-                        }}
-                        className={cn(
-                          "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
-                          nameError && "border-red-500 dark:border-red-500",
+                  {editedTool.type === "webhook" && (
+                    <div>
+                      <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                        Tool Name
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={editedTool.name}
+                          onChange={(e) => {
+                            const newName = e.target.value;
+                            setEditedTool((prev) => ({ ...prev, name: newName }));
+                            setNameError(validateToolName(newName));
+                          }}
+                          className={cn(
+                            "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
+                            nameError && "border-red-500 dark:border-red-500",
+                          )}
+                          placeholder="Enter tool name"
+                        />
+                        {nameError && (
+                          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                            {nameError}
+                          </p>
                         )}
-                        placeholder="Enter tool name"
-                      />
-                      {nameError && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                          {nameError}
-                        </p>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
