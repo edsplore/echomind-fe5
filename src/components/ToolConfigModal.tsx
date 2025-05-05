@@ -136,10 +136,6 @@ export const ToolConfigModal = ({
             request_body_schema: {
               type: 'object',
               properties: {
-                locationId: {
-                  type: 'string',
-                  description: 'GHL Location ID'
-                },
                 startTime: {
                   type: 'string',
                   description: 'Event start time in ISO format'
@@ -157,7 +153,7 @@ export const ToolConfigModal = ({
                   description: 'GHL User ID to assign the event to'
                 }
               },
-              required: ['locationId', 'startTime', 'endTime', 'title', 'assignedUserId'] // Added userId to required
+              required: ['startTime', 'endTime', 'title', 'assignedUserId'] // Added userId to required
             }
           }
         };
@@ -396,7 +392,6 @@ export const ToolConfigModal = ({
                         </h3>
                         <pre className="text-sm font-mono bg-white dark:bg-dark-200 p-4 rounded-lg border border-gray-200 dark:border-dark-100">
                           {`{
-  "locationId": "C2QujeCh8ZnC7al2InWR",
   "startTime": "2021-06-23T03:30:00+05:30",
   "endTime": "2021-06-23T04:30:00+05:30",
   "title": "Test Event",
