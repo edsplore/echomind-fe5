@@ -114,7 +114,13 @@ export const ToolConfigModal = ({
   });
   const [editedTool, setEditedTool] = useState<Tool>(() => {
     const toolCopy = JSON.parse(JSON.stringify(tool));
-    toolCopy.type = getDisplayType(toolCopy.name);
+    if (toolCopy.name === "END_CALL") {
+      toolCopy.type = "end_call";
+    } else if (toolCopy.name === "TRANSFER_CALL") {
+      toolCopy.type = "transfer_call";
+    } else {
+      toolCopy.type = getDisplayType(toolCopy.name);
+    }
     return toolCopy;
   });
   useEffect(() => {
