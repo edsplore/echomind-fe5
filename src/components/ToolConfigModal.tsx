@@ -153,9 +153,8 @@ export const ToolConfigModal = ({
       let updatedTool: any = {};
 
       if (editedTool.type === "end_call") {
-        const endCallConfig = {
+        const endCallConfig: { name: string; type: string; params: any } = {
           name: "END_CALL",
-          description: "End the call",
           type: "system",
           params: {
             end_call: {
@@ -165,7 +164,7 @@ export const ToolConfigModal = ({
         };
         updatedTool = endCallConfig;
       } else if (editedTool.type === "transfer_call") {
-        const transferConfig = {
+        const transferConfig: { name: string; type: string; params: any } = {
           name: "TRANSFER_CALL", 
           type: "system",
           description: "Transfer the call to an agent",
