@@ -170,7 +170,7 @@ export const ToolConfigModal = ({
         };
       }
 
-      if (editedTool.type === "ghl_booking") {
+      else if (editedTool.type === "ghl_booking") {
         backendConfig = {
           name: "GHL_BOOKING",
           type: "webhook",
