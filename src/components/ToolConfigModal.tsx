@@ -9,7 +9,19 @@ interface Tool {
   name: string;
   description: string;
   expects_response?: boolean;
-  api_schema: {
+  params?: {
+    end_call?: {
+      system_tool_type: string;
+    };
+    transfer_to_agent?: {
+      system_tool_type: string;
+    };
+    transfers?: {
+      agent_id: string;
+      condition: string;
+    };
+  };
+  api_schema?: {
     url?: string;
     request_body_schema?: {
       type: string;
@@ -54,10 +66,10 @@ const validateToolName = (name: string, type: string): string | null => {
   if (name.includes(" ")) {
     return "Tool name cannot contain spaces";
   }
-  if (type === "webhook" && (name === "GHL_BOOKING" || name === "CAL_BOOKING" || name === "end_call" || name === "transfer_call")) {
+  if (type === "webhook" && (name === "GHL_BOOKING" || name === "CAL_BOOKING" || name === "END_CALL" || name === "TRANSFER_CALL")) {
     return "Reserved tool name. Please choose a different name.";
   }
-  if (type === "system" && name !== "end_call" && name !== "transfer_call") {
+  if (type === "system" && name !== "END_CALL" && name !== "TRANSFER_CALL") {
     return "Invalid system tool name";
   }
   return null;
@@ -129,23 +141,23 @@ export const ToolConfigModal = ({
       }
 
       if (editedTool.type === "system") {
-        if (editedTool.name === "end_call") {
+        if (editedTool.name === "END_CALL") {
           backendConfig = {
-            name: "end_call",
+            name: "END_CALL",
             type: "system",
             params: {
               end_call: {
-                sytem_tool_type: "end_call"
+                system_tool_type: "end_call"
               }
             }
           };
-        } else if (editedTool.name === "transfer_call") {
+        } else if (editedTool.name === "TRANSFER_CALL") {
           backendConfig = {
-            name: "transfer_call",
+            name: "TRANSFER_CALL",
             type: "system",
             params: {
               transfer_to_agent: {
-                sytem_tool_type: "transfer_to_agent"
+                system_tool_type: "transfer_to_agent"
               },
               transfers: {
                 agent_id: agentId,
