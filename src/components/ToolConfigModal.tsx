@@ -422,7 +422,7 @@ export const ToolConfigModal = ({
                       </label>
                       <input
                         type="text"
-                        value={editedTool.api_schema.url || ""}
+                        value={editedTool.api_schema?.url || ""}
                         onChange={(e) =>
                           setEditedTool((prev) => ({
                             ...prev,
@@ -502,7 +502,7 @@ export const ToolConfigModal = ({
                     <div className="relative">
                       <textarea
                         value={JSON.stringify(
-                          editedTool.api_schema.request_body_schema || {},
+                          editedTool.api_schema?.request_body_schema || {},
                           null,
                           2,
                         )}
