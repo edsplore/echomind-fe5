@@ -145,7 +145,7 @@ export const ToolConfigModal = ({
       let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema?: any, params?: any } = { name: '', type: '' };
 
       if (editedTool.type === "end_call") {
-        backendConfig = {
+        const endCallConfig = {
           name: "END_CALL",
           type: "system",
           params: {
@@ -154,8 +154,9 @@ export const ToolConfigModal = ({
             }
           }
         };
+        updatedTool = endCallConfig;
       } else if (editedTool.type === "transfer_call") {
-        backendConfig = {
+        const transferConfig = {
           name: "TRANSFER_CALL", 
           type: "system",
           params: {
@@ -168,6 +169,7 @@ export const ToolConfigModal = ({
             }
           }
         };
+        updatedTool = transferConfig;
       }
 
       else if (editedTool.type === "ghl_booking") {
