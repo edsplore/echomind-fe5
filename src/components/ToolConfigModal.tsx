@@ -43,6 +43,7 @@ interface ToolConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
   tool: Tool;
+  agentId?: string;
   onSave: (updatedTool: Tool) => void;
 }
 
@@ -81,6 +82,7 @@ export const ToolConfigModal = ({
   tool,
   onSave,
   existingTools,
+  agentId
 }: ToolConfigModalProps & { existingTools?: Tool[] }) => {
   const toolTypeOptions = getAllToolTypeOptions().filter(option => {
     if (option.value === 'webhook') return true;
@@ -131,16 +133,9 @@ export const ToolConfigModal = ({
           backendConfig = {
             name: "end_call",
             type: "system",
-            api_schema: {
-              request_body_schema: {
-                type: "object",
-                properties: {
-                  system_tool_type: {
-                    type: "string",
-                    description: "end_call"
-                  }
-                },
-                required: ["system_tool_type"]
+            params: {
+              end_call: {
+                sytem_tool_type: "end_call"
               }
             }
           };
@@ -148,16 +143,13 @@ export const ToolConfigModal = ({
           backendConfig = {
             name: "transfer_call",
             type: "system",
-            api_schema: {
-              request_body_schema: {
-                type: "object",
-                properties: {
-                  system_tool_type: {
-                    type: "string",
-                    description: "transfer_to_agent"
-                  }
-                },
-                required: ["system_tool_type"]
+            params: {
+              transfer_to_agent: {
+                sytem_tool_type: "transfer_to_agent"
+              },
+              transfers: {
+                agent_id: agentId,
+                condition: "transfer_to_agent"
               }
             }
           };
