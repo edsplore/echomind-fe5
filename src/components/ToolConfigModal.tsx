@@ -353,6 +353,7 @@ export const ToolConfigModal = ({
                         setEditedTool((prev) => ({
                           ...prev,
                           type: e.target.value,
+                          name: e.target.value === "end_call" ? "END_CALL" : e.target.value === "transfer_call" ? "TRANSFER_CALL" : prev.name,
                         }))
                       }
                       className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
@@ -365,54 +366,58 @@ export const ToolConfigModal = ({
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                      Tool Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={editedTool.type === "ghl_booking" ? "GHL_BOOKING" : editedTool.type === "calcom" ? "CAL_BOOKING" : editedTool.name}
-                        onChange={(e) => {
-                          if (editedTool.type === "webhook") {
-                            const newName = e.target.value;
-                            setEditedTool((prev) => ({ ...prev, name: newName }));
-                            setNameError(validateToolName(newName, editedTool.type));
-                          }
-                        }}
-                        readOnly={editedTool.type !== "webhook"}
-                        className={cn(
-                          "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
-                          nameError && "border-red-500 dark:border-red-500",
-                          editedTool.type !== "webhook" && "bg-gray-100 dark:bg-dark-100 cursor-not-allowed"
-                        )}
-                        placeholder="Enter tool name"
-                      />
-                      {nameError && editedTool.type === "webhook" && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                          {nameError}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  {editedTool.type !== "end_call" && editedTool.type !== "transfer_call" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                          Tool Name
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={editedTool.type === "ghl_booking" ? "GHL_BOOKING" : editedTool.type === "calcom" ? "CAL_BOOKING" : editedTool.name}
+                            onChange={(e) => {
+                              if (editedTool.type === "webhook") {
+                                const newName = e.target.value;
+                                setEditedTool((prev) => ({ ...prev, name: newName }));
+                                setNameError(validateToolName(newName, editedTool.type));
+                              }
+                            }}
+                            readOnly={editedTool.type !== "webhook"}
+                            className={cn(
+                              "input font-lato font-semibold focus:border-primary dark:focus:border-primary-400",
+                              nameError && "border-red-500 dark:border-red-500",
+                              editedTool.type !== "webhook" && "bg-gray-100 dark:bg-dark-100 cursor-not-allowed"
+                            )}
+                            placeholder="Enter tool name"
+                          />
+                          {nameError && editedTool.type === "webhook" && (
+                            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                              {nameError}
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={editedTool.description}
-                      onChange={(e) =>
-                        setEditedTool((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
-                      }
-                      className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
-                      rows={3}
-                      placeholder="Describe what this tool does and how it should be used"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                          Description
+                        </label>
+                        <textarea
+                          value={editedTool.description}
+                          onChange={(e) =>
+                            setEditedTool((prev) => ({
+                              ...prev,
+                              description: e.target.value,
+                            }))
+                          }
+                          className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
+                          rows={3}
+                          placeholder="Describe what this tool does and how it should be used"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {/* Conditionally render based on tool type */}
                   {editedTool.type === "webhook" && (
