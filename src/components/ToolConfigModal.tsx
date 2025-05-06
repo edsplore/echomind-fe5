@@ -141,6 +141,9 @@ export const ToolConfigModal = ({
         return;
       }
 
+      // Determine backend configuration based on tool name
+      let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema?: any, params?: any } = { name: '', type: '' };
+
       if (editedTool.type === "system") {
         if (editedTool.name === "END_CALL") {
           backendConfig = {
@@ -168,9 +171,6 @@ export const ToolConfigModal = ({
           };
         }
       }
-
-      // Determine backend configuration based on tool name
-      let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema: any } = { name: '', type: '', api_schema: {} };
 
       if (editedTool.type === "ghl_booking") {
         backendConfig = {
