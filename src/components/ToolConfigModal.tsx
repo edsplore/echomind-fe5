@@ -144,9 +144,12 @@ export const ToolConfigModal = ({
       // Determine backend configuration based on tool name
       let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema?: any, params?: any } = { name: '', type: '' };
 
+      let updatedTool: any = {};
+
       if (editedTool.type === "end_call") {
         const endCallConfig = {
           name: "END_CALL",
+          description: "End the call",
           type: "system",
           params: {
             end_call: {
@@ -159,6 +162,7 @@ export const ToolConfigModal = ({
         const transferConfig = {
           name: "TRANSFER_CALL", 
           type: "system",
+          description: "Transfer the call to an agent",
           params: {
             transfer_to_agent: {
               system_tool_type: "transfer_to_agent"
@@ -204,6 +208,7 @@ export const ToolConfigModal = ({
             }
           }
         };
+        updatedTool = backendConfig
       } else if (editedTool.type === "calcom") {
         backendConfig = {
           name: "CAL_BOOKING",
@@ -248,15 +253,9 @@ export const ToolConfigModal = ({
         };
       } else {
         backendConfig = { name: editedTool.name, type: "webhook", api_schema: {} };
+        updatedTool = backendConfig
       }
 
-      const updatedTool = {
-        ...editedTool,
-        name: backendConfig.name,
-        type: backendConfig.type,
-        expects_response: backendConfig.expects_response,
-        api_schema: backendConfig.api_schema,
-      };
       onSave(updatedTool);
       onClose();
     } catch (err) {
