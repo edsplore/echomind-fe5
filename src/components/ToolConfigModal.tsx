@@ -53,8 +53,11 @@ const validateToolName = (name: string, type: string): string | null => {
   if (name.includes(" ")) {
     return "Tool name cannot contain spaces";
   }
-  if (type === "webhook" && (name === "GHL_BOOKING" || name === "CAL_BOOKING")) {
+  if (type === "webhook" && (name === "GHL_BOOKING" || name === "CAL_BOOKING" || name === "end_call" || name === "transfer_call")) {
     return "Reserved tool name. Please choose a different name.";
+  }
+  if (type === "system" && name !== "end_call" && name !== "transfer_call") {
+    return "Invalid system tool name";
   }
   return null;
 };
@@ -69,6 +72,7 @@ const getAllToolTypeOptions = () => [
   { value: "webhook", label: "Webhook" },
   { value: "ghl_booking", label: "GHL Booking" },
   { value: "calcom", label: "Cal.com" },
+  { value: "system", label: "System" },
 ];
 
 export const ToolConfigModal = ({
@@ -120,6 +124,44 @@ export const ToolConfigModal = ({
       if (nameValidationError && editedTool.type === "webhook") {
         setNameError(nameValidationError);
         return;
+      }
+
+      if (editedTool.type === "system") {
+        if (editedTool.name === "end_call") {
+          backendConfig = {
+            name: "end_call",
+            type: "system",
+            api_schema: {
+              request_body_schema: {
+                type: "object",
+                properties: {
+                  system_tool_type: {
+                    type: "string",
+                    description: "end_call"
+                  }
+                },
+                required: ["system_tool_type"]
+              }
+            }
+          };
+        } else if (editedTool.name === "transfer_call") {
+          backendConfig = {
+            name: "transfer_call",
+            type: "system",
+            api_schema: {
+              request_body_schema: {
+                type: "object",
+                properties: {
+                  system_tool_type: {
+                    type: "string",
+                    description: "transfer_to_agent"
+                  }
+                },
+                required: ["system_tool_type"]
+              }
+            }
+          };
+        }
       }
 
       // Determine backend configuration based on tool name
