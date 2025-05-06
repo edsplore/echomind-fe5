@@ -144,32 +144,30 @@ export const ToolConfigModal = ({
       // Determine backend configuration based on tool name
       let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema?: any, params?: any } = { name: '', type: '' };
 
-      if (editedTool.type === "system") {
-        if (editedTool.name === "END_CALL") {
-          backendConfig = {
-            name: "END_CALL",
-            type: "system",
-            params: {
-              end_call: {
-                system_tool_type: "end_call"
-              }
+      if (editedTool.type === "end_call") {
+        backendConfig = {
+          name: "END_CALL",
+          type: "system",
+          params: {
+            end_call: {
+              system_tool_type: "end_call"
             }
-          };
-        } else if (editedTool.name === "TRANSFER_CALL") {
-          backendConfig = {
-            name: "TRANSFER_CALL",
-            type: "system",
-            params: {
-              transfer_to_agent: {
-                system_tool_type: "transfer_to_agent"
-              },
-              transfers: {
-                agent_id: agentId,
-                condition: "transfer_to_agent"
-              }
+          }
+        };
+      } else if (editedTool.type === "transfer_call") {
+        backendConfig = {
+          name: "TRANSFER_CALL", 
+          type: "system",
+          params: {
+            transfer_to_agent: {
+              system_tool_type: "transfer_to_agent"
+            },
+            transfers: {
+              agent_id: agentId,
+              condition: "transfer_to_agent"
             }
-          };
-        }
+          }
+        };
       }
 
       if (editedTool.type === "ghl_booking") {
