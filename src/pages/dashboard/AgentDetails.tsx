@@ -64,6 +64,10 @@ interface AgentDetails {
     tts: {
       voice_id: string;
       model_id: string;
+      agent_output_audio_format: "ulaw_8000"
+    },
+    asr: {
+      user_input_audio_format: "ulaw_8000"
     };
   };
 }
@@ -837,6 +841,7 @@ const AgentDetails = () => {
           tool={selectedTool}
           onSave={handleToolSave}
           existingTools={editedForm.tools}
+          agentId={agentId}
         />
       )}
 
