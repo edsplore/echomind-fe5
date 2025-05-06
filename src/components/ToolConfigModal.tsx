@@ -85,7 +85,8 @@ const getAllToolTypeOptions = () => [
   { value: "webhook", label: "Webhook" },
   { value: "ghl_booking", label: "GHL Booking" },
   { value: "calcom", label: "Cal.com" },
-  { value: "system", label: "System" },
+  { value: "end_call", label: "END_CALL" },
+  { value: "transfer_call", label: "TRANSFER_CALL" },
 ];
 
 export const ToolConfigModal = ({
