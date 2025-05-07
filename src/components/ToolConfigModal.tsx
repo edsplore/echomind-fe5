@@ -94,7 +94,6 @@ export const ToolConfigModal = ({
 }: ToolConfigModalProps & { existingTools?: Tool[] }) => {
   
   const toolTypeOptions = getAllToolTypeOptions().filter(option => {
-    if (option.value === 'webhook') return true;
     // For GHL booking, show if it's the current tool being edited
     if (option.value === 'ghl_booking') {
       return !existingTools?.some(t => t.name === 'GHL_BOOKING') || tool.name === 'GHL_BOOKING';
@@ -103,8 +102,15 @@ export const ToolConfigModal = ({
     if (option.value === 'calcom') {
       return !existingTools?.some(t => t.name === 'CAL_BOOKING') || tool.name === 'CAL_BOOKING';
     }
-
-    return true;
+    // For end_call and transfer_call, show if it's the current tool being edited
+    if (option.value === 'end_call') {
+      return !existingTools?.some(t => t.name === 'END_CALL') || tool.name === 'END_CALL';
+    }
+    if (option.value === 'transfer_call') {
+      return !existingTools?.some(t => t.name === 'TRANSFER_CALL') || tool.name === 'TRANSFER_CALL';
+    }
+    // For webhook, always show
+    return option.value === 'webhook';
   });
   const [editedTool, setEditedTool] = useState<Tool>(() => {
     const toolCopy = JSON.parse(JSON.stringify(tool));
