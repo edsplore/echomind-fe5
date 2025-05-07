@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Check,
@@ -18,21 +18,21 @@ import {
   Plus,
   Database,
   Trash2,
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import CallTesting from '../../components/CallTesting';
-import { KnowledgeBaseSelect } from '../../components/KnowledgeBaseSelect';
-import { VoiceModal } from '../../components/VoiceModal'; // <-- The updated VoiceModal
-import { ModelSelect } from '../../components/ModelSelect';
-import { ToolConfigModal } from '../../components/ToolConfigModal';
-import { LanguageSelect } from '../../components/LanguageSelect';
-import { Loader, PageLoader } from '../../components/Loader';
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import CallTesting from "../../components/CallTesting";
+import { KnowledgeBaseSelect } from "../../components/KnowledgeBaseSelect";
+import { VoiceModal } from "../../components/VoiceModal"; // <-- The updated VoiceModal
+import { ModelSelect } from "../../components/ModelSelect";
+import { ToolConfigModal } from "../../components/ToolConfigModal";
+import { LanguageSelect } from "../../components/LanguageSelect";
+import { Loader, PageLoader } from "../../components/Loader";
 import {
   getModelId,
   getModelTypeFromId,
   getLanguageName,
   llmOptions,
-} from '../../lib/constants';
+} from "../../lib/constants";
 
 interface AgentDetails {
   agent_id: string;
@@ -64,10 +64,10 @@ interface AgentDetails {
     tts: {
       voice_id: string;
       model_id: string;
-      agent_output_audio_format: "ulaw_8000"
-    },
+      agent_output_audio_format: "pcm_16000";
+    };
     asr: {
-      user_input_audio_format: "ulaw_8000"
+      user_input_audio_format: "pcm_16000";
     };
   };
 }
@@ -90,7 +90,7 @@ interface Voice {
 interface KnowledgeBaseDocument {
   id: string;
   name: string;
-  type: 'file' | 'url';
+  type: "file" | "url";
   extracted_inner_html: string;
 }
 
@@ -122,11 +122,11 @@ interface EditForm {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Basic agent icon logic
-const agentIcons = [{ icon: Speech, color: 'primary' }];
+const agentIcons = [{ icon: Speech, color: "primary" }];
 const getAgentIcon = (agentId: string) => {
   const index =
     Math.abs(
-      agentId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      agentId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0),
     ) % agentIcons.length;
   return agentIcons[index];
 };
@@ -139,11 +139,13 @@ const AgentDetails = () => {
   const [voice, setVoice] = useState<Voice | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [voices, setVoices] = useState<Voice[]>([]);
   const [loadingVoices, setLoadingVoices] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseDocument[]>([]);
+  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBaseDocument[]>(
+    [],
+  );
   const [loadingKnowledgeBase, setLoadingKnowledgeBase] = useState(false);
 
   // UI toggles
@@ -155,14 +157,14 @@ const AgentDetails = () => {
 
   // The form data
   const [editForm, setEditForm] = useState<EditForm>({
-    name: '',
-    prompt: '',
-    llm: '',
+    name: "",
+    prompt: "",
+    llm: "",
     temperature: 0.7,
-    first_message: '',
-    voice_id: '',
-    language: 'en',
-    modelType: 'turbo',
+    first_message: "",
+    voice_id: "",
+    language: "en",
+    modelType: "turbo",
     knowledge_base: [],
     tools: [],
   });
@@ -182,17 +184,17 @@ const AgentDetails = () => {
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
-        }
+        },
       );
       if (!response.ok) {
-        throw new Error('Failed to fetch agent details');
+        throw new Error("Failed to fetch agent details");
       }
       const agentData: AgentDetails = await response.json();
       setAgent(agentData);
 
       // Extract model type from model_id
       const modelType = getModelTypeFromId(
-        agentData.conversation_config.tts.model_id
+        agentData.conversation_config.tts.model_id,
       );
 
       const initialForm = {
@@ -202,7 +204,7 @@ const AgentDetails = () => {
         temperature: agentData.conversation_config.agent.prompt.temperature,
         first_message: agentData.conversation_config.agent.first_message,
         voice_id: agentData.conversation_config.tts.voice_id,
-        language: agentData.conversation_config.agent.language || 'en',
+        language: agentData.conversation_config.agent.language || "en",
         modelType,
         knowledge_base:
           agentData.conversation_config.agent.prompt.knowledge_base || [],
@@ -218,7 +220,7 @@ const AgentDetails = () => {
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
-        }
+        },
       );
       if (voiceResponse.ok) {
         const voiceData: Voice = await voiceResponse.json();
@@ -247,15 +249,15 @@ const AgentDetails = () => {
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
-        }
+        },
       );
       if (kbResponse.ok) {
         const kbData = await kbResponse.json();
         setKnowledgeBase(kbData.documents || []);
       }
     } catch (err) {
-      console.error('Error fetching agent details:', err);
-      setError('Failed to load agent details. Please try again.');
+      console.error("Error fetching agent details:", err);
+      setError("Failed to load agent details. Please try again.");
     } finally {
       setLoading(false);
       setLoadingVoices(false);
@@ -273,14 +275,14 @@ const AgentDetails = () => {
     if (!user || !agentId) return;
     try {
       setSaving(true);
-      setError('');
+      setError("");
 
       const response = await fetch(
         `${BACKEND_URL}/agents/${user.uid}/${agentId}`,
         {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
           body: JSON.stringify({
@@ -303,16 +305,16 @@ const AgentDetails = () => {
               },
             },
           }),
-        }
+        },
       );
       if (!response.ok) {
-        throw new Error('Failed to update agent');
+        throw new Error("Failed to update agent");
       }
       await fetchAgentDetails();
       setHasChanges(false);
     } catch (err) {
-      console.error('Error updating agent:', err);
-      setError('Failed to update agent. Please try again.');
+      console.error("Error updating agent:", err);
+      setError("Failed to update agent. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -334,7 +336,7 @@ const AgentDetails = () => {
   // Utility for updating editedForm and marking unsaved changes
   const handleChange = (
     field: keyof EditForm,
-    value: string | number | any[]
+    value: string | number | any[],
   ) => {
     setEditedForm((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
@@ -343,14 +345,14 @@ const AgentDetails = () => {
   // Create a new tool
   const handleCreateTool = () => {
     const newTool = {
-      type: 'webhook',
-      name: '',
-      description: '',
+      type: "webhook",
+      name: "",
+      description: "",
       api_schema: {
-        url: '',
-        method: 'POST',
+        url: "",
+        method: "POST",
         request_body_schema: {
-          type: 'object',
+          type: "object",
           properties: {},
           required: [],
         },
@@ -365,12 +367,14 @@ const AgentDetails = () => {
     if (isCreatingTool) {
       setEditedForm((prev) => ({
         ...prev,
-        tools: [...(prev.tools || []), { ...updatedTool, method: 'POST' }],
+        tools: [...(prev.tools || []), { ...updatedTool, method: "POST" }],
       }));
       setIsCreatingTool(false);
     } else {
       const updatedTools = editedForm.tools.map((tool) =>
-        tool.name === selectedTool?.name ? { ...updatedTool, method: 'POST' } : tool
+        tool.name === selectedTool?.name
+          ? { ...updatedTool, method: "POST" }
+          : tool,
       );
       setEditedForm((prev) => ({
         ...prev,
@@ -383,14 +387,14 @@ const AgentDetails = () => {
 
   const handleToolUpdate = (updatedTool: any) => {
     const updatedTools = editedForm.tools.map((tool) =>
-      tool.name === updatedTool.name ? updatedTool : tool
+      tool.name === updatedTool.name ? updatedTool : tool,
     );
-    handleChange('tools', updatedTools);
+    handleChange("tools", updatedTools);
   };
 
   // Called when user picks a new voice in the VoiceModal
   const handleVoiceChange = (voiceId: string) => {
-    handleChange('voice_id', voiceId);
+    handleChange("voice_id", voiceId);
     const newVoice = voices.find((v) => v.voice_id === voiceId) || null;
     setVoice(newVoice);
   };
@@ -426,11 +430,11 @@ const AgentDetails = () => {
   const { icon: Icon, color } = getAgentIcon(agent.agent_id);
   const colorClasses: Record<string, string> = {
     primary:
-      'from-primary/20 to-primary/10 text-primary dark:from-primary/30 dark:to-primary/20',
-    indigo: 'from-indigo-500/20 to-indigo-500/10 text-indigo-500',
-    rose: 'from-rose-500/20 to-rose-500/10 text-rose-500',
-    sky: 'from-sky-500/20 to-sky-500/10 text-sky-500',
-    yellow: 'from-yellow-500/20 to-yellow-500/10 text-yellow-500',
+      "from-primary/20 to-primary/10 text-primary dark:from-primary/30 dark:to-primary/20",
+    indigo: "from-indigo-500/20 to-indigo-500/10 text-indigo-500",
+    rose: "from-rose-500/20 to-rose-500/10 text-rose-500",
+    sky: "from-sky-500/20 to-sky-500/10 text-sky-500",
+    yellow: "from-yellow-500/20 to-yellow-500/10 text-yellow-500",
   };
 
   return (
@@ -457,7 +461,7 @@ const AgentDetails = () => {
                       <input
                         type="text"
                         value={editedForm.name}
-                        onChange={(e) => handleChange('name', e.target.value)}
+                        onChange={(e) => handleChange("name", e.target.value)}
                         className="text-2xl font-heading font-bold text-gray-900 dark:text-white bg-transparent border-0 focus:ring-0 p-0 focus:border-0"
                       />
                       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -512,7 +516,7 @@ const AgentDetails = () => {
                     <div className="mt-2" onClick={(e) => e.stopPropagation()}>
                       <select
                         value={editedForm.llm}
-                        onChange={(e) => handleChange('llm', e.target.value)}
+                        onChange={(e) => handleChange("llm", e.target.value)}
                         className="rounded-lg border-2 border-primary bg-white dark:bg-dark-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-gray-100"
                       >
                         {llmOptions.map((model) => (
@@ -538,7 +542,7 @@ const AgentDetails = () => {
                   </div>
                   {/* Selected voice name */}
                   <p className="text-2xl font-heading font-bold text-primary dark:text-primary-400">
-                    {voice?.name || 'Not Set'}
+                    {voice?.name || "Not Set"}
                   </p>
 
                   {/* Additional labels */}
@@ -551,7 +555,8 @@ const AgentDetails = () => {
                       )}
                       {voice.labels.description && (
                         <li>
-                          <strong>Description:</strong> {voice.labels.description}
+                          <strong>Description:</strong>{" "}
+                          {voice.labels.description}
                         </li>
                       )}
                       {voice.labels.age && (
@@ -592,7 +597,7 @@ const AgentDetails = () => {
                     <div className="mt-2" onClick={(e) => e.stopPropagation()}>
                       <LanguageSelect
                         value={editedForm.language}
-                        onChange={(value) => handleChange('language', value)}
+                        onChange={(value) => handleChange("language", value)}
                       />
                     </div>
                   )}
@@ -609,7 +614,7 @@ const AgentDetails = () => {
                 </div>
                 <ModelSelect
                   modelType={editedForm.modelType}
-                  onChange={(value) => handleChange('modelType', value)}
+                  onChange={(value) => handleChange("modelType", value)}
                 />
               </div>
 
@@ -628,7 +633,7 @@ const AgentDetails = () => {
                   step="0.1"
                   value={editedForm.temperature}
                   onChange={(e) =>
-                    handleChange('temperature', parseFloat(e.target.value))
+                    handleChange("temperature", parseFloat(e.target.value))
                   }
                   className="w-full"
                 />
@@ -649,7 +654,7 @@ const AgentDetails = () => {
                 <textarea
                   value={editedForm.first_message}
                   onChange={(e) =>
-                    handleChange('first_message', e.target.value)
+                    handleChange("first_message", e.target.value)
                   }
                   rows={2}
                   className="input"
@@ -667,7 +672,7 @@ const AgentDetails = () => {
                 </div>
                 <textarea
                   value={editedForm.prompt}
-                  onChange={(e) => handleChange('prompt', e.target.value)}
+                  onChange={(e) => handleChange("prompt", e.target.value)}
                   rows={6}
                   className="input"
                   placeholder="Enter the agent's behavior and instructions..."
@@ -711,7 +716,11 @@ const AgentDetails = () => {
                           className="py-4 first:pt-0 last:pb-0 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors rounded-lg"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3" onClick={() => setSelectedTool(tool)} style={{ cursor: 'pointer' }}>
+                            <div
+                              className="flex items-center space-x-3"
+                              onClick={() => setSelectedTool(tool)}
+                              style={{ cursor: "pointer" }}
+                            >
                               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
                                 <Webhook className="w-5 h-5 text-primary dark:text-primary-400" />
                               </div>
@@ -727,14 +736,20 @@ const AgentDetails = () => {
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => {
-                                  const updatedTools = editedForm.tools.filter((t, i) => i !== index);
-                                  handleChange('tools', updatedTools);
+                                  const updatedTools = editedForm.tools.filter(
+                                    (t, i) => i !== index,
+                                  );
+                                  handleChange("tools", updatedTools);
                                 }}
                                 className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
-                              <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" style={{ cursor: 'pointer' }} onClick={() => setSelectedTool(tool)} />
+                              <ChevronRight
+                                className="w-5 h-5 text-gray-400 dark:text-gray-500"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => setSelectedTool(tool)}
+                              />
                             </div>
                           </div>
                         </div>
@@ -791,12 +806,12 @@ const AgentDetails = () => {
                       <KnowledgeBaseSelect
                         documents={knowledgeBase}
                         selectedDocuments={editedForm.knowledge_base.map(
-                          (kb) => kb.id
+                          (kb) => kb.id,
                         )}
                         onSelectionChange={(selectedIds) => {
                           const selectedDocs = selectedIds.map((id) => {
                             const doc = knowledgeBase.find(
-                              (kb) => kb.id === id
+                              (kb) => kb.id === id,
                             );
                             return {
                               id: doc!.id,
@@ -804,7 +819,7 @@ const AgentDetails = () => {
                               type: doc!.type,
                             };
                           });
-                          handleChange('knowledge_base', selectedDocs);
+                          handleChange("knowledge_base", selectedDocs);
                         }}
                       />
                     </div>

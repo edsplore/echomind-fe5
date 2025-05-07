@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Webhook } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -10,16 +10,11 @@ interface Tool {
   description: string;
   expects_response?: boolean;
   params?: {
-    end_call?: {
-      system_tool_type: string;
-    };
-    transfer_to_agent?: {
-      system_tool_type: string;
-    };
+    system_tool_type?: string;
     transfers?: {
-      agent_id: string;
+      agent_id?: string;
       condition: string;
-    };
+    }[];
   };
   api_schema?: {
     url?: string;
@@ -66,7 +61,7 @@ const validateToolName = (name: string, type: string): string | null => {
   if (name.includes(" ")) {
     return "Tool name cannot contain spaces";
   }
-  if (type === "webhook" && (name === "GHL_BOOKING" || name === "CAL_BOOKING" || name === "END_CALL" || name === "TRANSFER_CALL")) {
+  if (type === "webhook" && (name.toLowerCase() === "GHL_BOOKING".toLowerCase() || name.toLowerCase() === "CAL_BOOKING".toLowerCase() || name.toLowerCase() === "END_CALL".toLowerCase() || name.toLowerCase() === "TRANSFER_CALL".toLowerCase())) {
     return "Reserved tool name. Please choose a different name.";
   }
   if (type === "system" && name !== "END_CALL" && name !== "TRANSFER_CALL") {
@@ -97,14 +92,13 @@ export const ToolConfigModal = ({
   existingTools,
   agentId
 }: ToolConfigModalProps & { existingTools?: Tool[] }) => {
+  
   const toolTypeOptions = getAllToolTypeOptions().filter(option => {
     if (option.value === 'webhook') return true;
-
     // For GHL booking, show if it's the current tool being edited
     if (option.value === 'ghl_booking') {
       return !existingTools?.some(t => t.name === 'GHL_BOOKING') || tool.name === 'GHL_BOOKING';
     }
-
     // For Cal.com, show if it's the current tool being edited
     if (option.value === 'calcom') {
       return !existingTools?.some(t => t.name === 'CAL_BOOKING') || tool.name === 'CAL_BOOKING';
@@ -114,23 +108,14 @@ export const ToolConfigModal = ({
   });
   const [editedTool, setEditedTool] = useState<Tool>(() => {
     const toolCopy = JSON.parse(JSON.stringify(tool));
-    if (toolCopy.name === "END_CALL") {
-      toolCopy.type = "end_call";
-    } else if (toolCopy.name === "TRANSFER_CALL") {
-      toolCopy.type = "transfer_call";
-    } else {
-      toolCopy.type = getDisplayType(toolCopy.name);
-    }
+    toolCopy.type = getDisplayType(toolCopy.name);
     return toolCopy;
   });
-  useEffect(() => {
-    console.log(editedTool)
-  }, [editedTool])
   const [error, setError] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const [jsonError, setJsonError] = useState("");
   const [showSampleModal, setShowSampleModal] = useState(false);
-  const { user } = useAuth(); // Added useAuth hook
+  const { user } = useAuth();
 
   const handleClose = () => {
     setNameError(null);
@@ -150,33 +135,29 @@ export const ToolConfigModal = ({
       // Determine backend configuration based on tool name
       let backendConfig: { name: string; type: string; expects_response?: boolean; api_schema?: any, params?: any } = { name: '', type: '' };
 
-      let updatedTool: any = {};
+      let updatedTool: Tool;
 
       if (editedTool.type === "end_call") {
-        const { method, ...endCallConfig } = {
+        const endCallConfig = {
           name: "END_CALL",
           type: "system",
-          description: "End the call",
+          description: "End the current call",
           params: {
-            end_call: {
-              system_tool_type: "end_call"
-            }
+            system_tool_type: "end_call"
           }
         };
         updatedTool = endCallConfig;
       } else if (editedTool.type === "transfer_call") {
-        const { method, ...transferConfig } = {
+        const transferConfig = {
           name: "TRANSFER_CALL", 
           type: "system",
-          description: "Transfer the call to an agent",
+          description: "Transfer the current call to another agent",
           params: {
-            transfer_to_agent: {
-              system_tool_type: "transfer_to_agent"
-            },
-            transfers: {
+            system_tool_type: "transfer_to_agent",
+            transfers: [{
               agent_id: agentId,
               condition: "transfer_to_agent"
-            }
+            }]
           }
         };
         updatedTool = transferConfig;
@@ -186,6 +167,7 @@ export const ToolConfigModal = ({
         backendConfig = {
           name: "GHL_BOOKING",
           type: "webhook",
+          description: "Create a booking in GHL calendar",
           expects_response: true,
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/ghl/book/${user?.uid}`,
@@ -214,11 +196,12 @@ export const ToolConfigModal = ({
             }
           }
         };
-        updatedTool = backendConfig
+        updatedTool = backendConfig;
       } else if (editedTool.type === "calcom") {
         backendConfig = {
           name: "CAL_BOOKING",
           type: "webhook",
+          description: "Create a booking in Cal.com calendar",
           api_schema: {
             url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule/${user?.uid}`,
             method: 'POST',
@@ -257,11 +240,14 @@ export const ToolConfigModal = ({
             }
           }
         };
+        updatedTool = backendConfig;
       } else {
         backendConfig = { name: editedTool.name, type: "webhook", api_schema: {} };
-        updatedTool = backendConfig
+        updatedTool = {
+          ...editedTool,
+          ...backendConfig,
+        }
       }
-
       onSave(updatedTool);
       onClose();
     } catch (err) {
