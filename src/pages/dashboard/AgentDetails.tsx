@@ -64,10 +64,6 @@ interface AgentDetails {
     tts: {
       voice_id: string;
       model_id: string;
-      agent_output_audio_format: "pcm_16000";
-    };
-    asr: {
-      user_input_audio_format: "pcm_16000";
     };
   };
 }

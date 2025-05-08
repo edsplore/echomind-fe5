@@ -42,10 +42,7 @@ interface CreateAgentPayload {
     tts: {
       voice_id: string;
       model_id: string;
-      agent_output_audio_format: string;
-    };
-    asr: {
-      user_input_audio_format: string;
+     
     };
     turn: Record<string, never>;
     agent: {
@@ -354,10 +351,7 @@ const Agents = () => {
           tts: {
             voice_id: formData.voiceId,
             model_id: getModelId(formData.modelType, formData.language),
-            agent_output_audio_format: "ulaw_8000",
-          },
-          asr: {
-            user_input_audio_format: "ulaw_8000",
+            
           },
           turn: {},
           agent: {

@@ -157,12 +157,12 @@ export const ToolConfigModal = ({
         const transferConfig = {
           name: "TRANSFER_CALL", 
           type: "system",
-          description: "Transfer the current call to another agent",
+          description: "Transfer the current call to human",
           params: {
-            system_tool_type: "transfer_to_agent",
+            system_tool_type: "transfer_to_number",
             transfers: [{
-              agent_id: agentId,
-              condition: "transfer_to_agent"
+              phone_number: '+919660415515',
+              condition: "transfer_to_number"
             }]
           }
         };
@@ -209,7 +209,7 @@ export const ToolConfigModal = ({
           type: "webhook",
           description: "Create a booking in Cal.com calendar",
           api_schema: {
-            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/schedule/${user?.uid}`,
+            url: `${import.meta.env.VITE_BACKEND_URL}/calcom/book/${user?.uid}`,
             method: 'POST',
             request_body_schema: {
               type: 'object',
