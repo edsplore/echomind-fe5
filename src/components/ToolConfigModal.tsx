@@ -510,22 +510,6 @@ export const ToolConfigModal = ({
                       />
                     </div>
                   )}
-
-                  {editedTool.type === "transfer_call" && (
-                    const transferConfig = {
-                      name: "TRANSFER_CALL", 
-                      type: "system",
-                      description: "Transfer the current call to human",
-                      params: {
-                        system_tool_type: "transfer_to_number",
-                        transfers: [{
-                          phone_number: editedTool.params?.transfers?.[0]?.phone_number || '',
-                          condition: "transfer_to_number"
-                        }]
-                      }
-                    };
-                    updatedTool = transferConfig;
-                  )}
                 </div>
 
                 {/* Conditionally render Request Body Schema only if type is 'webhook' */}
