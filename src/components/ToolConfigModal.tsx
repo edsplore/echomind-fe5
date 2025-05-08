@@ -203,9 +203,32 @@ export const ToolConfigModal = ({
                 assignedUserId: {
                   type: 'string',
                   description: 'Unique identifier of the GHL user who will be assigned to this appointment (e.g. CVokAlI8fgw4WYWoCtQz)'
+                },
+                contactInfo: {
+                  type: 'object',
+                  properties: {
+                    phone: {
+                      type: 'string',
+                      description: 'Contact phone number with country code'
+                    },
+                    firstName: {
+                      type: 'string',
+                      description: 'First name of the contact'
+                    },
+                    lastName: {
+                      type: 'string',
+                      description: 'Last name of the contact'
+                    },
+                    email: {
+                      type: 'string',
+                      description: 'Email address of the contact'
+                    }
+                  },
+                  required: ['phone'],
+                  description: 'Contact information for GHL'
                 }
               },
-              required: ['startTime', 'endTime', 'title', 'assignedUserId']
+              required: ['startTime', 'endTime', 'title', 'assignedUserId', 'contactInfo']
             }
           }
         };
@@ -458,7 +481,13 @@ export const ToolConfigModal = ({
   "startTime": "2021-06-23T03:30:00+05:30",
   "endTime": "2021-06-23T04:30:00+05:30",
   "title": "Test Event",
-  "assignedUserId": "CVokAlI8fgw4WYWoCtQz"
+  "assignedUserId": "CVokAlI8fgw4WYWoCtQz",
+  "contactInfo": {
+    "phone": "+15551234567",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com"
+  }
 }`}
                         </pre>
                       </div>
