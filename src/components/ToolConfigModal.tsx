@@ -14,6 +14,7 @@ interface Tool {
     transfers?: {
       agent_id?: string;
       condition: string;
+      phone_number?: string;
     }[];
   };
   api_schema?: {
@@ -92,7 +93,7 @@ export const ToolConfigModal = ({
   existingTools,
   agentId
 }: ToolConfigModalProps & { existingTools?: Tool[] }) => {
-  
+
   const toolTypeOptions = getAllToolTypeOptions().filter(option => {
     if(option.value === 'webhook') return "webhook";
     // For GHL booking, show if it's the current tool being edited
@@ -167,7 +168,7 @@ export const ToolConfigModal = ({
           params: {
             system_tool_type: "transfer_to_number",
             transfers: [{
-              phone_number: '+919660415515',
+              phone_number: editedTool.params?.transfers?.[0]?.phone_number || '',
               condition: "transfer_to_number"
             }]
           }
@@ -483,6 +484,47 @@ export const ToolConfigModal = ({
                         </pre>
                       </div>
                     </div>
+                  )}
+                  {editedTool.type === "transfer_call" && (
+                    <div>
+                      <label className="block text-sm font-lato font-semibold text-gray-900 dark:text-white mb-2">
+                        Transfer to Phone Number
+                      </label>
+                      <input
+                        type="text"
+                        value={editedTool.params?.transfers?.[0]?.phone_number || ''}
+                        onChange={(e) =>
+                          setEditedTool((prev) => ({
+                            ...prev,
+                            params: {
+                              system_tool_type: "transfer_to_number",
+                              transfers: [{
+                                phone_number: e.target.value,
+                                condition: "transfer_to_number"
+                              }]
+                            }
+                          }))
+                        }
+                        className="input font-lato font-semibold focus:border-primary dark:focus:border-primary-400"
+                        placeholder="Include + country code (e.g. +1234567890)"
+                      />
+                    </div>
+                  )}
+
+                  {editedTool.type === "transfer_call" && (
+                    const transferConfig = {
+                      name: "TRANSFER_CALL", 
+                      type: "system",
+                      description: "Transfer the current call to human",
+                      params: {
+                        system_tool_type: "transfer_to_number",
+                        transfers: [{
+                          phone_number: editedTool.params?.transfers?.[0]?.phone_number || '',
+                          condition: "transfer_to_number"
+                        }]
+                      }
+                    };
+                    updatedTool = transferConfig;
                   )}
                 </div>
 
