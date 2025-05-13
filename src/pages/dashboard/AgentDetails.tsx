@@ -754,14 +754,20 @@ const AgentDetails = () => {
                                 value={varName}
                                 onChange={(e) => {
                                   const newName = e.target.value;
-                                  const { [varName]: oldConfig, ...rest } = editedForm.platform_settings?.data_collection || {};
-                                  handleChange("platform_settings", {
-                                    ...editedForm.platform_settings,
-                                    data_collection: {
-                                      ...rest,
-                                      [newName]: oldConfig
-                                    }
+                                  setEditedForm(prev => {
+                                    const { [varName]: oldConfig, ...rest } = prev.platform_settings?.data_collection || {};
+                                    return {
+                                      ...prev,
+                                      platform_settings: {
+                                        ...prev.platform_settings,
+                                        data_collection: {
+                                          ...rest,
+                                          [newName]: oldConfig
+                                        }
+                                      }
+                                    };
                                   });
+                                  setHasChanges(true);
                                 }}
                                 className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border-0 focus:ring-0 p-0 focus:border-0"
                                 placeholder="Variable name"
