@@ -793,7 +793,7 @@ const AgentDetails = () => {
                                       <Check className="w-4 h-4" />
                                     </button>
                                     <button
-                                      onClick={() => {
+                                      onClick={()={() => {
                                         setEditingVarName(null);
                                       }}
                                       className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
@@ -852,18 +852,19 @@ const AgentDetails = () => {
                                   });
                                 }}
                                 className="input text-sm"
-                              >
+>
                                 <option value="string">String</option>                               <option value="number">Number</option>
                                 <option value="boolean">Boolean</option>
                                 <option value="integer">Integer</option>
                               </select>
                             </div>
 
-                            <div className="col-span-2">
+                            
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Variable Type
                               </label>
-                              <select
+                              
+                                <select
                                 value={
                                   varConfig.constant_value !== undefined ? "constant" :
                                   varConfig.dynamic_variable !== undefined ? "dynamic" : "description"
@@ -905,7 +906,8 @@ const AgentDetails = () => {
                                 <option value="constant">Constant Value</option>
                                 <option value="dynamic">Dynamic Variable</option>
                               </select>
-                            </div>
+                            
+                            
 
                             {varConfig.description !== undefined && (
                               <div className="col-span-2">
