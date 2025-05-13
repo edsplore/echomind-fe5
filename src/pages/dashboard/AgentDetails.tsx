@@ -320,7 +320,15 @@ const AgentDetails = () => {
                 model_id: getModelId(editedForm.modelType, editedForm.language),
               },
             },
-            platform_settings: editedForm.platform_settings,
+            platform_settings: {
+              ...editedForm.platform_settings,
+              data_collection: Object.fromEntries(
+                Object.entries(editedForm.platform_settings?.data_collection || {}).map(([key, value]) => {
+                  const { constant_value_type, ...rest } = value;
+                  return [key, rest];
+                })
+              )
+            },
           }),
         },
       );
