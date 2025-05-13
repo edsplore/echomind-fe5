@@ -168,6 +168,9 @@ const AgentDetails = () => {
   const [selectedTool, setSelectedTool] = useState<any>(null);
   const [isCreatingTool, setIsCreatingTool] = useState(false);
 
+  const [editingVarName, setEditingVarName] = useState<string | null>(null);
+  const [editingVarValue, setEditingVarValue] = useState<string>("");
+
   // The form data
   const [editForm, setEditForm] = useState<EditForm>({
     name: "",
@@ -750,38 +753,60 @@ const AgentDetails = () => {
                               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
                                 <Database className="w-5 h-5 text-primary dark:text-primary-400" />
                               </div>
-                              <input
-                                type="text"
-                                value={varName}
-                                onChange={(e) => {
-                                  const newName = e.target.value;
-                                  setEditedForm(prev => {
-                                    // Get the current data collection object or an empty object if it doesn't exist
-                                    const currentDataCollection = prev.platform_settings?.data_collection || {};
+                              {editingVarName === varName ? (
+                                  <>
+                                    <input
+                                      type="text"
+                                      value={editingVarValue}
+                                      onChange={(e) => setEditingVarValue(e.target.value)}
+                                      className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border border-primary rounded-md px-2 py-1 focus:ring-1 focus:ring-primary"
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        const oldConfig = editedForm.platform_settings?.data_collection?.[varName];
+                                        const newDataCollection = { ...editedForm.platform_settings?.data_collection };
+                                        delete newDataCollection[varName];
+                                        newDataCollection[editingVarValue] = oldConfig;
 
-                                    // Extract the configuration for the current variable name
-                                    const oldConfig = currentDataCollection[varName];
-
-                                    // Create a new data collection object without the old variable
-                                    const { [varName]: removed, ...restDataCollection } = currentDataCollection;
-
-                                    return {
-                                      ...prev,
-                                      platform_settings: {
-                                        ...prev.platform_settings,
-                                        data_collection: {
-                                          ...restDataCollection,
-                                          // Only add the config under the new name if we have a new name
-                                          ...(newName ? { [newName]: oldConfig } : {})
-                                        }
-                                      }
-                                    };
-                                  });
-                                  setHasChanges(true);
-                                }}
-                                className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border-0 focus:ring-0 p-0 focus:border-0"
-                                placeholder="Variable name"
-                              />
+                                        setEditedForm(prev => ({
+                                          ...prev,
+                                          platform_settings: {
+                                            ...prev.platform_settings,
+                                            data_collection: newDataCollection
+                                          }
+                                        }));
+                                        setEditingVarName(null);
+                                        setHasChanges(true);
+                                      }}
+                                      className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                    >
+                                      <Check className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingVarName(null);
+                                      }}
+                                      className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {varName}
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        setEditingVarName(varName);
+                                        setEditingVarValue(varName);
+                                      }}
+                                      className="p-1 text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary-400"
+                                    >
+                                      <Settings className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
                             </div>
                             <button
                               onClick={() => {
@@ -830,7 +855,8 @@ const AgentDetails = () => {
                                 Constant Value Type
                               </label>
                               <select
-                                value={varConfig.constant_value}
+                                value={varConfig.constant```python
+_value}
                                 onChange={(e) => {
                                   handleChange("platform_settings", {
                                     ...editedForm.platform_settings,
