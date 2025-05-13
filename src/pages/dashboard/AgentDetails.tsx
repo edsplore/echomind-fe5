@@ -38,7 +38,7 @@ interface DynamicVariable {
   type: string;  // "boolean" | "string" | "number" | "integer"
   description?: string;
   dynamic_variable?: string;
-  contact_value?: string; // "string" | "integer" | "double" | "boolean"
+  constant_value?: string; // "string" | "integer" | "double" | "boolean"
 }
 
 interface AgentDetails {
@@ -818,10 +818,10 @@ const AgentDetails = () => {
 
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Contact Value Type
+                                Constant Value Type
                               </label>
                               <select
-                                value={varConfig.contact_value}
+                                value={varConfig.constant_value}
                                 onChange={(e) => {
                                   handleChange("platform_settings", {
                                     ...editedForm.platform_settings,
@@ -829,7 +829,7 @@ const AgentDetails = () => {
                                       ...editedForm.platform_settings?.data_collection,
                                       [varName]: {
                                         ...varConfig,
-                                        contact_value: e.target.value
+                                        constant_value: e.target.value
                                       }
                                     }
                                   });
