@@ -34,9 +34,21 @@ import {
   llmOptions,
 } from "../../lib/constants";
 
+interface DynamicVariable {
+  type: string;  // "boolean" | "string" | "number" | "integer"
+  description?: string;
+  dynamic_variable?: string;
+  contact_value?: string; // "string" | "integer" | "double" | "boolean"
+}
+
 interface AgentDetails {
   agent_id: string;
   name: string;
+  platform_settings: {
+    data_collection: {
+      [key: string]: DynamicVariable;
+    }
+  }
   conversation_config: {
     agent: {
       prompt: {
