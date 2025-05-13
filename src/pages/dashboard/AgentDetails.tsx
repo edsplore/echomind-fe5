@@ -942,51 +942,174 @@ const AgentDetails = () => {
 
                             <div className="col-span-2">
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Description
+                                Variable Type
                               </label>
-                              <input
-                                type="text"
-                                value={varConfig.description || ""}
+                              <select
+                                value={
+                                  varConfig.description ? "description" :
+                                  varConfig.constant_value ? "constant" :
+                                  varConfig.dynamic_variable ? "dynamic" : ""
+                                }
                                 onChange={(e) => {
+                                  const newType = e.target.value;
                                   handleChange("platform_settings", {
                                     ...editedForm.platform_settings,
                                     data_collection: {
                                       ...editedForm.platform_settings?.data_collection,
                                       [varName]: {
                                         ...varConfig,
-                                        description: e.target.value
+                                        description: newType === "description" ? "" : undefined,
+                                        constant_value: newType === "constant" ? "" : undefined,
+                                        constant_value_type: newType === "constant" ? "string" : undefined,
+                                        dynamic_variable: newType === "dynamic" ? "" : undefined
                                       }
                                     }
                                   });
                                 }}
                                 className="input text-sm"
-                                placeholder="Enter description"
-                              />
+                              >
+                                <option value="">Select type</option>
+                                <option value="description">Description</option>
+                                <option value="constant">Constant Value</option>
+                                <option value="dynamic">Dynamic Variable</option>
+                              </select>
                             </div>
 
-                            <div className="col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Dynamic Variable
-                              </label>
-                              <input
-                                type="text"
-                                value={varConfig.dynamic_variable || ""}
-                                onChange={(e) => {
-                                  handleChange("platform_settings", {
-                                    ...editedForm.platform_settings,
-                                    data_collection: {
-                                      ...editedForm.platform_settings?.data_collection,
-                                      [varName]: {
-                                        ...varConfig,
-                                        dynamic_variable: e.target.value
+                            {varConfig.description !== undefined && (
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                  Description
+                                </label>
+                                <input
+                                  type="text"
+                                  value={varConfig.description}
+                                  onChange={(e) => {
+                                    handleChange("platform_settings", {
+                                      ...editedForm.platform_settings,
+                                      data_collection: {
+                                        ...editedForm.platform_settings?.data_collection,
+                                        [varName]: {
+                                          ...varConfig,
+                                          description: e.target.value
+                                        }
                                       }
-                                    }
-                                  });
-                                }}
-                                className="input text-sm"
-                                placeholder="Enter dynamic variable"
-                              />
-                            </div>
+                                    });
+                                  }}
+                                  className="input text-sm"
+                                  placeholder="Enter description"
+                                />
+                              </div>
+                            )}
+
+                            {varConfig.constant_value !== undefined && (
+                              <>
+                                <div className="col-span-2">
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Constant Value Type
+                                  </label>
+                                  <select
+                                    value={varConfig.constant_value_type || 'string'}
+                                    onChange={(e) => {
+                                      handleChange("platform_settings", {
+                                        ...editedForm.platform_settings,
+                                        data_collection: {
+                                          ...editedForm.platform_settings?.data_collection,
+                                          [varName]: {
+                                            ...varConfig,
+                                            constant_value_type: e.target.value,
+                                            constant_value: ''
+                                          }
+                                        }
+                                      });
+                                    }}
+                                    className="input text-sm"
+                                  >
+                                    <option value="string">String</option>
+                                    <option value="integer">Integer</option>
+                                    <option value="double">Double</option>
+                                    <option value="boolean">Boolean</option>
+                                  </select>
+                                </div>
+                                <div className="col-span-2">
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Constant Value
+                                  </label>
+                                  {varConfig.constant_value_type === 'boolean' ? (
+                                    <select
+                                      value={varConfig.constant_value || 'true'}
+                                      onChange={(e) => {
+                                        handleChange("platform_settings", {
+                                          ...editedForm.platform_settings,
+                                          data_collection: {
+                                            ...editedForm.platform_settings?.data_collection,
+                                            [varName]: {
+                                              ...varConfig,
+                                              constant_value: e.target.value
+                                            }
+                                          }
+                                        });
+                                      }}
+                                      className="input text-sm"
+                                    >
+                                      <option value="true">True</option>
+                                      <option value="false">False</option>
+                                    </select>
+                                  ) : (
+                                    <input
+                                      type={varConfig.constant_value_type === 'integer' || varConfig.constant_value_type === 'double' ? 'number' : 'text'}
+                                      step={varConfig.constant_value_type === 'double' ? '0.01' : '1'}
+                                      value={varConfig.constant_value}
+                                      onChange={(e) => {
+                                        let value = e.target.value;
+                                        if (varConfig.constant_value_type === 'integer') {
+                                          value = parseInt(value) ? String(parseInt(value)) : '';
+                                        } else if (varConfig.constant_value_type === 'double') {
+                                          value = parseFloat(value) ? String(parseFloat(value)) : '';
+                                        }
+                                        handleChange("platform_settings", {
+                                          ...editedForm.platform_settings,
+                                          data_collection: {
+                                            ...editedForm.platform_settings?.data_collection,
+                                            [varName]: {
+                                              ...varConfig,
+                                              constant_value: value
+                                            }
+                                          }
+                                        });
+                                      }}
+                                      className="input text-sm"
+                                      placeholder={`Enter ${varConfig.constant_value_type} value`}
+                                    />
+                                  )}
+                                </div>
+                              </>
+                            )}
+
+                            {varConfig.dynamic_variable !== undefined && (
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                  Dynamic Variable
+                                </label>
+                                <input
+                                  type="text"
+                                  value={varConfig.dynamic_variable}
+                                  onChange={(e) => {
+                                    handleChange("platform_settings", {
+                                      ...editedForm.platform_settings,
+                                      data_collection: {
+                                        ...editedForm.platform_settings?.data_collection,
+                                        [varName]: {
+                                          ...varConfig,
+                                          dynamic_variable: e.target.value
+                                        }
+                                      }
+                                    });
+                                  }}
+                                  className="input text-sm"
+                                  placeholder="Enter dynamic variable"
+                                />
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
