@@ -868,38 +868,8 @@ const AgentDetails = () => {
                                   varConfig.constant_value !== undefined ? "constant" :
                                   varConfig.dynamic_variable !== undefined ? "dynamic" : "description"
                                 }
-                                onChange={(e) => {
-                                  const newType = e.target.value;
-                                  const newConfig = {
-                                    ...varConfig,
-                                    type: varConfig.type,
-                                  };
-
-                                  // Remove all special fields first
-                                  delete newConfig.description;
-                                  delete newConfig.constant_value;
-                                  delete newConfig.constant_value_type;
-                                  delete newConfig.dynamic_variable;
-
-                                  // Add the appropriate field based on selection
-                                  if (newType === "description") {
-                                    newConfig.description = "";
-                                  } else if (newType === "constant") {
-                                    newConfig.constant_value = "";
-                                    newConfig.constant_value_type = "string";
-                                  } else if (newType === "dynamic") {
-                                    newConfig.dynamic_variable = "";
-                                  }
-
-                                  handleChange("platform_settings", {
-                                    ...editedForm.platform_settings,
-                                    data_collection: {
-                                      ...editedForm.platform_settings?.data_collection,
-                                      [varName]: newConfig
-                                    }
-                                  });
-                                }}
                                 className="input text-sm"
+                                disabled
                               >
                                 <option value="description">Description</option>
                                 <option value="constant">Constant Value</option>
