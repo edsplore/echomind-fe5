@@ -714,7 +714,7 @@ const AgentDetails = () => {
                           type: "string",
                           description: "",
                           dynamic_variable: "",
-                          constant_value: "string"
+                          constant_value: ""
                         }
                       };
                       const updatedCollection = {
