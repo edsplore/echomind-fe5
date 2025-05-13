@@ -852,29 +852,34 @@ const AgentDetails = () => {
 
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Constant Value Type
+                                Constant Value
                               </label>
-                              <select
-                                value={varConfig.constant_value}
+                              <input
+                                type={varConfig.type === 'number' || varConfig.type === 'integer' ? 'number' : 'text'}
+                                value={varConfig.constant_value || ''}
                                 onChange={(e) => {
+                                  let value = e.target.value;
+                                  if (varConfig.type === 'boolean') {
+                                    value = value.toLowerCase() === 'true' ? 'true' : 'false';
+                                  } else if (varConfig.type === 'integer') {
+                                    value = parseInt(value) ? String(parseInt(value)) : '';
+                                  } else if (varConfig.type === 'number') {
+                                    value = parseFloat(value) ? String(parseFloat(value)) : '';
+                                  }
                                   handleChange("platform_settings", {
                                     ...editedForm.platform_settings,
                                     data_collection: {
                                       ...editedForm.platform_settings?.data_collection,
                                       [varName]: {
                                         ...varConfig,
-                                        constant_value: e.target.value
+                                        constant_value: value
                                       }
                                     }
                                   });
                                 }}
                                 className="input text-sm"
-                              >
-                                <option value="string">String</option>
-                                <option value="integer">Integer</option>
-                                <option value="double">Double</option>
-                                <option value="boolean">Boolean</option>
-                              </select>
+                                placeholder={`Enter ${varConfig.type} value`}
+                              />
                             </div>
 
                             <div className="col-span-2">
