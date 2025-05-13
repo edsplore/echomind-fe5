@@ -317,6 +317,7 @@ const AgentDetails = () => {
                 model_id: getModelId(editedForm.modelType, editedForm.language),
               },
             },
+            platform_settings: editedForm.platform_settings,
           }),
         },
       );
