@@ -225,6 +225,10 @@ const AgentDetails = () => {
         knowledge_base:
           agentData.conversation_config.agent.prompt.knowledge_base || [],
         tools: agentData.conversation_config.agent.prompt.tools || [],
+        platform_settings: {
+          ...agentData.platform_settings,
+          data_collection: agentData.platform_settings?.data_collection || {}
+        }
       };
       setEditForm(initialForm);
       setEditedForm(initialForm);
@@ -849,8 +853,7 @@ const AgentDetails = () => {
                                 }}
                                 className="input text-sm"
                               >
-                                <option value="string">String</option>
-                                <option value="number">Number</option>
+                                <option value="string">String</option                                <option value="number">Number</option>
                                 <option value="boolean">Boolean</option>
                                 <option value="integer">Integer</option>
                               </select>
