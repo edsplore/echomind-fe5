@@ -711,7 +711,7 @@ const AgentDetails = () => {
                           type: "string",
                           description: "",
                           dynamic_variable: "",
-                          contact_value: "string"
+                          constant_value: "string"
                         }
                       };
                       const updatedCollection = {
@@ -755,18 +755,28 @@ const AgentDetails = () => {
                                 value={varName}
                                 onChange={(e) => {
                                   const newName = e.target.value;
-                                  const oldConfig = editedForm.platform_settings?.data_collection?.[varName];
-                                  const newDataCollection = { ...editedForm.platform_settings?.data_collection };
-                                  delete newDataCollection[varName];
-                                  newDataCollection[newName] = oldConfig;
-                                  
-                                  setEditedForm(prev => ({
-                                    ...prev,
-                                    platform_settings: {
-                                      ...prev.platform_settings,
-                                      data_collection: newDataCollection
-                                    }
-                                  }));
+                                  setEditedForm(prev => {
+                                    // Get the current data collection object or an empty object if it doesn't exist
+                                    const currentDataCollection = prev.platform_settings?.data_collection || {};
+
+                                    // Extract the configuration for the current variable name
+                                    const oldConfig = currentDataCollection[varName];
+
+                                    // Create a new data collection object without the old variable
+                                    const { [varName]: removed, ...restDataCollection } = currentDataCollection;
+
+                                    return {
+                                      ...prev,
+                                      platform_settings: {
+                                        ...prev.platform_settings,
+                                        data_collection: {
+                                          ...restDataCollection,
+                                          // Only add the config under the new name if we have a new name
+                                          ...(newName ? { [newName]: oldConfig } : {})
+                                        }
+                                      }
+                                    };
+                                  });
                                   setHasChanges(true);
                                 }}
                                 className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border-0 focus:ring-0 p-0 focus:border-0"
