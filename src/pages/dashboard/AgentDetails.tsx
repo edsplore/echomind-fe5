@@ -855,8 +855,7 @@ const AgentDetails = () => {
                                 Constant Value Type
                               </label>
                               <select
-                                value={varConfig.constant```python
-_value}
+                                value={varConfig.constant_value}
                                 onChange={(e) => {
                                   handleChange("platform_settings", {
                                     ...editedForm.platform_settings,
