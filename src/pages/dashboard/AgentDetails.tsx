@@ -839,6 +839,7 @@ const AgentDetails = () => {
                               </label>
                               <select
                                 value={varConfig.type}
+                                onClick={() => {}}
                                 onChange={(e) => {
                                   handleChange("platform_settings", {
                                     ...editedForm.platform_settings,
