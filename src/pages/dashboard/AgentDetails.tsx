@@ -853,7 +853,7 @@ const AgentDetails = () => {
                                 }}
                                 className="input text-sm"
                               >
-                                <option value="string">String</option                                <option value="number">Number</option>
+                                <option value="string">String</option>                               <option value="number">Number</option>
                                 <option value="boolean">Boolean</option>
                                 <option value="integer">Integer</option>
                               </select>
