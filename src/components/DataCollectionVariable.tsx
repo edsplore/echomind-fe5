@@ -36,8 +36,16 @@ export const DataCollectionVariable: React.FC<Props> = ({
   const [variableType, setVariableType] = useState<'description' | 'constant' | 'dynamic'>('description');
 
   useEffect(() => {
-    // Set initial variable type based on which property exists
-    if (varConfig.constant_value !== undefined) {
+    // First check for non-empty values (for fetched data)
+    if (varConfig.constant_value && varConfig.constant_value !== '') {
+      setVariableType('constant');
+    } else if (varConfig.dynamic_variable && varConfig.dynamic_variable !== '') {
+      setVariableType('dynamic');
+    } else if (varConfig.description && varConfig.description !== '') {
+      setVariableType('description');
+    } 
+    // Then check for undefined (for new variables)
+    else if (varConfig.constant_value !== undefined) {
       setVariableType('constant');
     } else if (varConfig.dynamic_variable !== undefined) {
       setVariableType('dynamic');
