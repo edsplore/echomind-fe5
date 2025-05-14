@@ -24,6 +24,7 @@ import CallTesting from "../../components/CallTesting";
 import { KnowledgeBaseSelect } from "../../components/KnowledgeBaseSelect";
 import { VoiceModal } from "../../components/VoiceModal"; // <-- The updated VoiceModal
 import { ModelSelect } from "../../components/ModelSelect";
+import { DataCollectionVariable } from "../../components/DataCollectionVariable";
 import { ToolConfigModal } from "../../components/ToolConfigModal";
 import { LanguageSelect } from "../../components/LanguageSelect";
 import { Loader, PageLoader } from "../../components/Loader";
@@ -753,297 +754,50 @@ const AgentDetails = () => {
                   ) : (
                     <div className="divide-y divide-gray-200 dark:divide-dark-100">
                       {Object.entries(editedForm.platform_settings?.data_collection || {}).map(([varName, varConfig]) => (
-                        <div
+                        <DataCollectionVariable
                           key={varName}
-                          className="py-4 first:pt-0 last:pb-0 space-y-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
-                                <Database className="w-5 h-5 text-primary dark:text-primary-400" />
-                              </div>
-                              {editingVarName === varName ? (
-                                  <>
-                                    <input
-                                      type="text"
-                                      value={editingVarValue}
-                                      onChange={(e) => setEditingVarValue(e.target.value)}
-                                      className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border border-primary rounded-md px-2 py-1 focus:ring-1 focus:ring-primary"
-                                    />
-                                    <button
-                                      onClick={() => {
-                                        const oldConfig = editedForm.platform_settings?.data_collection?.[varName];
-                                        const newDataCollection = { ...editedForm.platform_settings?.data_collection };
-                                        delete newDataCollection[varName];
-                                        newDataCollection[editingVarValue] = oldConfig;
+                          varName={varName}
+                          varConfig={varConfig}
+                          editingVarName={editingVarName}
+                          editingVarValue={editingVarValue}
+                          onEdit={(name, value) => {
+                            setEditingVarName(name);
+                            setEditingVarValue(value);
+                          }}
+                          onSave={(oldName, newName) => {
+                            const oldConfig = editedForm.platform_settings?.data_collection?.[oldName];
+                            const newDataCollection = { ...editedForm.platform_settings?.data_collection };
+                            delete newDataCollection[oldName];
+                            newDataCollection[newName] = oldConfig;
 
-                                        setEditedForm(prev => ({
-                                          ...prev,
-                                          platform_settings: {
-                                            ...prev.platform_settings,
-                                            data_collection: newDataCollection
-                                          }
-                                        }));
-                                        setEditingVarName(null);
-                                        setHasChanges(true);
-                                      }}
-                                      className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                                    >
-                                      <Check className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setEditingVarName(null);
-                                      }}
-                                      className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {varName}
-                                    </span>
-                                    <button
-                                      onClick={() => {
-                                        setEditingVarName(varName);
-                                        setEditingVarValue(varName);
-                                      }}
-                                      className="p-1 text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary-400"
-                                    >
-                                      <Settings className="w-4 h-4" />
-                                    </button>
-                                  </>
-                                )}
-                            </div>
-                            <button
-                              onClick={() => {
-                                const { [varName]: _, ...rest } = editedForm.platform_settings?.data_collection || {};
-                                handleChange("platform_settings", {
-                                  ...editedForm.platform_settings,
-                                  data_collection: rest
-                                });
-                              }}
-                              className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Type
-                              </label>
-                              <select
-                                value={varConfig.type}
-                                onClick={() => {}}
-                                onChange={(e) => {
-                                  handleChange("platform_settings", {
-                                    ...editedForm.platform_settings,
-                                    data_collection: {
-                                      ...editedForm.platform_settings?.data_collection,
-                                      [varName]: {
-                                        ...varConfig,
-                                        type: e.target.value
-                                      }
-                                    }
-                                  });
-                                }}
-                                className="input text-sm"
-                              >
-                                <option value="string">String</option>                               <option value="number">Number</option>
-                                <option value="boolean">Boolean</option>
-                                <option value="integer">Integer</option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Variable Type
-                              </label>
-                              <select
-                                value={
-                                  varConfig.constant_value !== undefined ? "constant" :
-                                  varConfig.dynamic_variable !== undefined ? "dynamic" : "description"
-                                }
-                                onChange={(e) => {
-                                  const newType = e.target.value;
-                                  const newConfig = {
-                                    ...varConfig,
-                                    type: varConfig.type,
-                                  };
-
-                                  // Remove all special fields first
-                                  delete newConfig.description;
-                                  delete newConfig.constant_value;
-                                  delete newConfig.constant_value_type;
-                                  delete newConfig.dynamic_variable;
-
-                                  // Add the appropriate field based on selection
-                                  if (newType === "description") {
-                                    newConfig.description = "";
-                                  } else if (newType === "constant") {
-                                    newConfig.constant_value = "";
-                                    newConfig.constant_value_type = "string";
-                                  } else if (newType === "dynamic") {
-                                    newConfig.dynamic_variable = "";
-                                  }
-
-                                  handleChange("platform_settings", {
-                                    ...editedForm.platform_settings,
-                                    data_collection: {
-                                      ...editedForm.platform_settings?.data_collection,
-                                      [varName]: newConfig
-                                    }
-                                  });
-                                }}
-                                className="input text-sm"
-                              >
-                                <option value="description">Description</option>
-                                <option value="constant">Constant Value</option>
-                                <option value="dynamic">Dynamic Variable</option>
-                              </select>
-                            </div>
-
-                            {varConfig.description !== undefined && (
-                              <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                  Description
-                                </label>
-                                <input
-                                  type="text"
-                                  value={varConfig.description}
-                                  onChange={(e) => {
-                                    handleChange("platform_settings", {
-                                      ...editedForm.platform_settings,
-                                      data_collection: {
-                                        ...editedForm.platform_settings?.data_collection,
-                                        [varName]: {
-                                          ...varConfig,
-                                          description: e.target.value
-                                        }
-                                      }
-                                    });
-                                  }}
-                                  className="input text-sm"
-                                  placeholder="Enter description"
-                                />
-                              </div>
-                            )}
-
-                            {varConfig.constant_value !== undefined && (
-                              <>
-                                <div className="col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Constant Value Type
-                                  </label>
-                                  <select
-                                    value={varConfig.constant_value_type || 'string'}
-                                    onChange={(e) => {
-                                      handleChange("platform_settings", {
-                                        ...editedForm.platform_settings,
-                                        data_collection: {
-                                          ...editedForm.platform_settings?.data_collection,
-                                          [varName]: {
-                                            ...varConfig,
-                                            constant_value_type: e.target.value,
-                                            constant_value: ''
-                                          }
-                                        }
-                                      });
-                                    }}
-                                    className="input text-sm"
-                                  >
-                                    <option value="string">String</option>
-                                    <option value="integer">Integer</option>
-                                    <option value="double">Double</option>
-                                    <option value="boolean">Boolean</option>
-                                  </select>
-                                </div>
-                                <div className="col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Constant Value
-                                  </label>
-                                  {varConfig.constant_value_type === 'boolean' ? (
-                                    <select
-                                      value={varConfig.constant_value || 'true'}
-                                      onChange={(e) => {
-                                        handleChange("platform_settings", {
-                                          ...editedForm.platform_settings,
-                                          data_collection: {
-                                            ...editedForm.platform_settings?.data_collection,
-                                            [varName]: {
-                                              ...varConfig,
-                                              constant_value: e.target.value
-                                            }
-                                          }
-                                        });
-                                      }}
-                                      className="input text-sm"
-                                    >
-                                      <option value="true">True</option>
-                                      <option value="false">False</option>
-                                    </select>
-                                  ) : (
-                                    <input
-                                      type={varConfig.constant_value_type === 'integer' || varConfig.constant_value_type === 'double' ? 'number' : 'text'}
-                                      step={varConfig.constant_value_type === 'double' ? '0.01' : '1'}
-                                      value={varConfig.constant_value}
-                                      onChange={(e) => {
-                                        let value = e.target.value;
-                                        if (varConfig.constant_value_type === 'integer') {
-                                          value = parseInt(value) ? String(parseInt(value)) : '';
-                                        } else if (varConfig.constant_value_type === 'double') {
-                                          value = parseFloat(value) ? String(parseFloat(value)) : '';
-                                        }
-                                        handleChange("platform_settings", {
-                                          ...editedForm.platform_settings,
-                                          data_collection: {
-                                            ...editedForm.platform_settings?.data_collection,
-                                            [varName]: {
-                                              ...varConfig,
-                                              constant_value: value
-                                            }
-                                          }
-                                        });
-                                      }}
-                                      className="input text-sm"
-                                      placeholder={`Enter ${varConfig.constant_value_type} value`}
-                                    />
-                                  )}
-                                </div>
-                              </>
-                            )}
-
-                            {varConfig.dynamic_variable !== undefined && (
-                              <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                  Dynamic Variable
-                                </label>
-                                <input
-                                  type="text"
-                                  value={varConfig.dynamic_variable}
-                                  onChange={(e) => {
-                                    handleChange("platform_settings", {
-                                      ...editedForm.platform_settings,
-                                      data_collection: {
-                                        ...editedForm.platform_settings?.data_collection,
-                                        [varName]: {
-                                          ...varConfig,
-                                          dynamic_variable: e.target.value
-                                        }
-                                      }
-                                    });
-                                  }}
-                                  className="input text-sm"
-                                  placeholder="Enter dynamic variable"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                            setEditedForm(prev => ({
+                              ...prev,
+                              platform_settings: {
+                                ...prev.platform_settings,
+                                data_collection: newDataCollection
+                              }
+                            }));
+                            setEditingVarName(null);
+                            setHasChanges(true);
+                          }}
+                          onCancel={() => setEditingVarName(null)}
+                          onDelete={(name) => {
+                            const { [name]: _, ...rest } = editedForm.platform_settings?.data_collection || {};
+                            handleChange("platform_settings", {
+                              ...editedForm.platform_settings,
+                              data_collection: rest
+                            });
+                          }}
+                          onChange={(name, config) => {
+                            handleChange("platform_settings", {
+                              ...editedForm.platform_settings,
+                              data_collection: {
+                                ...editedForm.platform_settings?.data_collection,
+                                [name]: config
+                              }
+                            });
+                          }}
+                        />
                       ))}
                     </div>
                   )}
