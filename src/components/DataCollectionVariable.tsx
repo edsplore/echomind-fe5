@@ -73,12 +73,37 @@ export const DataCollectionVariable: React.FC<Props> = ({
             <Database className="w-5 h-5 text-primary dark:text-primary-400" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {varName}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {varConfig.type} - {variableType}
-            </span>
+            {editingVarName === varName ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={editingVarValue}
+                  onChange={(e) => onEdit(varName, e.target.value)}
+                  className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border border-primary rounded-md px-2 py-1 focus:ring-1 focus:ring-primary"
+                />
+                <button
+                  onClick={() => onSave(varName, editingVarValue)}
+                  className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onCancel}
+                  className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {varName}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {varConfig.type} - {variableType}
+                </span>
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-2">
