@@ -325,7 +325,6 @@ const AgentDetails = () => {
               },
             },
             platform_settings: {
-              ...editedForm.platform_settings,
               data_collection: Object.fromEntries(
                 Object.entries(editedForm.platform_settings?.data_collection || {}).map(([key, value]) => {
                   const { constant_value_type, ...rest } = value;
@@ -860,7 +859,7 @@ const AgentDetails = () => {
                               </select>
                             </div>
 
-                            <div className="col-span-2">
+                            <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Variable Type
                               </label>
