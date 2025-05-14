@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Database, Settings, Trash2, Check, X } from 'lucide-react';
 
 interface DynamicVariable {
@@ -33,6 +33,38 @@ export const DataCollectionVariable: React.FC<Props> = ({
   onDelete,
   onChange,
 }) => {
+  const [variableType, setVariableType] = useState<'description' | 'constant' | 'dynamic'>('description');
+
+  useEffect(() => {
+    // Set initial variable type based on which property exists
+    if (varConfig.constant_value !== undefined) {
+      setVariableType('constant');
+    } else if (varConfig.dynamic_variable !== undefined) {
+      setVariableType('dynamic');
+    } else {
+      setVariableType('description');
+    }
+  }, [varConfig]);
+
+  const handleVariableTypeChange = (newType: 'description' | 'constant' | 'dynamic') => {
+    setVariableType(newType);
+    
+    const newConfig = {
+      type: varConfig.type
+    } as DynamicVariable;
+
+    if (newType === 'description') {
+      newConfig.description = '';
+    } else if (newType === 'constant') {
+      newConfig.constant_value = '';
+      newConfig.constant_value_type = 'string';
+    } else if (newType === 'dynamic') {
+      newConfig.dynamic_variable = '';
+    }
+
+    onChange(varName, newConfig);
+  };
+
   return (
     <div className="py-4 first:pt-0 last:pb-0 space-y-4">
       <div className="flex items-center justify-between">
@@ -105,27 +137,8 @@ export const DataCollectionVariable: React.FC<Props> = ({
             Variable Type
           </label>
           <select
-            value={
-              varConfig.constant_value !== undefined ? "constant" :
-              varConfig.dynamic_variable !== undefined ? "dynamic" : "description"
-            }
-            onChange={(e) => {
-              const newType = e.target.value;
-              const newConfig = {
-                type: varConfig.type
-              } as DynamicVariable;
-
-              if (newType === "description") {
-                newConfig.description = "";
-              } else if (newType === "constant") {
-                newConfig.constant_value = "";
-                newConfig.constant_value_type = "string";
-              } else if (newType === "dynamic") {
-                newConfig.dynamic_variable = "";
-              }
-
-              onChange(varName, newConfig);
-            }}
+            value={variableType}
+            onChange={(e) => handleVariableTypeChange(e.target.value as 'description' | 'constant' | 'dynamic')}
             className="input text-sm"
           >
             <option value="description">Description</option>
@@ -134,14 +147,14 @@ export const DataCollectionVariable: React.FC<Props> = ({
           </select>
         </div>
 
-        {varConfig.description !== undefined && (
+        {variableType === 'description' && (
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description
             </label>
             <input
               type="text"
-              value={varConfig.description}
+              value={varConfig.description || ''}
               onChange={(e) => onChange(varName, { ...varConfig, description: e.target.value })}
               className="input text-sm"
               placeholder="Enter description"
@@ -149,7 +162,7 @@ export const DataCollectionVariable: React.FC<Props> = ({
           </div>
         )}
 
-        {varConfig.constant_value !== undefined && (
+        {variableType === 'constant' && (
           <>
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -183,7 +196,7 @@ export const DataCollectionVariable: React.FC<Props> = ({
                 <input
                   type={varConfig.constant_value_type === 'integer' || varConfig.constant_value_type === 'double' ? 'number' : 'text'}
                   step={varConfig.constant_value_type === 'double' ? '0.01' : '1'}
-                  value={varConfig.constant_value}
+                  value={varConfig.constant_value || ''}
                   onChange={(e) => {
                     let value = e.target.value;
                     if (varConfig.constant_value_type === 'integer') {
@@ -201,14 +214,14 @@ export const DataCollectionVariable: React.FC<Props> = ({
           </>
         )}
 
-        {varConfig.dynamic_variable !== undefined && (
+        {variableType === 'dynamic' && (
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Dynamic Variable
             </label>
             <input
               type="text"
-              value={varConfig.dynamic_variable}
+              value={varConfig.dynamic_variable || ''}
               onChange={(e) => onChange(varName, { ...varConfig, dynamic_variable: e.target.value })}
               className="input text-sm"
               placeholder="Enter dynamic variable"
