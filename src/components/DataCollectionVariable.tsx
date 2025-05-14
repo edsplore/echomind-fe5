@@ -76,51 +76,60 @@ export const DataCollectionVariable: React.FC<Props> = ({
   return (
     <div className="py-4 first:pt-0 last:pb-0 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
-            <Database className="w-5 h-5 text-primary dark:text-primary-400" />
+        <div className="flex flex-col">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
+              <Database className="w-5 h-5 text-primary dark:text-primary-400" />
+            </div>
+            {editingVarName === varName ? (
+              <>
+                <input
+                  type="text"
+                  value={editingVarValue}
+                  onChange={(e) => onEdit(varName, e.target.value)}
+                  className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border border-primary rounded-md px-2 py-1 focus:ring-1 focus:ring-primary"
+                />
+                <button
+                  onClick={() => onSave(varName, editingVarValue)}
+                  className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onCancel}
+                  className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {varName}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {varConfig.type} - {variableType}
+                </span>
+              </div>
+            )}
           </div>
-          {editingVarName === varName ? (
-            <>
-              <input
-                type="text"
-                value={editingVarValue}
-                onChange={(e) => onEdit(varName, e.target.value)}
-                className="text-sm font-medium text-gray-900 dark:text-white bg-transparent border border-primary rounded-md px-2 py-1 focus:ring-1 focus:ring-primary"
-              />
-              <button
-                onClick={() => onSave(varName, editingVarValue)}
-                className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-              >
-                <Check className="w-4 h-4" />
-              </button>
-              <button
-                onClick={onCancel}
-                className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </>
-          ) : (
-            <>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {varName}
-              </span>
-              <button
-                onClick={() => onEdit(varName, varName)}
-                className="p-1 text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary-400"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-            </>
-          )}
         </div>
-        <button
-          onClick={() => onDelete(varName)}
-          className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center space-x-2">
+          {!varConfig.dynamic_variable && !varConfig.constant_value && !varConfig.description && (
+            <button
+              onClick={() => onEdit(varName, varName)}
+              className="p-2 text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50/50 dark:hover:bg-primary-400/10 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={() => onDelete(varName)}
+            className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
