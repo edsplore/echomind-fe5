@@ -50,11 +50,13 @@ interface AgentDetails {
     data_collection: {
       [key: string]: DynamicVariable;
     };
-    conversation_initiation_client_data_webhook?: {
-      url: string;
-      request_headers: {
-        "Content-Type": string;
-      };
+    workspace_overrides: {
+      conversation_initiation_client_data_webhook?: {
+        url: string;
+        request_headers: {
+          "Content-Type": string;
+        };
+      }
     };
   }
   conversation_config: {
@@ -123,11 +125,13 @@ interface EditForm {
     data_collection: {
       [key: string]: DynamicVariable;
     };
-    conversation_initiation_client_data_webhook?: {
-      url: string;
-      request_headers: {
-        "Content-Type": string;
-      };
+    workspace_overrides?: {
+      conversation_initiation_client_data_webhook?: {
+        url: string;
+        request_headers: {
+          "Content-Type": string;
+        };
+      }
     };
   };
   knowledge_base: Array<{
@@ -241,7 +245,8 @@ const AgentDetails = () => {
         tools: agentData.conversation_config.agent.prompt.tools || [],
         platform_settings: {
           ...agentData.platform_settings,
-          data_collection: agentData.platform_settings?.data_collection || {}
+          data_collection: agentData.platform_settings?.data_collection || {},
+          workspace_overrides: agentData.platform_settings?.workspace_overrides || {}
         }
       };
       setEditForm(initialForm);
@@ -345,7 +350,7 @@ const AgentDetails = () => {
                   return [key, rest];
                 })
               ),
-              conversation_initiation_client_data_webhook: editedForm.platform_settings?.conversation_initiation_client_data_webhook
+              workspace_overrides: editedForm.platform_settings?.workspace_overrides
             },
           }),
         },
@@ -907,15 +912,17 @@ const AgentDetails = () => {
                   </h3>
                 </div>
                 <WebhookVariable
-                  url={editedForm.platform_settings?.conversation_initiation_client_data_webhook?.url || ''}
+                  url={editedForm.platform_settings?.workspace_overrides?.conversation_initiation_client_data_webhook?.url || ''}
                   onChange={(url) => {
                     handleChange('platform_settings', {
                       ...editedForm.platform_settings,
-                      conversation_initiation_client_data_webhook: {
+                      workspace_overrides: {
+                        conversation_initiation_client_data_webhook: {
                         url,
                         request_headers: {
                           "Content-Type": "application/json"
                         }
+                      }
                       }
                     });
                   }}
