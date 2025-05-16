@@ -917,12 +917,13 @@ const AgentDetails = () => {
                     handleChange('platform_settings', {
                       ...editedForm.platform_settings,
                       workspace_overrides: {
+                        ...editedForm.platform_settings?.workspace_overrides,
                         conversation_initiation_client_data_webhook: {
-                        url,
-                        request_headers: {
-                          "Content-Type": "application/json"
+                          url,
+                          request_headers: {
+                            "Content-Type": "application/json"
+                          }
                         }
-                      }
                       }
                     });
                   }}
