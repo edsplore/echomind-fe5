@@ -722,24 +722,6 @@ const AgentDetails = () => {
                 />
               </div>
 
-              {/* Webhook Section */}
-              <div className="space-y-4">
-                <WebhookVariable
-                  url={editedForm.platform_settings?.conversation_initiation_client_data_webhook?.url || ''}
-                  onChange={(url) => {
-                    handleChange('platform_settings', {
-                      ...editedForm.platform_settings,
-                      conversation_initiation_client_data_webhook: {
-                        url,
-                        request_headers: {
-                          "Content-Type": "application/json"
-                        }
-                      }
-                    });
-                  }}
-                />
-              </div>
-
               {/* Dynamic Variables Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -913,6 +895,30 @@ const AgentDetails = () => {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Webhook Section */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Webhook className="w-5 h-5 text-primary dark:text-primary-400" />
+                  <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white">
+                    Webhook
+                  </h3>
+                </div>
+                <WebhookVariable
+                  url={editedForm.platform_settings?.conversation_initiation_client_data_webhook?.url || ''}
+                  onChange={(url) => {
+                    handleChange('platform_settings', {
+                      ...editedForm.platform_settings,
+                      conversation_initiation_client_data_webhook: {
+                        url,
+                        request_headers: {
+                          "Content-Type": "application/json"
+                        }
+                      }
+                    });
+                  }}
+                />
               </div>
 
               {/* Knowledge Base Section */}
