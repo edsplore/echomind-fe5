@@ -25,6 +25,7 @@ import { KnowledgeBaseSelect } from "../../components/KnowledgeBaseSelect";
 import { VoiceModal } from "../../components/VoiceModal"; // <-- The updated VoiceModal
 import { ModelSelect } from "../../components/ModelSelect";
 import { DataCollectionVariable } from "../../components/DataCollectionVariable";
+import { WebhookVariable } from "../../components/WebhookVariable";
 import { ToolConfigModal } from "../../components/ToolConfigModal";
 import { LanguageSelect } from "../../components/LanguageSelect";
 import { Loader, PageLoader } from "../../components/Loader";
@@ -48,7 +49,13 @@ interface AgentDetails {
   platform_settings: {
     data_collection: {
       [key: string]: DynamicVariable;
-    }
+    };
+    conversation_initiation_client_data_webhook?: {
+      url: string;
+      request_headers: {
+        "Content-Type": string;
+      };
+    };
   }
   conversation_config: {
     agent: {
@@ -115,6 +122,12 @@ interface EditForm {
   platform_settings?: {
     data_collection: {
       [key: string]: DynamicVariable;
+    };
+    conversation_initiation_client_data_webhook?: {
+      url: string;
+      request_headers: {
+        "Content-Type": string;
+      };
     };
   };
   knowledge_base: Array<{
@@ -706,6 +719,24 @@ const AgentDetails = () => {
                   rows={6}
                   className="input"
                   placeholder="Enter the agent's behavior and instructions..."
+                />
+              </div>
+
+              {/* Webhook Section */}
+              <div className="space-y-4">
+                <WebhookVariable
+                  url={editedForm.platform_settings?.conversation_initiation_client_data_webhook?.url || ''}
+                  onChange={(url) => {
+                    handleChange('platform_settings', {
+                      ...editedForm.platform_settings,
+                      conversation_initiation_client_data_webhook: {
+                        url,
+                        request_headers: {
+                          "Content-Type": "application/json"
+                        }
+                      }
+                    });
+                  }}
                 />
               </div>
 
