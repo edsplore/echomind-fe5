@@ -344,7 +344,8 @@ const AgentDetails = () => {
                   const { constant_value_type, ...rest } = value;
                   return [key, rest];
                 })
-              )
+              ),
+              conversation_initiation_client_data_webhook: editedForm.platform_settings?.conversation_initiation_client_data_webhook
             },
           }),
         },
