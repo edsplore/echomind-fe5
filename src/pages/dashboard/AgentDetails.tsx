@@ -246,7 +246,10 @@ const AgentDetails = () => {
         platform_settings: {
           ...agentData.platform_settings,
           data_collection: agentData.platform_settings?.data_collection || {},
-          workspace_overrides: agentData.platform_settings?.workspace_overrides || {}
+          workspace_overrides: {
+            ...agentData.platform_settings?.workspace_overrides,
+            conversation_initiation_client_data_webhook: agentData.platform_settings?.workspace_overrides.conversation_initiation_client_data_webhook || {}
+          }
         }
       };
       setEditForm(initialForm);
