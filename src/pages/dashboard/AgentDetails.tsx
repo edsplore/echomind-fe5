@@ -244,11 +244,14 @@ const AgentDetails = () => {
           agentData.conversation_config.agent.prompt.knowledge_base || [],
         tools: agentData.conversation_config.agent.prompt.tools || [],
         platform_settings: {
-          ...agentData.platform_settings,
           data_collection: agentData.platform_settings?.data_collection || {},
           workspace_overrides: {
-            ...agentData.platform_settings?.workspace_overrides,
-            conversation_initiation_client_data_webhook: agentData.platform_settings?.workspace_overrides.conversation_initiation_client_data_webhook || {}
+            conversation_initiation_client_data_webhook: agentData.platform_settings?.workspace_overrides?.conversation_initiation_client_data_webhook || {
+              url: '',
+              request_headers: {
+                "Content-Type": "application/json"
+              }
+            }
           }
         }
       };
