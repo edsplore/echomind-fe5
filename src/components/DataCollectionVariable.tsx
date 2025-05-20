@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Settings, Trash2, Check, X } from 'lucide-react';
+import { Database, Edit, Trash2, Check, X } from 'lucide-react';
 
 interface DynamicVariable {
   type: string;
@@ -119,7 +119,7 @@ export const DataCollectionVariable: React.FC<Props> = ({
             }}
             className="p-2 text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50/50 dark:hover:bg-primary-400/10 transition-colors"
           >
-            <Settings className="w-4 h-4" />
+            <Edit className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(varName)}
