@@ -214,16 +214,15 @@ const PhoneNumbers = () => {
       setLoading(true);
       setError('');
 
-      const response = await fetch(`${BACKEND_URL}/call/outbound`, {
+      const response = await fetch(`${BACKEND_URL}/call/twilio-outbound`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
         body: JSON.stringify({
-          user_id: user.uid,
-          agent_id: isOutboundCalling.assigned_agent.agent_id,
-          from_number: isOutboundCalling.phone_number,
+          agentId: isOutboundCalling.assigned_agent.agent_id,
+          agent_phone_number_id: isOutboundCalling.phone_number,
           to_number: outboundCallData.to_number,
         }),
       });
