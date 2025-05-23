@@ -222,7 +222,7 @@ const PhoneNumbers = () => {
         },
         body: JSON.stringify({
           agentId: isOutboundCalling.assigned_agent.agent_id,
-          agent_phone_number_id: isOutboundCalling.phone_number,
+          agent_phone_number_id: isOutboundCalling.phone_number_id,
           to_number: outboundCallData.to_number,
         }),
       });
