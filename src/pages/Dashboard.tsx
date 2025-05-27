@@ -26,6 +26,7 @@ import CallHistory from './dashboard/CallHistory';
 import KnowledgeBase from './dashboard/KnowledgeBase';
 import Tools from './dashboard/Tools';
 import ToolDetails from './dashboard/ToolDetails';
+import BatchCalling from './dashboard/BatchCalling';
 import { Link } from 'react-router-dom';
 
 const menuItems = [
@@ -34,6 +35,7 @@ const menuItems = [
   { icon: History, label: 'Call History', path: '/dashboard/calls' },
   { icon: Database, label: 'Knowledge Base', path: '/dashboard/knowledge' },
   { icon: Webhook, label: 'Tools', path: '/dashboard/tools' },
+  { icon: Users, label: 'Batch Calling', path: '/dashboard/batch-calling' },
 ];
 
 const quickActions = [
@@ -308,6 +310,7 @@ const Dashboard = () => {
               <Route path="knowledge" element={<KnowledgeBase />} />
               <Route path="tools" element={<Tools />} />
               <Route path="tools/:toolId" element={<ToolDetails />} />
+              <Route path="batch-calling" element={<BatchCalling />} />
             </Routes>
           </div>
         </main>

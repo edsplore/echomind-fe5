@@ -12,6 +12,7 @@ import {
   PanelLeftOpen,
   PanelRightOpen,
   Speech,
+  PhoneCall,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { cn } from "../lib/utils";
@@ -23,6 +24,7 @@ const menuItems = [
   { icon: History, label: "Call History", path: "/dashboard/calls" },
   { icon: Database, label: "Knowledge Base", path: "/dashboard/knowledge" },
   { icon: Webhook, label: "Tools", path: "/dashboard/tools" },
+  { icon: PhoneCall, label: "Batch Calling", path: "/dashboard/batch-calling" },
 ];
 
 const Sidebar = () => {

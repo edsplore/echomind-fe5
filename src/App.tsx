@@ -12,7 +12,6 @@ import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/Dashboard";
 import AgentDetails from "./pages/dashboard/AgentDetails";
 import KnowledgeBaseDetails from "./pages/dashboard/KnowledgeBaseDetails";
-import Tools from "./pages/dashboard/Tools";
 import ToolDetails from "./pages/dashboard/ToolDetails";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -97,6 +96,10 @@ function App() {
           <Route
             path="tools"
             element={<Navigate to="/dashboard/tools" replace />}
+          />
+          <Route
+            path="batch-calling"
+            element={<Navigate to="/dashboard/batch-calling" replace />}
           />
         </Route>
 

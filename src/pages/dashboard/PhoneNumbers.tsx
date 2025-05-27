@@ -56,6 +56,7 @@ const PhoneNumbers = () => {
     label: '',
     sid: '',
     token: '',
+    termination_uri: '',
   });
   const [assignFormData, setAssignFormData] = useState({
     assigned_agent_id: '',
@@ -67,6 +68,7 @@ const PhoneNumbers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [importType, setImportType] = useState<'twilio' | 'sip_trunk'>('twilio'); // Added importType state
 
   const fetchAgents = async () => {
     if (!user) return;
@@ -129,20 +131,35 @@ const PhoneNumbers = () => {
       setLoading(true);
       setError('');
 
+      let requestBody: any = {
+        user_id: user.uid,
+        provider: importType,
+        label: formData.label,
+      };
+
+      if (importType === 'twilio') {
+        requestBody = {
+          ...requestBody,
+          phone_number: formData.phone_number,
+          sid: formData.sid,
+          token: formData.token,
+        };
+      } else if (importType === 'sip_trunk') {
+        requestBody = {
+          ...requestBody,
+          phone_number: formData.phone_number,
+
+          termination_uri: formData.termination_uri,
+        };
+      }
+
       const response = await fetch(`${BACKEND_URL}/phone-numbers/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
-        body: JSON.stringify({
-          user_id: user.uid,
-          phone_number: formData.phone_number,
-          provider: 'twilio',
-          label: formData.label,
-          sid: formData.sid,
-          token: formData.token,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -155,6 +172,10 @@ const PhoneNumbers = () => {
         label: '',
         sid: '',
         token: '',
+        sip_uri: '',
+        sip_username: '',
+        sip_password: '',
+        sip_domain: '',
       });
 
       await fetchPhoneNumbers();
@@ -214,7 +235,11 @@ const PhoneNumbers = () => {
       setLoading(true);
       setError('');
 
-      const response = await fetch(`${BACKEND_URL}/call/twilio-outbound`, {
+      const endpoint = isOutboundCalling.provider === 'twilio' 
+        ? '/call/twilio-outbound'
+        : '/call/sip-trunk-outbound';
+
+      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -260,13 +285,28 @@ const PhoneNumbers = () => {
             Manage your Twilio phone numbers and agent assignments
           </p>
         </div>
+        <div>
         <button
-          onClick={() => setIsCreating(true)}
-          className="btn btn-primary"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Import Number
-        </button>
+            onClick={() => {
+              setIsCreating(true);
+              setImportType('twilio');
+            }}
+            className="btn btn-primary mr-2"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Import from Twilio
+          </button>
+          <button
+            onClick={() => {
+              setIsCreating(true);
+              setImportType('sip_trunk');
+            }}
+            className="btn btn-primary"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Import from SIP
+          </button>
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -392,7 +432,7 @@ const PhoneNumbers = () => {
                 <div className="flex items-center space-x-2">
                   <Phone className="w-6 h-6 text-primary dark:text-primary-400" />
                   <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
-                    Import Twilio Phone Number
+                    {importType === 'twilio' ? 'Import Twilio Phone Number' : 'Import SIP Phone Number'}
                   </h2>
                 </div>
                 <button
@@ -404,6 +444,8 @@ const PhoneNumbers = () => {
               </div>
 
               <div className="p-6">
+              {importType === 'twilio' ? (
+                <>
                 <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-3">
                     <Info className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -556,6 +598,103 @@ const PhoneNumbers = () => {
                     </button>
                   </div>
                 </form>
+              </>
+              ) : (
+                <form onSubmit={handleCreatePhoneNumber} className="space-y-6">
+                  {error && (
+                    <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-lg flex items-center space-x-2 text-red-600 dark:text-red-400">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="label"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Label
+                    </label>
+                    <input
+                      type="text"
+                      id="label"
+                      value={formData.label}
+                      onChange={(e) =>
+                        setFormData({ ...formData, label: e.target.value })
+                      }
+                      placeholder="Support Line"
+                      className="input"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="phone_number"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone_number"
+                      value={formData.phone_number}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone_number: e.target.value })
+                      }
+                      placeholder="+1234567890"
+                      className="input"
+                      required
+                    />
+                  </div>
+
+
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="termination_uri"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Termination URI
+                    </label>
+                    <input
+                      type="text"
+                      id="termination_uri"
+                      value={formData.termination_uri}
+                      onChange={(e) =>
+                        setFormData({ ...formData, termination_uri: e.target.value })
+                      }
+                      placeholder="sip:example.com"
+                      className="input"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-dark-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreating(false)}
+                      className="btn btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="btn btn-primary"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        'Import SIP Number'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
               </div>
             </motion.div>
           </motion.div>

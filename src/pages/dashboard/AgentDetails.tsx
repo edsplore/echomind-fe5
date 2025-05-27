@@ -18,6 +18,12 @@ import {
   Plus,
   Database,
   Trash2,
+  Zap,
+  CheckCircle2,
+  ArrowRight,
+  Phone,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import CallTesting from "../../components/CallTesting";
@@ -86,7 +92,16 @@ interface AgentDetails {
     tts: {
       voice_id: string;
       model_id: string;
+      optimize_streaming_latency: number; // The optimization for streaming latency
+      stability: number; // The stability of generated speech ( double, >=0 to <=1, defaults to 0.5)
+      speed: number; // The speed of generated speech ( double, >=0.7 to <=1.2, defaults to 1)
+      similarity_boost: number; // The similarity boost for generated speech ( double, >=0 to <=1, defaults to 0.8)
     };
+    turn: {
+      turn_timeout: number; //Maximum wait time for the user’s reply before re-engaging the user (double, defaults to 7)
+      silence_end_call_timeout: number; // Maximum wait time since the user last spoke before terminating the call (double, defaults to -1)
+      mode: string; // enum: "silence" or "turn"
+    }
   };
 }
 
@@ -148,6 +163,17 @@ interface EditForm {
       method: string;
     };
   }>;
+  tts?: {
+    optimize_streaming_latency?: number;
+    stability?: number;
+    speed?: number;
+    similarity_boost?: number;
+  };
+  turn?: {
+    turn_timeout?: number;
+    silence_end_call_timeout?: number;
+    mode?: string;
+  };
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -185,6 +211,8 @@ const AgentDetails = () => {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [selectedTool, setSelectedTool] = useState<any>(null);
   const [isCreatingTool, setIsCreatingTool] = useState(false);
+  const [showAdvancedVoiceSettings, setShowAdvancedVoiceSettings] = useState(false);
+  const [showAdvancedConversationSettings, setShowAdvancedConversationSettings] = useState(false);
 
   const [editingVarName, setEditingVarName] = useState<string | null>(null);
   const [editingVarValue, setEditingVarValue] = useState<string>("");
@@ -201,6 +229,17 @@ const AgentDetails = () => {
     modelType: "turbo",
     knowledge_base: [],
     tools: [],
+    tts: {
+      optimize_streaming_latency: 0,
+      stability: 0.5,
+      speed: 1.0,
+      similarity_boost: 0.8
+    },
+    turn: {
+      turn_timeout: 7,
+      silence_end_call_timeout: -1,
+      mode: "silence"
+    }
   });
   const [editedForm, setEditedForm] = useState<EditForm>(editForm);
 
@@ -253,6 +292,17 @@ const AgentDetails = () => {
               }
             }
           }
+        },
+        tts: {
+          optimize_streaming_latency: agentData.conversation_config.tts.optimize_streaming_latency || 0,
+          stability: agentData.conversation_config.tts.stability || 0.5,
+          speed: agentData.conversation_config.tts.speed || 1.0,
+          similarity_boost: agentData.conversation_config.tts.similarity_boost || 0.8
+        },
+        turn: {
+          turn_timeout: agentData.conversation_config.turn.turn_timeout || 7,
+          silence_end_call_timeout: agentData.conversation_config.turn.silence_end_call_timeout || -1,
+          mode: agentData.conversation_config.turn.mode || "silence"
         }
       };
       setEditForm(initialForm);
@@ -347,6 +397,15 @@ const AgentDetails = () => {
               tts: {
                 voice_id: editedForm.voice_id,
                 model_id: getModelId(editedForm.modelType, editedForm.language),
+                optimize_streaming_latency: editedForm.tts?.optimize_streaming_latency || 0,
+                stability: editedForm.tts?.stability || 0.5,
+                speed: editedForm.tts?.speed || 1.0,
+                similarity_boost: editedForm.tts?.similarity_boost || 0.8,
+              },
+              turn: {
+                turn_timeout: editedForm.turn?.turn_timeout || 7,
+                silence_end_call_timeout: editedForm.turn?.silence_end_call_timeout || -1,
+                mode: editedForm.turn?.mode || "silence",
               },
             },
             platform_settings: {
@@ -696,6 +755,263 @@ const AgentDetails = () => {
                   Adjust creativity level: 0 for focused responses, 1 for more
                   creative outputs
                 </p>
+              </div>
+
+              {/* Advanced Voice Settings */}
+              <div className="space-y-4 mt-8">
+                <button
+                  onClick={() => setShowAdvancedVoiceSettings(!showAdvancedVoiceSettings)}
+                  className="flex items-center justify-between w-full p-4 bg-gray-50 dark:bg-dark-100 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Volume2 className="w-5 h-5 text-primary dark:text-primary-400" />
+                    <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white">
+                      Advanced Voice Settings
+                    </h3>
+                  </div>
+                  {showAdvancedVoiceSettings ? (
+                    <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  )}
+                </button>
+
+                {showAdvancedVoiceSettings && (
+                  <div className="space-y-6 pl-4 border-l-2 border-primary/20 dark:border-primary/30">
+                    {/* Optimize Streaming Latency */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Zap className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Optimize Streaming Latency ({editedForm.tts?.optimize_streaming_latency || 0})
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="4"
+                        step="1"
+                        value={editedForm.tts?.optimize_streaming_latency || 0}
+                        onChange={(e) =>
+                          handleChange("tts", {
+                            ...editedForm.tts,
+                            optimize_streaming_latency: parseInt(e.target.value)
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Higher values prioritize speed over quality (0-4)
+                      </p>
+                    </div>
+
+                    {/* Stability */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Stability ({editedForm.tts?.stability?.toFixed(2) || '0.50'})
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={editedForm.tts?.stability || 0.5}
+                        onChange={(e) =>
+                          handleChange("tts", {
+                            ...editedForm.tts,
+                            stability: parseFloat(e.target.value)
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Consistency of voice characteristics (0.0-1.0)
+                      </p>
+                    </div>
+
+                    {/* Speed */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <ArrowRight className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Speed ({editedForm.tts?.speed?.toFixed(2) || '1.00'})
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.7"
+                        max="1.2"
+                        step="0.01"
+                        value={editedForm.tts?.speed || 1.0}
+                        onChange={(e) =>
+                          handleChange("tts", {
+                            ...editedForm.tts,
+                            speed: parseFloat(e.target.value)
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Speech rate (0.7-1.2, default 1.0)
+                      </p>
+                    </div>
+
+                    {/* Similarity Boost */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Sparkles className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Similarity Boost ({editedForm.tts?.similarity_boost?.toFixed(2) || '0.80'})
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={editedForm.tts?.similarity_boost || 0.8}
+                        onChange={(e) =>
+                          handleChange("tts", {
+                            ...editedForm.tts,
+                            similarity_boost: parseFloat(e.target.value)
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Enhances voice similarity to original (0.0-1.0)
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Advanced Conversation Settings */}
+              <div className="space-y-4 mt-8">
+                <button
+                  onClick={() => setShowAdvancedConversationSettings(!showAdvancedConversationSettings)}
+                  className="flex items-center justify-between w-full p-4 bg-gray-50 dark:bg-dark-100 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="w-5 h-5 text-primary dark:text-primary-400" />
+                    <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white">
+                      Advanced Conversation Settings
+                    </h3>
+                  </div>
+                  {showAdvancedConversationSettings ? (
+                    <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  )}
+                </button>
+
+                {showAdvancedConversationSettings && (
+                  <div className="space-y-6 pl-4 border-l-2 border-primary/20 dark:border-primary/30">
+                    {/* Turn Timeout */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <AlertCircle className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Turn Timeout ({editedForm.turn?.turn_timeout?.toFixed(1) || '7.0'}s)
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="30"
+                        step="0.5"
+                        value={editedForm.turn?.turn_timeout || 7}
+                        onChange={(e) =>
+                          handleChange("turn", {
+                            ...editedForm.turn,
+                            turn_timeout: parseFloat(e.target.value)
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Maximum wait time for user's reply before re-engaging (1-30 seconds)
+                      </p>
+                    </div>
+
+                    {/* Silence End Call Timeout */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Silence End Call Timeout ({editedForm.turn?.silence_end_call_timeout === -1 ? 'Disabled' : `${editedForm.turn?.silence_end_call_timeout?.toFixed(1) || '60.0'}s`})
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="-1"
+                        max="300"
+                        step="1"
+                        value={editedForm.turn?.silence_end_call_timeout || -1}
+                        onChange={(e) =>
+                          handleChange("turn", {
+                            ...editedForm.turn,
+                            silence_end_call_timeout: parseFloat(e.target.value)
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Maximum silence before ending call (-1 to disable, 0-300 seconds)
+                      </p>
+                    </div>
+
+                    {/* Mode Switch */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Settings className="w-4 h-4 text-primary dark:text-primary-400" />
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Turn Mode
+                        </h4>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="turnMode"
+                            value="silence"
+                            checked={editedForm.turn?.mode === "silence"}
+                            onChange={(e) =>
+                              handleChange("turn", {
+                                ...editedForm.turn,
+                                mode: e.target.value
+                              })
+                            }
+                            className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Silence</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="turnMode"
+                            value="turn"
+                            checked={editedForm.turn?.mode === "turn"}
+                            onChange={(e) =>
+                              handleChange("turn", {
+                                ...editedForm.turn,
+                                mode: e.target.value
+                              })
+                            }
+                            className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Turn</span>
+                        </label>
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Choose how the agent detects when the user has finished speaking
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* First Message Section */}
