@@ -18,7 +18,7 @@ const Login = () => {
       setError('');
       setLoading(true);
       await signIn(email, password);
-      navigate('/dashboard');
+      navigate('/dashboard/agents');
     } catch (err) {
       setError('Failed to sign in. Please check your credentials.');
     } finally {

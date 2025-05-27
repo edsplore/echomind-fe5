@@ -52,27 +52,28 @@ export const DashboardNavbar = () => {
               className="fixed top-16 right-4 w-80 bg-white dark:bg-dark-200 rounded-xl shadow-xl z-50 overflow-hidden"
             >
               {/* Header */}
-              <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-100">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user?.email}
-                      </p>
-                      <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          userData?.role === 'admin' 
-                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-400'
-                            : 'bg-blue-100 text-blue-800 dark:bg-blue-800/20 dark:text-blue-400'
-                        }`}>
-                          {userData?.role}
-                        </span>
-                      </div>
-                    </div>
+              <div className="relative p-4 border-b border-gray-100 dark:border-dark-100">
+                <button
+                  onClick={() => setIsProfileOpen(false)}
+                  className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center text-primary dark:text-primary-400">
+                    <User className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user?.email?.split('@')[0]}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center mt-0.5">
+                      <Mail className="w-3 h-3 mr-1" />
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
+              </div>
 
               {/* Content */}
               <div className="p-2">
