@@ -12,6 +12,7 @@ import { auth, db } from '../lib/firebase';
 
 interface UserData {
   email: string;
+  role: 'admin' | 'user';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,6 +21,7 @@ interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -94,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Create the user document in Firestore
       const userData: UserData = {
         email: user.email!,
+        role: 'user', // Default role is 'user'
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -129,10 +132,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const isAdmin = userData?.role === 'admin';
+
   const value = {
     user,
     userData,
     loading,
+    isAdmin,
     signIn,
     signUp,
     logout,
