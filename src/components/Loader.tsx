@@ -1,7 +1,7 @@
 
 import { motion } from 'framer-motion';
 
-const Loader = () => {
+export const Loader = () => {
   return (
     <div className="flex items-center justify-center">
       <motion.div
@@ -57,5 +57,3 @@ export const PageLoader = () => {
     </div>
   );
 };
-
-export default Loader;
