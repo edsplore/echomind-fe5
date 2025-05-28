@@ -29,16 +29,27 @@ const UserManagement = () => {
     try {
       const usersRef = collection(db, 'users');
       const snapshot = await getDocs(usersRef);
-      const usersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-      })) as User[];
       
+      console.log('Total users found:', snapshot.docs.length);
+      
+      const usersData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('User data:', doc.id, data);
+        
+        return {
+          id: doc.id,
+          email: data.email || 'No email',
+          role: data.role || 'user',
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+        };
+      }) as User[];
+      
+      console.log('Processed users:', usersData);
       setUsers(usersData);
     } catch (error) {
       console.error('Error fetching users:', error);
+      alert('Error fetching users: ' + error);
     } finally {
       setLoading(false);
     }
@@ -65,9 +76,10 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const email = user?.email || '';
+    return email.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   if (loading) {
     return (
@@ -85,7 +97,7 @@ const UserManagement = () => {
             User Management
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Manage user roles and permissions
+            Manage user roles and permissions ({users.length} total users)
           </p>
         </div>
       </div>
