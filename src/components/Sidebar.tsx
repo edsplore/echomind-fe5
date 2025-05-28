@@ -12,13 +12,14 @@ import {
   PanelRightOpen,
   Speech,
   PhoneCall,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
 
 const adminMenuItems = [
-  { icon: Speech, label: "Dashboard", path: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Users, label: "User Management", path: "/dashboard/users" },
 ];
 
