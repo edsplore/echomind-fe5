@@ -1,6 +1,4 @@
-
-import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Bot, 
@@ -12,13 +10,9 @@ import {
   Users,
   Clock,
   MessageSquare,
-  BarChart,
   TrendingUp,
   PhoneCall,
-  Plus,
-  Webhook
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from '../../components/Sidebar';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
 import Agents from './Agents';

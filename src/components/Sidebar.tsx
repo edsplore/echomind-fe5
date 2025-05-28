@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -9,7 +9,6 @@ import {
   LogOut,
   Webhook,
   PanelLeftClose,
-  PanelLeftOpen,
   PanelRightOpen,
   Speech,
   PhoneCall,
@@ -19,12 +18,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
 
 const adminMenuItems = [
-  { icon: Speech, label: "Agents", path: "/dashboard/agents" },
-  { icon: Phone, label: "Phone Numbers", path: "/dashboard/phones" },
-  { icon: History, label: "Call History", path: "/dashboard/calls" },
-  { icon: Database, label: "Knowledge Base", path: "/dashboard/knowledge" },
-  { icon: Webhook, label: "Tools", path: "/dashboard/tools" },
-  { icon: PhoneCall, label: "Batch Calling", path: "/dashboard/batch-calling" },
+  { icon: Speech, label: "Dashboard", path: "/dashboard" },
   { icon: Users, label: "User Management", path: "/dashboard/users" },
 ];
 
