@@ -73,6 +73,21 @@ const UserManagement = () => {
   const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
     if (!user) return;
 
+    // Check if this is the last admin being demoted
+    if (newRole === 'user') {
+      const adminCount = users.filter(u => u.role === 'admin').length;
+      if (adminCount === 1) {
+        alert('Cannot remove the last admin. There must be at least one admin in the system.');
+        return;
+      }
+
+      // Confirm the demotion
+      const confirmDemotion = window.confirm(
+        'Are you sure you want to remove admin privileges from this user? They will lose access to admin features.'
+      );
+      if (!confirmDemotion) return;
+    }
+
     setUpdating(userId);
     try {
       const userRef = doc(db, 'users', userId);
