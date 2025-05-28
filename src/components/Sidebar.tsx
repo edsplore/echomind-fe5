@@ -18,20 +18,30 @@ import { useAuth } from "../contexts/AuthContext";
 import { cn } from "../lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 
-const menuItems = [
+import { useAuth } from "../contexts/AuthContext";
+
+const adminMenuItems = [
   { icon: Speech, label: "Agents", path: "/dashboard/agents" },
   { icon: Phone, label: "Phone Numbers", path: "/dashboard/phones" },
   { icon: History, label: "Call History", path: "/dashboard/calls" },
   { icon: Database, label: "Knowledge Base", path: "/dashboard/knowledge" },
   { icon: Webhook, label: "Tools", path: "/dashboard/tools" },
   { icon: PhoneCall, label: "Batch Calling", path: "/dashboard/batch-calling" },
+  { icon: Users, label: "User Management", path: "/dashboard/users" },
+];
+
+const userMenuItems = [
+  { icon: Speech, label: "Agents", path: "/dashboard/agents" },
+  { icon: History, label: "Call History", path: "/dashboard/calls" },
 ];
 
 const Sidebar = () => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  const menuItems = isAdmin() ? adminMenuItems : userMenuItems;
 
   return (
     <motion.div
