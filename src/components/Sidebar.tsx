@@ -14,7 +14,6 @@ import {
   Speech,
   PhoneCall,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
 import { cn } from "../lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 
