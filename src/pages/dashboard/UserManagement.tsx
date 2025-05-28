@@ -241,13 +241,13 @@ const UserManagement = () => {
             Manage user roles and permissions ({users.length} total users)
           </p>
         </div>
-        <button
+        {/* <button
           onClick={() => setShowAddUserModal(true)}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add User
-        </button>
+        </button> */}
       </div>
 
       {/* Search and Stats */}
