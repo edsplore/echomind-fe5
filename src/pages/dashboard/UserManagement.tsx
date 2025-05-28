@@ -13,7 +13,7 @@ interface User {
   id: string;
   email: string;
   role: 'admin' | 'user';
-  status: 'active' | 'disabled' | 'pending';
+  status: 'active' | 'disabled';
   createdByAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -135,7 +135,7 @@ const UserManagement = () => {
       const userData = {
         email: newUser.email!,
         role: addUserForm.role,
-        status: 'disabled' as const,
+        status: 'active' as const,
         createdByAdmin: true,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -165,7 +165,7 @@ const UserManagement = () => {
       setAddUserForm({ email: '', password: '', role: 'user' });
       setShowAddUserModal(false);
 
-      alert('User created successfully! The user account is disabled and cannot be used to log in until activated.');
+      alert('User created successfully! The user account is active and ready to use.');
     } catch (error: any) {
       console.error('Error creating user:', error);
       let errorMessage = 'Failed to create user';

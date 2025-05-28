@@ -13,7 +13,7 @@ import { auth, db } from '../lib/firebase';
 interface UserData {
   email: string;
   role: 'admin' | 'user';
-  status: 'active' | 'disabled' | 'pending';
+  status: 'active' | 'disabled';
   createdByAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -82,11 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Sign out the user immediately
           await signOut(auth);
           throw new Error('This account has been disabled by an administrator');
-        }
-        if (userData.status === 'pending') {
-          // Sign out the user immediately
-          await signOut(auth);
-          throw new Error('This account is pending activation');
         }
       }
     } catch (error) {
