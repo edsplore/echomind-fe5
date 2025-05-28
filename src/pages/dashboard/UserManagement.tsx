@@ -66,7 +66,7 @@ const UserManagement = () => {
   };
 
   const filteredUsers = users.filter(user =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
