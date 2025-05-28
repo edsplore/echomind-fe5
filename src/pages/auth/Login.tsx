@@ -19,8 +19,15 @@ const Login = () => {
       setLoading(true);
       await signIn(email, password);
       navigate('/dashboard');
-    } catch (err) {
-      setError('Failed to sign in. Please check your credentials.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      if (err.message && err.message.includes('disabled')) {
+        setError('This account has been disabled by an administrator. Please contact support for assistance.');
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Failed to sign in. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
