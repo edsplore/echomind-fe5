@@ -13,7 +13,6 @@ interface User {
   id: string;
   email: string;
   role: 'admin' | 'user';
-  status: 'active' | 'disabled';
   createdByAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -55,7 +54,6 @@ const UserManagement = () => {
           id: doc.id,
           email: data.email || 'No email',
           role: data.role || 'user',
-          status: data.status || 'disabled',
           createdByAdmin: data.createdByAdmin || false,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
@@ -94,27 +92,7 @@ const UserManagement = () => {
     }
   };
 
-  const updateUserStatus = async (userId: string, newStatus: 'active' | 'disabled') => {
-    if (!user) return;
-
-    setUpdating(userId);
-    try {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        status: newStatus,
-        updatedAt: new Date(),
-      });
-
-      setUsers(prev => prev.map(u => 
-        u.id === userId ? { ...u, status: newStatus, updatedAt: new Date() } : u
-      ));
-    } catch (error) {
-      console.error('Error updating user status:', error);
-      alert('Error updating user status: ' + error);
-    } finally {
-      setUpdating(null);
-    }
-  };
+  
 
   const generateRandomPassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
@@ -156,7 +134,6 @@ const UserManagement = () => {
       const userData = {
         email: newUser.email!,
         role: addUserForm.role,
-        status: 'active' as const,
         createdByAdmin: true,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -186,7 +163,7 @@ const UserManagement = () => {
       setAddUserForm({ email: '', password: '', role: 'user' });
       setShowAddUserModal(false);
 
-      alert('User created successfully! The user account is active and ready to use.');
+      alert('User created successfully!');
     } catch (error: any) {
       console.error('Error creating user:', error);
       let errorMessage = 'Failed to create user';
@@ -287,18 +264,6 @@ const UserManagement = () => {
                 {users.filter(u => u.role === 'user').length} Users
               </span>
             </div>
-            <div className="flex items-center space-x-2">
-              <UserCheck className="w-4 h-4 text-green-500" />
-              <span className="text-gray-500 dark:text-gray-400">
-                {users.filter(u => u.status === 'active').length} Active
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <UserX className="w-4 h-4 text-red-500" />
-              <span className="text-gray-500 dark:text-gray-400">
-                {users.filter(u => u.status === 'disabled').length} Disabled
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -340,13 +305,6 @@ const UserManagement = () => {
                       }`}>
                         {user.role}
                       </span>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.status === 'active'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      }`}>
-                        {user.status}
-                      </span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Joined {user.createdAt.toLocaleDateString()}
@@ -379,27 +337,6 @@ const UserManagement = () => {
                     <RefreshCw className={`w-4 h-4 mr-1 ${resettingPassword === user.id ? 'animate-spin' : ''}`} />
                     {resettingPassword === user.id ? 'Sending...' : 'Reset Password'}
                   </button>
-
-                  {/* Status Management */}
-                  {user.status === 'active' ? (
-                    <button
-                      onClick={() => updateUserStatus(user.id, 'disabled')}
-                      disabled={updating === user.id}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <UserX className="w-4 h-4 mr-1" />
-                      {updating === user.id ? 'Updating...' : 'Disable'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => updateUserStatus(user.id, 'active')}
-                      disabled={updating === user.id}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <UserCheck className="w-4 h-4 mr-1" />
-                      {updating === user.id ? 'Updating...' : 'Activate'}
-                    </button>
-                  )}
 
                   {/* Role Management */}
                   {user.role === 'user' ? (

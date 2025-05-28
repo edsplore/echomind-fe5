@@ -13,7 +13,6 @@ import { auth, db } from '../lib/firebase';
 interface UserData {
   email: string;
   role: 'admin' | 'user';
-  status: 'active' | 'disabled';
   createdByAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -71,19 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      // Check user status in Firestore
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as UserData;
-        if (userData.status === 'disabled') {
-          // Sign out the user immediately
-          await signOut(auth);
-          throw new Error('This account has been disabled by an administrator');
-        }
-      }
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       if (error instanceof FirebaseError) {
         switch (error.code) {
@@ -111,7 +98,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData: UserData = {
         email: user.email!,
         role: 'user', // Default role is user
-        status: 'active', // Self-registered users are active by default
         createdByAdmin: false,
         createdAt: new Date(),
         updatedAt: new Date()
