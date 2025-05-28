@@ -30,7 +30,11 @@ const adminMenuItems = [
 
 const userMenuItems = [
   { icon: Speech, label: "Agents", path: "/dashboard/agents" },
+  { icon: Phone, label: "Phone Numbers", path: "/dashboard/phones" },
   { icon: History, label: "Call History", path: "/dashboard/calls" },
+  { icon: Database, label: "Knowledge Base", path: "/dashboard/knowledge" },
+  { icon: Webhook, label: "Tools", path: "/dashboard/tools" },
+  { icon: PhoneCall, label: "Batch Calling", path: "/dashboard/batch-calling" },
 ];
 
 const Sidebar = () => {

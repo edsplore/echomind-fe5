@@ -3,7 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { DashboardNavbar } from '../../components/DashboardNavbar';
 import Agents from './Agents';
+import PhoneNumbers from './PhoneNumbers';
 import CallHistory from './CallHistory';
+import KnowledgeBase from './KnowledgeBase';
+import Tools from './Tools';
+import ToolDetails from './ToolDetails';
+import BatchCalling from './BatchCalling';
 
 const UserDashboard = () => {
   return (
@@ -16,7 +21,12 @@ const UserDashboard = () => {
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard/agents" replace />} />
               <Route path="agents/*" element={<Agents />} />
+              <Route path="phones" element={<PhoneNumbers />} />
               <Route path="calls" element={<CallHistory />} />
+              <Route path="knowledge" element={<KnowledgeBase />} />
+              <Route path="tools" element={<Tools />} />
+              <Route path="tools/:toolId" element={<ToolDetails />} />
+              <Route path="batch-calling" element={<BatchCalling />} />
             </Routes>
           </div>
         </main>
