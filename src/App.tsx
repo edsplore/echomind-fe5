@@ -13,7 +13,6 @@ import Dashboard from "./pages/Dashboard";
 import AgentDetails from "./pages/dashboard/AgentDetails";
 import KnowledgeBaseDetails from "./pages/dashboard/KnowledgeBaseDetails";
 import ToolDetails from "./pages/dashboard/ToolDetails";
-import UserManagement from "./pages/dashboard/UserManagement";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -73,16 +72,6 @@ function App() {
           element={
             <PrivateRoute>
               <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        
-        {/* User Management Route */}
-        <Route
-          path="/dashboard/users"
-          element={
-            <PrivateRoute>
-              <UserManagement />
             </PrivateRoute>
           }
         />
