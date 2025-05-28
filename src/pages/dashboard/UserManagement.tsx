@@ -121,7 +121,6 @@ const UserManagement = () => {
       }, 'Secondary');
 
       const secondaryAuth = getAuth(secondaryApp);
-      const secondaryDb = getFirestore(secondaryApp);
 
       // Create user in Firebase Auth using secondary instance
       const userCredential = await createUserWithEmailAndPassword(
