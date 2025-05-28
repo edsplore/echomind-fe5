@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Search, UserCheck, UserX, Crown, User } from 'lucide-react';
-import { db } from '../../lib/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Search, UserCheck, UserX, Crown, User, Plus, Eye, EyeOff, RefreshCw, X } from 'lucide-react';
+import { db, auth } from '../../lib/firebase';
+import { collection, getDocs, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface User {
@@ -19,6 +20,16 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [updating, setUpdating] = useState<string | null>(null);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showCredentials, setShowCredentials] = useState<{[key: string]: boolean}>({});
+  const [tempPasswords, setTempPasswords] = useState<{[key: string]: string}>({});
+  const [addUserForm, setAddUserForm] = useState({
+    email: '',
+    password: '',
+    role: 'user' as 'admin' | 'user'
+  });
+  const [addingUser, setAddingUser] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -71,9 +82,98 @@ const UserManagement = () => {
       ));
     } catch (error) {
       console.error('Error updating user role:', error);
+      alert('Error updating user role: ' + error);
     } finally {
       setUpdating(null);
     }
+  };
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setAddingUser(true);
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        addUserForm.email, 
+        addUserForm.password
+      );
+      const newUser = userCredential.user;
+
+      // Create user document in Firestore
+      const userData = {
+        email: newUser.email!,
+        role: addUserForm.role,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await setDoc(doc(db, 'users', newUser.uid), userData);
+
+      // Store temporary password for display
+      setTempPasswords(prev => ({
+        ...prev,
+        [newUser.uid]: addUserForm.password
+      }));
+
+      // Add to local state
+      setUsers(prev => [...prev, {
+        id: newUser.uid,
+        ...userData
+      }]);
+
+      // Reset form and close modal
+      setAddUserForm({ email: '', password: '', role: 'user' });
+      setShowAddUserModal(false);
+      
+      alert('User created successfully!');
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      let errorMessage = 'Failed to create user';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email is already in use';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      }
+      alert(errorMessage);
+    } finally {
+      setAddingUser(false);
+    }
+  };
+
+  const handleResetPassword = async (userEmail: string, userId: string) => {
+    if (!user) return;
+    
+    setResettingPassword(userId);
+    try {
+      await sendPasswordResetEmail(auth, userEmail);
+      alert(`Password reset email sent to ${userEmail}`);
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      alert('Error sending password reset email');
+    } finally {
+      setResettingPassword(null);
+    }
+  };
+
+  const toggleCredentialsVisibility = (userId: string) => {
+    setShowCredentials(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
   };
 
   const filteredUsers = users.filter(user => {
@@ -100,6 +200,13 @@ const UserManagement = () => {
             Manage user roles and permissions ({users.length} total users)
           </p>
         </div>
+        <button
+          onClick={() => setShowAddUserModal(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add User
+        </button>
       </div>
 
       {/* Search and Stats */}
@@ -180,6 +287,32 @@ const UserManagement = () => {
                 </div>
 
                 <div className="flex items-center space-x-2">
+                  {/* Credentials Section */}
+                  {tempPasswords[user.id] && (
+                    <div className="flex items-center space-x-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <span className="text-sm text-yellow-800 dark:text-yellow-200">
+                        Password: {showCredentials[user.id] ? tempPasswords[user.id] : '••••••••'}
+                      </span>
+                      <button
+                        onClick={() => toggleCredentialsVisibility(user.id)}
+                        className="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200"
+                      >
+                        {showCredentials[user.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Reset Password Button */}
+                  <button
+                    onClick={() => handleResetPassword(user.email, user.id)}
+                    disabled={resettingPassword === user.id}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-100 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-100 hover:bg-gray-50 dark:hover:bg-dark-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-1 ${resettingPassword === user.id ? 'animate-spin' : ''}`} />
+                    {resettingPassword === user.id ? 'Sending...' : 'Reset Password'}
+                  </button>
+
+                  {/* Role Management */}
                   {user.role === 'user' ? (
                     <button
                       onClick={() => updateUserRole(user.id, 'admin')}
@@ -217,6 +350,104 @@ const UserManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Add User Modal */}
+      <AnimatePresence>
+        {showAddUserModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-dark-200 rounded-xl shadow-xl max-w-md w-full"
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Add New User
+                  </h3>
+                  <button
+                    onClick={() => setShowAddUserModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddUser} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={addUserForm.email}
+                      onChange={(e) => setAddUserForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-dark-100 rounded-lg bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                      placeholder="user@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Password
+                    </label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        required
+                        value={addUserForm.password}
+                        onChange={(e) => setAddUserForm(prev => ({ ...prev, password: e.target.value }))}
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-100 rounded-lg bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setAddUserForm(prev => ({ ...prev, password: generateRandomPassword() }))}
+                        className="px-3 py-2 border border-gray-300 dark:border-dark-100 rounded-lg bg-white dark:bg-dark-100 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-50"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Role
+                    </label>
+                    <select
+                      value={addUserForm.role}
+                      onChange={(e) => setAddUserForm(prev => ({ ...prev, role: e.target.value as 'admin' | 'user' }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-dark-100 rounded-lg bg-white dark:bg-dark-100 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddUserModal(false)}
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-dark-100 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-100 hover:bg-gray-50 dark:hover:bg-dark-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={addingUser}
+                      className="flex-1 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {addingUser ? 'Creating...' : 'Create User'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
