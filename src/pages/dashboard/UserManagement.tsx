@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Search, UserCheck, UserX, Crown, User, Plus, Eye, EyeOff, RefreshCw, X } from 'lucide-react';
@@ -6,11 +5,16 @@ import { db, auth } from '../../lib/firebase';
 import { collection, getDocs, doc, updateDoc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signOut } from "firebase/auth";
+import { getFirestore } from 'firebase/firestore';
 
 interface User {
   id: string;
   email: string;
   role: 'admin' | 'user';
+  status: 'active' | 'disabled' | 'pending';
+  createdByAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,22 +44,24 @@ const UserManagement = () => {
     try {
       const usersRef = collection(db, 'users');
       const snapshot = await getDocs(usersRef);
-      
+
       console.log('Total users found:', snapshot.docs.length);
-      
+
       const usersData = snapshot.docs.map(doc => {
         const data = doc.data();
         console.log('User data:', doc.id, data);
-        
+
         return {
           id: doc.id,
           email: data.email || 'No email',
           role: data.role || 'user',
+          status: data.status || 'disabled',
+          createdByAdmin: data.createdByAdmin || false,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
         };
       }) as User[];
-      
+
       console.log('Processed users:', usersData);
       setUsers(usersData);
     } catch (error) {
@@ -68,7 +74,7 @@ const UserManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
     if (!user) return;
-    
+
     setUpdating(userId);
     try {
       const userRef = doc(db, 'users', userId);
@@ -103,9 +109,23 @@ const UserManagement = () => {
 
     setAddingUser(true);
     try {
-      // Create user in Firebase Auth
+      // Create a secondary Firebase app instance to avoid signing out the current admin
+      const secondaryApp = initializeApp({
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+      }, 'Secondary');
+
+      const secondaryAuth = getAuth(secondaryApp);
+      const secondaryDb = getFirestore(secondaryApp);
+
+      // Create user in Firebase Auth using secondary instance
       const userCredential = await createUserWithEmailAndPassword(
-        auth, 
+        secondaryAuth, 
         addUserForm.email, 
         addUserForm.password
       );
@@ -115,11 +135,19 @@ const UserManagement = () => {
       const userData = {
         email: newUser.email!,
         role: addUserForm.role,
+        status: 'disabled' as const,
+        createdByAdmin: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
       await setDoc(doc(db, 'users', newUser.uid), userData);
+
+      // Sign out the new user from secondary auth to prevent them from being logged in
+      await signOut(secondaryAuth);
+
+      // Delete the secondary app
+      await secondaryApp.delete();
 
       // Store temporary password for display
       setTempPasswords(prev => ({
@@ -136,8 +164,8 @@ const UserManagement = () => {
       // Reset form and close modal
       setAddUserForm({ email: '', password: '', role: 'user' });
       setShowAddUserModal(false);
-      
-      alert('User created successfully!');
+
+      alert('User created successfully! The user account is disabled and cannot be used to log in until activated.');
     } catch (error: any) {
       console.error('Error creating user:', error);
       let errorMessage = 'Failed to create user';
@@ -156,7 +184,7 @@ const UserManagement = () => {
 
   const handleResetPassword = async (userEmail: string, userId: string) => {
     if (!user) return;
-    
+
     setResettingPassword(userId);
     try {
       await sendPasswordResetEmail(auth, userEmail);
@@ -224,7 +252,7 @@ const UserManagement = () => {
               placeholder="Search users..."
             />
           </div>
-          
+
           <div className="flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-2">
               <Crown className="w-4 h-4 text-amber-500" />
@@ -266,7 +294,7 @@ const UserManagement = () => {
                       <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     )}
                   </div>
-                  
+
                   <div>
                     <div className="flex items-center space-x-3">
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -301,7 +329,7 @@ const UserManagement = () => {
                       </button>
                     </div>
                   )}
-                  
+
                   {/* Reset Password Button */}
                   <button
                     onClick={() => handleResetPassword(user.email, user.id)}
