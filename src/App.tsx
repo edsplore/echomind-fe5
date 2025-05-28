@@ -5,6 +5,8 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import Dashboard from './pages/Dashboard';
+import AgentDetails from './pages/dashboard/AgentDetails';
+import KnowledgeBaseDetails from './pages/dashboard/KnowledgeBaseDetails';
 import { Loader } from './components/Loader';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -56,6 +58,16 @@ const AppContent: React.FC = () => {
               </PublicRoute>
             } 
           />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/dashboard/agents/:agentId" element={<ProtectedRoute><AgentDetails /></ProtectedRoute>} />
+          <Route path="/dashboard/knowledge/:documentId" element={<ProtectedRoute><KnowledgeBaseDetails /></ProtectedRoute>} />
           <Route 
             path="/dashboard/*" 
             element={
