@@ -18,9 +18,13 @@ import {
   CheckCircle2,
   XCircle,
   Calendar,
-  Phone
+  Phone,
+  ArrowLeft,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { db } from '../../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { cn } from '../../lib/utils';
 
 interface Agent {
@@ -29,18 +33,36 @@ interface Agent {
 }
 
 interface BatchCallingJob {
-  id: string;
-  name: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  batch_call_id: string;
   agent_id: string;
   agent_name: string;
+  call_name: string;
+  created_at: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'created';
+}
+
+interface BatchCallDetails {
+  id: string;
   phone_number_id: string;
-  phone_provider: string;
+  name: string;
+  agent_id: string;
+  created_at_unix: number;
+  scheduled_time_unix: number;
   total_calls_dispatched: number;
   total_calls_scheduled: number;
-  created_at_unix: number;
-  scheduled_time_unix?: number;
   last_updated_at_unix: number;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  agent_name: string;
+  recipients: Array<{
+    id: string;
+    phone_number: string;
+    status: string;
+    created_at_unix: number;
+    updated_at_unix: number;
+    conversation_id: string;
+    conversation_initiation_client_data: any;
+  }>;
+  phone_provider: string;
 }
 
 interface Recipient {
@@ -59,6 +81,8 @@ const BatchCalling = () => {
   const [batchJobs, setBatchJobs] = useState<BatchCallingJob[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [phoneNumbers, setPhoneNumbers] = useState<any[]>([]);
+  const [selectedBatchCall, setSelectedBatchCall] = useState<BatchCallDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     agent_id: '',
@@ -74,7 +98,7 @@ const BatchCalling = () => {
   const [csvData, setCsvData] = useState<string[][]>([]);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'running' | 'completed' | 'failed'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'running' | 'completed' | 'failed' | 'created'>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const fetchAgents = async () => {
@@ -130,22 +154,44 @@ const BatchCalling = () => {
 
     try {
       setLoadingJobs(true);
-      const response = await fetch('https://api.elevenlabs.io/v1/convai/batch-calling/workspace', {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setBatchJobs(userData.batch_calls || []);
+      } else {
+        setBatchJobs([]);
+      }
+    } catch (error) {
+      console.error('Error fetching batch calling jobs:', error);
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
+
+  const fetchBatchCallDetails = async (batchCallId: string) => {
+    if (!user) return;
+
+    try {
+      setLoadingDetails(true);
+      const response = await fetch(`${BACKEND_URL}/batch-call/${user.uid}/${batchCallId}`, {
         headers: {
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch batch calling jobs');
+        throw new Error('Failed to fetch batch call details');
       }
 
       const data = await response.json();
-      setBatchJobs(data.batch_calls || []);
+      setSelectedBatchCall(data);
     } catch (error) {
-      console.error('Error fetching batch calling jobs:', error);
+      console.error('Error fetching batch call details:', error);
+      setError('Failed to fetch batch call details. Please try again.');
     } finally {
-      setLoadingJobs(false);
+      setLoadingDetails(false);
     }
   };
 
@@ -306,6 +352,8 @@ const BatchCalling = () => {
         return 'bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400';
       case 'failed':
         return 'bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400';
+      case 'created':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-500/10 dark:text-purple-400';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-500/10 dark:text-gray-400';
     }
@@ -313,7 +361,7 @@ const BatchCalling = () => {
 
   const filteredJobs = batchJobs.filter((job) => {
     const matchesSearch = 
-      job.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.call_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.agent_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || job.status === filterStatus;
     return matchesSearch && matchesStatus;
@@ -388,7 +436,7 @@ const BatchCalling = () => {
                     exit={{ opacity: 0, y: 10 }}
                     className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-200 rounded-lg shadow-lg border border-gray-100 dark:border-dark-100 overflow-hidden z-40"
                   >
-                    {['all', 'pending', 'running', 'completed', 'failed'].map((status) => (
+                    {['all', 'pending', 'running', 'completed', 'failed', 'created'].map((status) => (
                       <button
                         key={status}
                         onClick={() => {
@@ -755,10 +803,11 @@ const BatchCalling = () => {
           <div className="divide-y divide-gray-200 dark:divide-dark-100">
             {filteredJobs.map((job) => (
               <motion.div
-                key={job.id}
+                key={job.batch_call_id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-6 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors"
+                className="p-6 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors cursor-pointer"
+                onClick={() => fetchBatchCallDetails(job.batch_call_id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-6">
@@ -769,7 +818,7 @@ const BatchCalling = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white mb-1">
-                        {job.name}
+                        {job.call_name}
                       </h3>
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
@@ -781,15 +830,9 @@ const BatchCalling = () => {
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {job.phone_provider}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
                           <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                           <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {new Date(job.created_at_unix * 1000).toLocaleDateString()}
+                            {new Date(job.created_at).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -803,13 +846,9 @@ const BatchCalling = () => {
                       {getStatusIcon(job.status)}
                       <span>{job.status.charAt(0).toUpperCase() + job.status.slice(1)}</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {job.total_calls_dispatched}/{job.total_calls_scheduled} calls
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Dispatched: {job.total_calls_dispatched}
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <Eye className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                      <span className="text-sm text-gray-500 dark:text-gray-400">View Details</span>
                     </div>
                   </div>
                 </div>
@@ -818,6 +857,160 @@ const BatchCalling = () => {
           </div>
         )}
       </div>
+
+      {/* Batch Call Details Modal */}
+      <AnimatePresence>
+        {selectedBatchCall && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white dark:bg-dark-200 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-100">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setSelectedBatchCall(null)}
+                    className="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-100"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <Users className="w-6 h-6 text-primary dark:text-primary-400" />
+                  <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+                    {selectedBatchCall.name}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setSelectedBatchCall(null)}
+                  className="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {loadingDetails ? (
+                <div className="p-8 flex justify-center items-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-primary-400" />
+                  <span className="ml-2 text-gray-600 dark:text-gray-400">Loading details...</span>
+                </div>
+              ) : (
+                <div className="p-6">
+                  {/* Campaign Overview */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-gray-50 dark:bg-dark-100 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Status</div>
+                      <div className={cn(
+                        "inline-flex items-center space-x-2 px-2 py-1 rounded text-sm font-medium mt-1",
+                        getStatusColor(selectedBatchCall.status)
+                      )}>
+                        {getStatusIcon(selectedBatchCall.status)}
+                        <span>{selectedBatchCall.status.charAt(0).toUpperCase() + selectedBatchCall.status.slice(1)}</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-dark-100 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Total Recipients</div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">{selectedBatchCall.total_calls_scheduled}</div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-dark-100 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Calls Dispatched</div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">{selectedBatchCall.total_calls_dispatched}</div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-dark-100 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Provider</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-white">{selectedBatchCall.phone_provider}</div>
+                    </div>
+                  </div>
+
+                  {/* Campaign Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white">Campaign Info</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Agent:</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedBatchCall.agent_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Created:</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
+                            {new Date(selectedBatchCall.created_at_unix * 1000).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Scheduled:</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
+                            {selectedBatchCall.scheduled_time_unix === 1 
+                              ? 'Immediate' 
+                              : new Date(selectedBatchCall.scheduled_time_unix * 1000).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Last Updated:</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
+                            {new Date(selectedBatchCall.last_updated_at_unix * 1000).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recipients List */}
+                  <div>
+                    <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white mb-4">
+                      Recipients ({selectedBatchCall.recipients.length})
+                    </h3>
+                    <div className="bg-gray-50 dark:bg-dark-100 rounded-lg overflow-hidden">
+                      <div className="max-h-96 overflow-y-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-100 dark:bg-dark-50 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Phone Number
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Status
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Updated
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-dark-100">
+                            {selectedBatchCall.recipients.map((recipient, index) => (
+                              <tr key={recipient.id || index} className="hover:bg-gray-50 dark:hover:bg-dark-50">
+                                <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">
+                                  {recipient.phone_number}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className={cn(
+                                    "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                                    getStatusColor(recipient.status)
+                                  )}>
+                                    {recipient.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                                  {new Date(recipient.updated_at_unix * 1000).toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
