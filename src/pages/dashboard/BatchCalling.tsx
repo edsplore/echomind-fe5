@@ -171,7 +171,7 @@ const BatchCalling = () => {
         recipients: formData.recipients,
         scheduled_time_unix: formData.scheduled_at 
           ? Math.floor(new Date(formData.scheduled_at).getTime() / 1000)
-          : null
+          : 1
       };
 
       const response = await fetch(`${BACKEND_URL}/batch-call`, {
