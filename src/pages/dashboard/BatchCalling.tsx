@@ -174,7 +174,7 @@ const BatchCalling = () => {
         })
       };
 
-      const response = await fetch(`${BACKEND_URL}/batch-calling/create`, {
+      const response = await fetch(`${BACKEND_URL}/batch-call`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
