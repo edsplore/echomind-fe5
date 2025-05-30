@@ -150,6 +150,7 @@ const CallHistory = () => {
 
       const data = await response.json();
       setConversationDetails(data);
+      console.log(data)
 
       // Create audio element with time update handling
       if (data.audio) {
