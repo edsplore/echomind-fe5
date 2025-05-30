@@ -22,6 +22,7 @@ import {
   Phone,
   Calendar,
   Plus,
+  Copy,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Loader, PageLoader } from "../../components/Loader";
@@ -223,6 +224,12 @@ const CallHistory = () => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // You could add a toast notification here if needed
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -440,13 +447,32 @@ const CallHistory = () => {
                     onClick={() =>
                       setSelectedConversation(conversation.conversation_id)
                     }
-                    className="hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors cursor-pointer"
+                    className="hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatDate(conversation.start_time_unix_secs)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {conversation.agent_name}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-gray-900 dark:text-white">
+                          {conversation.agent_name}
+                        </span>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                            {conversation.agent_id}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyToClipboard(conversation.agent_id);
+                            }}
+                            className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded transition-colors"
+                            title="Copy Agent ID"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatDuration(conversation.call_duration_secs)}
