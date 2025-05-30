@@ -1146,7 +1146,8 @@ const AgentDetails = () => {
                         onFocus={(e) => {
                           // Clear placeholder text when user focuses
                           if (e.target.value === "Enter your custom message...") {
-                            handleChange("first_message", "");
+                            // Set to empty but don't trigger handleChange to avoid switching modes
+                            setEditedForm(prev => ({ ...prev, first_message: "" }));
                           }
                         }}
                         onBlur={(e) => {
