@@ -1022,15 +1022,72 @@ const AgentDetails = () => {
                     First Message
                   </h3>
                 </div>
-                <textarea
-                  value={editedForm.first_message}
-                  onChange={(e) =>
-                    handleChange("first_message", e.target.value)
-                  }
-                  rows={2}
-                  className="input"
-                  placeholder="Enter the first message your agent will say..."
-                />
+                
+                {/* Predefined Messages Dropdown */}
+                <div className="space-y-3">
+                  <select
+                    value={(() => {
+                      const predefinedMessages = [
+                        "Hello! How can I help you today?",
+                        "Hi there! What can I assist you with?",
+                        "Good day! I'm here to help. What do you need?",
+                        "Welcome! How may I be of service?",
+                        "Hello! Thank you for calling. How can I assist you today?",
+                        "Hi! I'm ready to help. What questions do you have?"
+                      ];
+                      return predefinedMessages.includes(editedForm.first_message) 
+                        ? editedForm.first_message 
+                        : "custom";
+                    })()}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        // Keep current message if it's already custom
+                        if (!["Hello! How can I help you today?", "Hi there! What can I assist you with?", "Good day! I'm here to help. What do you need?", "Welcome! How may I be of service?", "Hello! Thank you for calling. How can I assist you today?", "Hi! I'm ready to help. What questions do you have?"].includes(editedForm.first_message)) {
+                          return;
+                        }
+                        handleChange("first_message", "");
+                      } else {
+                        handleChange("first_message", e.target.value);
+                      }
+                    }}
+                    className="input"
+                  >
+                    <option value="Hello! How can I help you today?">Hello! How can I help you today?</option>
+                    <option value="Hi there! What can I assist you with?">Hi there! What can I assist you with?</option>
+                    <option value="Good day! I'm here to help. What do you need?">Good day! I'm here to help. What do you need?</option>
+                    <option value="Welcome! How may I be of service?">Welcome! How may I be of service?</option>
+                    <option value="Hello! Thank you for calling. How can I assist you today?">Hello! Thank you for calling. How can I assist you today?</option>
+                    <option value="Hi! I'm ready to help. What questions do you have?">Hi! I'm ready to help. What questions do you have?</option>
+                    <option value="custom">Custom message...</option>
+                  </select>
+                  
+                  {/* Custom Input Field - shows when custom is selected or when message doesn't match predefined ones */}
+                  {((() => {
+                    const predefinedMessages = [
+                      "Hello! How can I help you today?",
+                      "Hi there! What can I assist you with?",
+                      "Good day! I'm here to help. What do you need?",
+                      "Welcome! How may I be of service?",
+                      "Hello! Thank you for calling. How can I assist you today?",
+                      "Hi! I'm ready to help. What questions do you have?"
+                    ];
+                    return !predefinedMessages.includes(editedForm.first_message);
+                  })()) && (
+                    <textarea
+                      value={editedForm.first_message}
+                      onChange={(e) =>
+                        handleChange("first_message", e.target.value)
+                      }
+                      rows={2}
+                      className="input"
+                      placeholder="Enter your custom first message..."
+                    />
+                  )}
+                </div>
+                
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Choose a predefined greeting or create a custom first message for your agent.
+                </p>
               </div>
 
               {/* Prompt Section */}
