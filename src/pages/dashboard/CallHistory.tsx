@@ -97,6 +97,8 @@ const CallHistory = () => {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -270,14 +272,22 @@ const CallHistory = () => {
     });
   };
 
-  const filteredConversations = conversations.filter((conversation) => {
-    const matchesSearch = conversation.agent_name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      !filterStatus || conversation.call_successful === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredConversations = conversations
+    .filter((conversation) => {
+      const matchesSearch = conversation.agent_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesFilter =
+        !filterStatus || conversation.call_successful === filterStatus;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'latest') {
+        return b.start_time_unix_secs - a.start_time_unix_secs;
+      } else {
+        return a.start_time_unix_secs - b.start_time_unix_secs;
+      }
+    });
 
   if (loading) {
     return <PageLoader />;
@@ -421,10 +431,62 @@ const CallHistory = () => {
               <thead className="bg-gray-50 dark:bg-dark-100 border-b border-gray-200 dark:border-dark-100">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>Date</span>
-                      <ChevronDown className="w-3 h-3" />
+                    <div className="relative">
+                      <button
+                        onClick={() => setIsSortOpen(!isSortOpen)}
+                        className="flex items-center space-x-1 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        <span>Date</span>
+                        <ChevronDown className={`w-3 h-3 transition-transform ${isSortOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isSortOpen && (
+                          <>
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="fixed inset-0 z-30"
+                              onClick={() => setIsSortOpen(false)}
+                            />
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className="absolute left-0 mt-2 w-40 bg-white dark:bg-dark-200 rounded-lg shadow-lg border border-gray-100 dark:border-dark-100 overflow-hidden z-40"
+                            >
+                              <button
+                                onClick={() => {
+                                  setSortOrder('latest');
+                                  setIsSortOpen(false);
+                                }}
+                                className={`w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors ${
+                                  sortOrder === 'latest'
+                                    ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
+                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100"
+                                }`}
+                              >
+                                <span>Latest First</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSortOrder('oldest');
+                                  setIsSortOpen(false);
+                                }}
+                                className={`w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors ${
+                                  sortOrder === 'oldest'
+                                    ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
+                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100"
+                                }`}
+                              >
+                                <span>Oldest First</span>
+                              </button>
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
