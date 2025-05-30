@@ -23,6 +23,8 @@ import {
   Plus,
   Copy,
   Check,
+  Database,
+  ChevronUp,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Loader, PageLoader } from "../../components/Loader";
@@ -71,6 +73,98 @@ interface ConversationDetails {
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+// Data Collection Section Component
+const DataCollectionSection = ({ dataCollection }: { dataCollection: any }) => {
+  const [showFullDetails, setShowFullDetails] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center space-x-2">
+        <Database className="w-4 h-4 text-primary dark:text-primary-400" />
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+          Data Collection Results
+        </h3>
+      </div>
+      <div className="space-y-3">
+        {Object.entries(dataCollection).map(([key, value]: [string, any]) => (
+          <div
+            key={key}
+            className="p-4 bg-gray-50 dark:bg-dark-100 rounded-xl border border-gray-200 dark:border-dark-100"
+          >
+            <div className="space-y-3">
+              {/* Default view - showing data_collection_id and value */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {value.data_collection_id && (
+                  <div>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Collection ID
+                    </span>
+                    <p className="text-sm text-gray-900 dark:text-white font-mono">
+                      {value.data_collection_id}
+                    </p>
+                  </div>
+                )}
+                {value.value !== undefined && (
+                  <div>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Value
+                    </span>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {typeof value.value === 'object' 
+                        ? JSON.stringify(value.value, null, 2)
+                        : String(value.value)
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Show/Hide Full Details Button */}
+              <button
+                onClick={() => 
+                  setShowFullDetails(showFullDetails === key ? null : key)
+                }
+                className="flex items-center space-x-2 text-primary dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors text-sm font-medium"
+              >
+                {showFullDetails === key ? (
+                  <>
+                    <ChevronUp className="w-4 h-4" />
+                    <span>Hide Details</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4" />
+                    <span>Show Full Details</span>
+                  </>
+                )}
+              </button>
+
+              {/* Full Details - Collapsible */}
+              <AnimatePresence>
+                {showFullDetails === key && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3 border-t border-gray-200 dark:border-dark-100">
+                      <pre className="text-xs bg-gray-100 dark:bg-dark-200 p-3 rounded-lg overflow-x-auto text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                        {JSON.stringify(value, null, 2)}
+                      </pre>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const CallHistory = () => {
   const { user } = useAuth();
@@ -836,6 +930,13 @@ const CallHistory = () => {
                           </div>
                         </div>
                       </div>
+                    )}
+
+                    {/* Data Collection Results */}
+                    {conversationDetails.conversation.data_collection_results && Object.keys(conversationDetails.conversation.data_collection_results).length > 0 && (
+                      <DataCollectionSection 
+                        dataCollection={conversationDetails.conversation.data_collection_results} 
+                      />
                     )}
 
                     {/* Summary */}
