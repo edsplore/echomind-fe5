@@ -243,6 +243,9 @@ const AgentDetails = () => {
   });
   const [editedForm, setEditedForm] = useState<EditForm>(editForm);
 
+  const [conversationInitiationMode, setConversationInitiationMode] = useState(editForm.first_message === "" ? "user" : "bot");
+
+
   // Fetch agent details
   const fetchAgentDetails = async () => {
     if (!user || !agentId) return;
@@ -307,6 +310,8 @@ const AgentDetails = () => {
       };
       setEditForm(initialForm);
       setEditedForm(initialForm);
+      setConversationInitiationMode(initialForm.first_message === "" ? "user" : "bot");
+
 
       // 2) Fetch details of the currently selected voice
       const voiceResponse = await fetch(
@@ -391,7 +396,7 @@ const AgentDetails = () => {
                   knowledge_base: editedForm.knowledge_base,
                   tools: editedForm.tools,
                 },
-                first_message: editedForm.first_message,
+                first_message: conversationInitiationMode === "user" ? "" : editedForm.first_message,
                 language: editedForm.language,
               },
               tts: {
@@ -1035,7 +1040,7 @@ const AgentDetails = () => {
                     Conversation Initiation
                   </h3>
                 </div>
-                
+
                 {/* Conversation Initiation Switch */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
@@ -1044,8 +1049,9 @@ const AgentDetails = () => {
                         type="radio"
                         name="conversationInitiation"
                         value="bot"
-                        checked={editedForm.first_message !== ""}
+                        checked={conversationInitiationMode === "bot"}
                         onChange={() => {
+                          setConversationInitiationMode("bot");
                           if (editedForm.first_message === "") {
                             handleChange("first_message", "Hello! How can I help you today?");
                           }
@@ -1059,26 +1065,29 @@ const AgentDetails = () => {
                         type="radio"
                         name="conversationInitiation"
                         value="user"
-                        checked={editedForm.first_message === ""}
-                        onChange={() => handleChange("first_message", "")}
+                        checked={conversationInitiationMode === "user"}
+                        onChange={() => {
+                          setConversationInitiationMode("user");
+                          handleChange("first_message", "");
+                        }}
                         className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300">User starts conversation</span>
                     </label>
                   </div>
-                  
+
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Choose whether the bot should greet the user first or wait for the user to speak.
                   </p>
                 </div>
 
                 {/* First Message Configuration - Only show when bot starts */}
-                {editedForm.first_message !== "" && (
+                {conversationInitiationMode === "bot" && (
                   <div className="space-y-3 pl-4 border-l-2 border-primary/20 dark:border-primary/30">
                     <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                       Bot's Opening Message
                     </h4>
-                    
+
                     {/* Predefined Messages Dropdown */}
                     <select
                       value={(() => {
@@ -1090,8 +1099,8 @@ const AgentDetails = () => {
                           "Hello! Thank you for calling. How can I assist you today?",
                           "Hi! I'm ready to help. What questions do you have?"
                         ];
-                        return predefinedMessages.includes(editedForm.first_message) 
-                          ? editedForm.first_message 
+                        return predefinedMessages.includes(editedForm.first_message)
+                          ? editedForm.first_message
                           : "custom";
                       })()}
                       onChange={(e) => {
@@ -1115,7 +1124,7 @@ const AgentDetails = () => {
                       <option value="Hi! I'm ready to help. What questions do you have?">Hi! I'm ready to help. What questions do you have?</option>
                       <option value="custom">Custom message...</option>
                     </select>
-                    
+
                     {/* Custom Input Field - shows when custom is selected or when message doesn't match predefined ones */}
                     {((() => {
                       const predefinedMessages = [
@@ -1158,7 +1167,7 @@ const AgentDetails = () => {
                         }}
                       />
                     )}
-                    
+
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Choose a predefined opening message or create a custom one for your agent.
                     </p>
