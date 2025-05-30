@@ -1003,7 +1003,7 @@ const AgentDetails = () => {
                                 mode: e.target.value
                               })
                             }
-                            className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
+                            className="radio-switch"
                           />
                           <span className="text-sm text-gray-700 dark:text-gray-300">Silence</span>
                         </label>
@@ -1019,7 +1019,7 @@ const AgentDetails = () => {
                                 mode: e.target.value
                               })
                             }
-                            className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
+                            className="radio-switch"
                           />
                           <span className="text-sm text-gray-700 dark:text-gray-300">Turn</span>
                         </label>
@@ -1056,7 +1056,7 @@ const AgentDetails = () => {
                             handleChange("first_message", "Hello! How can I help you today?");
                           }
                         }}
-                        className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
+                        className="radio-switch"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300">Bot starts conversation</span>
                     </label>
@@ -1070,7 +1070,7 @@ const AgentDetails = () => {
                           setConversationInitiationMode("user");
                           handleChange("first_message", "");
                         }}
-                        className="w-4 h-4 text-primary focus:ring-primary dark:focus:ring-primary-400"
+                        className="radio-switch"
                       />
                       <span className="text-sm text-gray-700 dark:text-gray-300">User starts conversation</span>
                     </label>
