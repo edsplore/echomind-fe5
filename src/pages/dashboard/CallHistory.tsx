@@ -228,9 +228,9 @@ const CallHistory = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, conversationId: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      setCopiedId(text);
+      setCopiedId(conversationId);
       setTimeout(() => setCopiedId(null), 2000);
     });
   };
@@ -450,7 +450,7 @@ const CallHistory = () => {
                     onClick={() =>
                       setSelectedConversation(conversation.conversation_id)
                     }
-                    className="hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors cursor-pointer"
+                    className="hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatDate(conversation.start_time_unix_secs)}
@@ -467,16 +467,16 @@ const CallHistory = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              copyToClipboard(conversation.agent_id);
+                              copyToClipboard(conversation.agent_id, conversation.conversation_id);
                             }}
                             className={`p-1 rounded transition-colors ${
-                              copiedId === conversation.agent_id
+                              copiedId === conversation.conversation_id
                                 ? "text-green-500 dark:text-green-400"
                                 : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                             }`}
-                            title={copiedId === conversation.agent_id ? "Copied!" : "Copy Agent ID"}
+                            title={copiedId === conversation.conversation_id ? "Copied!" : "Copy Agent ID"}
                           >
-                            {copiedId === conversation.agent_id ? (
+                            {copiedId === conversation.conversation_id ? (
                               <Check className="w-3 h-3" />
                             ) : (
                               <Copy className="w-3 h-3" />
