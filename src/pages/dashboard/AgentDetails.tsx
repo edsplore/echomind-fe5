@@ -1086,7 +1086,7 @@ const AgentDetails = () => {
                 </div>
                 
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose a predefined greeting or create a custom first message for your agent.
+                  Choose a predefined first message or create a custom for your agent.
                 </p>
               </div>
 
