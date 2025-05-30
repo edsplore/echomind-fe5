@@ -364,6 +364,14 @@ const CallHistory = () => {
                 {conversations.length} Total Calls
               </span>
             </div>
+            {(searchQuery || activeFilters.length > 0) && (
+              <div className="flex items-center space-x-2 bg-primary-50 dark:bg-primary-400/10 px-4 py-2 rounded-lg">
+                <Search className="w-4 h-4 text-primary dark:text-primary-400" />
+                <span className="text-sm font-medium text-primary dark:text-primary-400">
+                  {filteredConversations.length} Filtered Results
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -419,49 +427,59 @@ const CallHistory = () => {
           
 
             {/* Agent Filter */}
-            <div className="flex items-center space-x-1">
-              <select
-                value={selectedAgent}
-                onChange={(e) => setSelectedAgent(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="">All Agents</option>
-                {getUniqueAgents().map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.name}
-                  </option>
-                ))}
-              </select>
-              {selectedAgent && (
-                <button
-                  onClick={() => removeFilter('agent')}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Agent
+              </label>
+              <div className="flex items-center space-x-1">
+                <select
+                  value={selectedAgent}
+                  onChange={(e) => setSelectedAgent(e.target.value)}
+                  className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
+                  <option value="">All Agents</option>
+                  {getUniqueAgents().map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedAgent && (
+                  <button
+                    onClick={() => removeFilter('agent')}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Evaluation Filter */}
-            <div className="flex items-center space-x-1">
-              <select
-                value={selectedEvaluation}
-                onChange={(e) => setSelectedEvaluation(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="">All Evaluations</option>
-                <option value="success">Successful</option>
-                <option value="failed">Failed</option>
-                <option value="unknown">Unknown</option>
-              </select>
-              {selectedEvaluation && (
-                <button
-                  onClick={() => removeFilter('evaluation')}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Evaluation
+              </label>
+              <div className="flex items-center space-x-1">
+                <select
+                  value={selectedEvaluation}
+                  onChange={(e) => setSelectedEvaluation(e.target.value)}
+                  className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
+                  <option value="">All Evaluations</option>
+                  <option value="success">Successful</option>
+                  <option value="failed">Failed</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+                {selectedEvaluation && (
+                  <button
+                    onClick={() => removeFilter('evaluation')}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
