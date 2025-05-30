@@ -933,11 +933,37 @@ const CallHistory = () => {
                     )}
 
                     {/* Data Collection Results */}
-                    {conversationDetails.conversation.data_collection_results && Object.keys(conversationDetails.conversation.data_collection_results).length > 0 && (
-                      <DataCollectionSection 
-                        dataCollection={conversationDetails.conversation.data_collection_results} 
-                      />
-                    )}
+                    {(() => {
+                      console.log('Full conversation object:', conversationDetails.conversation);
+                      console.log('Data collection results:', conversationDetails.conversation.data_collection_results);
+                      
+                      // Check if data_collection_results exists and has content
+                      const dataCollection = conversationDetails.conversation.data_collection_results;
+                      const hasDataCollection = dataCollection && typeof dataCollection === 'object' && Object.keys(dataCollection).length > 0;
+                      
+                      console.log('Has data collection:', hasDataCollection);
+                      
+                      return hasDataCollection ? (
+                        <DataCollectionSection 
+                          dataCollection={dataCollection} 
+                        />
+                      ) : (
+                        // Show a placeholder if no data collection results
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <Database className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Data Collection Results
+                            </h3>
+                          </div>
+                          <div className="p-4 bg-gray-50 dark:bg-dark-100 rounded-xl border border-gray-200 dark:border-dark-100">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                              No data collection results available for this conversation.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Summary */}
                     <div className="space-y-3">
