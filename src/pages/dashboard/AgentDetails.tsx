@@ -415,7 +415,20 @@ const AgentDetails = () => {
                   return [key, rest];
                 })
               ),
-              workspace_overrides: editedForm.platform_settings?.workspace_overrides
+              workspace_overrides: (() => {
+                const webhookUrl = editedForm.platform_settings?.workspace_overrides?.conversation_initiation_client_data_webhook?.url;
+                if (webhookUrl && webhookUrl.trim()) {
+                  return {
+                    conversation_initiation_client_data_webhook: {
+                      url: webhookUrl,
+                      request_headers: {
+                        "Content-Type": "application/json"
+                      }
+                    }
+                  };
+                }
+                return {};
+              })()
             },
           }),
         },
