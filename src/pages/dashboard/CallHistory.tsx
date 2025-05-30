@@ -72,13 +72,6 @@ interface ConversationDetails {
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const statusOptions = [
-  { value: "", label: "All Status", icon: Filter },
-  { value: "success", label: "Successful", icon: CheckCircle2 },
-  { value: "failed", label: "Error", icon: XCircle },
-  { value: "unknown", label: "Unknown", icon: HelpCircle },
-];
-
 const CallHistory = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -94,8 +87,6 @@ const CallHistory = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -268,9 +259,6 @@ const CallHistory = () => {
       case 'evaluation':
         setSelectedEvaluation('');
         break;
-      case 'status':
-        setFilterStatus(null);
-        break;
     }
   };
 
@@ -281,9 +269,8 @@ const CallHistory = () => {
     if (dateBefore) filters.push('dateBefore');
     if (selectedAgent) filters.push('agent');
     if (selectedEvaluation) filters.push('evaluation');
-    if (filterStatus) filters.push('status');
     setActiveFilters(filters);
-  }, [dateAfter, dateBefore, selectedAgent, selectedEvaluation, filterStatus]);
+  }, [dateAfter, dateBefore, selectedAgent, selectedEvaluation]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -329,9 +316,6 @@ const CallHistory = () => {
         conversation.agent_id.toLowerCase().includes(searchLower) ||
         conversation.conversation_id.toLowerCase().includes(searchLower);
       
-      // Status filter
-      const matchesStatus = !filterStatus || conversation.call_successful === filterStatus;
-      
       // Date after filter
       const matchesDateAfter = !dateAfter || 
         conversation.start_time_unix_secs >= new Date(dateAfter).getTime() / 1000;
@@ -346,7 +330,7 @@ const CallHistory = () => {
       // Evaluation filter
       const matchesEvaluation = !selectedEvaluation || conversation.call_successful === selectedEvaluation;
       
-      return matchesSearch && matchesStatus && matchesDateAfter && matchesDateBefore && matchesAgent && matchesEvaluation;
+      return matchesSearch && matchesDateAfter && matchesDateBefore && matchesAgent && matchesEvaluation;
     })
     .sort((a, b) => {
       if (sortOrder === 'latest') {
@@ -388,42 +372,50 @@ const CallHistory = () => {
           {/* Filter Buttons */}
           <div className="flex items-center space-x-2 flex-wrap gap-2">
             {/* Date After Filter */}
-            <div className="flex items-center space-x-1">
-              <input
-                type="date"
-                value={dateAfter}
-                onChange={(e) => setDateAfter(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Date After"
-              />
-              {dateAfter && (
-                <button
-                  onClick={() => removeFilter('dateAfter')}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Date After
+              </label>
+              <div className="flex items-center space-x-1">
+                <input
+                  type="date"
+                  value={dateAfter}
+                  onChange={(e) => setDateAfter(e.target.value)}
+                  className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                {dateAfter && (
+                  <button
+                    onClick={() => removeFilter('dateAfter')}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Date Before Filter */}
-            <div className="flex items-center space-x-1">
-              <input
-                type="date"
-                value={dateBefore}
-                onChange={(e) => setDateBefore(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Date Before"
-              />
-              {dateBefore && (
-                <button
-                  onClick={() => removeFilter('dateBefore')}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Date Before
+              </label>
+              <div className="flex items-center space-x-1">
+                <input
+                  type="date"
+                  value={dateBefore}
+                  onChange={(e) => setDateBefore(e.target.value)}
+                  className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                {dateBefore && (
+                  <button
+                    onClick={() => removeFilter('dateBefore')}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div></div>
 
             {/* Agent Filter */}
             <div className="flex items-center space-x-1">
@@ -508,21 +500,13 @@ const CallHistory = () => {
                   </button>
                 </span>
               )}
-              {filterStatus && (
-                <span className="inline-flex items-center space-x-1 px-2 py-1 text-xs bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-400 rounded-full">
-                  <span>{statusOptions.find(s => s.value === filterStatus)?.label}</span>
-                  <button onClick={() => removeFilter('status')} className="hover:text-primary-800 dark:hover:text-primary-300">
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
             </div>
           )}
         </div>
 
-        {/* Search and Filter */}
-        <div className="mt-4 flex items-center space-x-4">
-          <div className="relative flex-1">
+        {/* Search */}
+        <div className="mt-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
@@ -531,66 +515,6 @@ const CallHistory = () => {
               placeholder="Search by agent name, agent ID, or conversation ID..."
               className="input input-with-icon pl-10"
             />
-          </div>
-
-          <div className="relative">
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center space-x-2 px-4 py-2.5 text-sm rounded-lg border transition-colors ${
-                filterStatus
-                  ? "border-primary bg-primary-50/50 text-primary dark:border-primary-400 dark:bg-primary-400/10 dark:text-primary-400"
-                  : "border-gray-200 dark:border-dark-100 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-dark-50"
-              }`}
-            >
-              <Filter className="w-4 h-4" />
-              <span>
-                {filterStatus
-                  ? statusOptions.find((s) => s.value === filterStatus)?.label
-                  : "Filter Status"}
-              </span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-
-            <AnimatePresence>
-              {isFilterOpen && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-30"
-                    onClick={() => setIsFilterOpen(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-200 rounded-lg shadow-lg border border-gray-100 dark:border-dark-100 overflow-hidden z-40"
-                  >
-                    {statusOptions.map((option) => {
-                      const Icon = option.icon;
-                      return (
-                        <button
-                          key={option.value}
-                          onClick={() => {
-                            setFilterStatus(option.value || null);
-                            setIsFilterOpen(false);
-                          }}
-                          className={`w-full flex items-center space-x-2 px-4 py-2.5 text-sm transition-colors ${
-                            filterStatus === option.value
-                              ? "bg-primary-50/50 text-primary dark:bg-primary-400/10 dark:text-primary-400"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-100"
-                          }`}
-                        >
-                          <Icon className="w-4 h-4" />
-                          <span>{option.label}</span>
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </div>
