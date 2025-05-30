@@ -715,7 +715,7 @@ const BatchCalling = () => {
                                 handleRemoveFile();
                               }
                             }}
-                            className="text-primary focus:ring-primary"
+                            className="radio-switch"
                           />
                           <span className="text-sm text-gray-700 dark:text-gray-300">Paste Numbers</span>
                         </label>
@@ -730,7 +730,7 @@ const BatchCalling = () => {
                               setPhoneNumbersText('');
                               setFormData({ ...formData, recipients: [] });
                             }}
-                            className="text-primary focus:ring-primary"
+                            className="radio-switch"
                           />
                           <span className="text-sm text-gray-700 dark:text-gray-300">Upload CSV File</span>
                         </label>
