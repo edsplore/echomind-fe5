@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,6 +20,8 @@ import {
   ChevronDown,
   Volume2,
   Phone,
+  Calendar,
+  Plus,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Loader, PageLoader } from "../../components/Loader";
@@ -69,8 +72,8 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const statusOptions = [
   { value: "", label: "All Status", icon: Filter },
-  { value: "success", label: "Success", icon: CheckCircle2 },
-  { value: "failed", label: "Failed", icon: XCircle },
+  { value: "success", label: "Successful", icon: CheckCircle2 },
+  { value: "failed", label: "Error", icon: XCircle },
   { value: "unknown", label: "Unknown", icon: HelpCircle },
 ];
 
@@ -222,15 +225,39 @@ const CallHistory = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "success":
-        return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400">
+            Successful
+          </span>
+        );
       case "unknown":
-        return <HelpCircle className="w-4 h-4 text-gray-400" />;
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400">
+            Unknown
+          </span>
+        );
       default:
-        return <XCircle className="w-4 h-4 text-red-500" />;
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+            Error
+          </span>
+        );
     }
+  };
+
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   const filteredConversations = conversations.filter((conversation) => {
@@ -269,8 +296,28 @@ const CallHistory = () => {
           </div>
         </div>
 
+        {/* Filter Tags */}
+        <div className="mt-6 flex items-center space-x-2 flex-wrap">
+          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
+            <Plus className="w-3 h-3" />
+            <span>Date After</span>
+          </button>
+          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
+            <Plus className="w-3 h-3" />
+            <span>Date Before</span>
+          </button>
+          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
+            <Plus className="w-3 h-3" />
+            <span>Evaluation</span>
+          </button>
+          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
+            <Plus className="w-3 h-3" />
+            <span>Agent</span>
+          </button>
+        </div>
+
         {/* Search and Filter */}
-        <div className="mt-6 flex items-center space-x-4">
+        <div className="mt-4 flex items-center space-x-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
@@ -344,7 +391,7 @@ const CallHistory = () => {
         </div>
       </div>
 
-      {/* Conversations List */}
+      {/* Table */}
       <div className="bg-white dark:bg-dark-200 rounded-xl shadow-sm border border-gray-100 dark:border-dark-100 overflow-hidden">
         {filteredConversations.length === 0 ? (
           <div className="p-8 text-center">
@@ -359,54 +406,61 @@ const CallHistory = () => {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-dark-100">
-            {filteredConversations.map((conversation) => (
-              <div
-                key={conversation.conversation_id}
-                onClick={() =>
-                  setSelectedConversation(conversation.conversation_id)
-                }
-                className="p-6 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center">
-                        <Phone className="w-6 h-6 text-primary dark:text-primary-400" />
-                      </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-dark-100 border-b border-gray-200 dark:border-dark-100">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>Date</span>
+                      <ChevronDown className="w-3 h-3" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white mb-1">
-                        {conversation.agent_name}
-                      </h3>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                          <Clock className="w-4 h-4" />
-                          <span>
-                            {new Date(
-                              conversation.start_time_unix_secs * 1000,
-                            ).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                          <MessageSquare className="w-4 h-4" />
-                          <span>{conversation.message_count} messages</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          {getStatusIcon(conversation.call_successful)}
-                          <span className="capitalize text-gray-700 dark:text-gray-300">
-                            {conversation.call_successful}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {formatDuration(conversation.call_duration_secs)}
-                  </div>
-                </div>
-              </div>
-            ))}
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Agent
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Duration
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Messages
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Evaluation result
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-dark-100">
+                {filteredConversations.map((conversation) => (
+                  <motion.tr
+                    key={conversation.conversation_id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() =>
+                      setSelectedConversation(conversation.conversation_id)
+                    }
+                    className="hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors cursor-pointer"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {formatDate(conversation.start_time_unix_secs)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {conversation.agent_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {formatDuration(conversation.call_duration_secs)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {conversation.message_count}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(conversation.call_successful)}
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
