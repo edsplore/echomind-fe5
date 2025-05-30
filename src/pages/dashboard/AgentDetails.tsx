@@ -1130,12 +1130,31 @@ const AgentDetails = () => {
                     })()) && (
                       <textarea
                         value={editedForm.first_message}
-                        onChange={(e) =>
-                          handleChange("first_message", e.target.value)
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Prevent switching to user starts if field is being cleared
+                          // Set a placeholder message to maintain bot starts mode
+                          if (value.trim() === "") {
+                            handleChange("first_message", "Enter your custom message...");
+                          } else {
+                            handleChange("first_message", value);
+                          }
+                        }}
                         rows={2}
                         className="input"
                         placeholder="Enter your custom first message..."
+                        onFocus={(e) => {
+                          // Clear placeholder text when user focuses
+                          if (e.target.value === "Enter your custom message...") {
+                            handleChange("first_message", "");
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // If user leaves field empty, restore placeholder
+                          if (e.target.value.trim() === "") {
+                            handleChange("first_message", "Enter your custom message...");
+                          }
+                        }}
                       />
                     )}
                     
