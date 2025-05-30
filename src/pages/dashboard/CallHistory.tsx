@@ -23,6 +23,7 @@ import {
   Calendar,
   Plus,
   Copy,
+  Check,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Loader, PageLoader } from "../../components/Loader";
@@ -95,6 +96,7 @@ const CallHistory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -228,7 +230,8 @@ const CallHistory = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      // You could add a toast notification here if needed
+      setCopiedId(text);
+      setTimeout(() => setCopiedId(null), 2000);
     });
   };
 
@@ -466,10 +469,18 @@ const CallHistory = () => {
                               e.stopPropagation();
                               copyToClipboard(conversation.agent_id);
                             }}
-                            className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded transition-colors"
-                            title="Copy Agent ID"
+                            className={`p-1 rounded transition-colors ${
+                              copiedId === conversation.agent_id
+                                ? "text-green-500 dark:text-green-400"
+                                : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                            }`}
+                            title={copiedId === conversation.agent_id ? "Copied!" : "Copy Agent ID"}
                           >
-                            <Copy className="w-3 h-3" />
+                            {copiedId === conversation.agent_id ? (
+                              <Check className="w-3 h-3" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
                           </button>
                         </div>
                       </div>
