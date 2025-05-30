@@ -99,6 +99,11 @@ const CallHistory = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [dateAfter, setDateAfter] = useState<string>('');
+  const [dateBefore, setDateBefore] = useState<string>('');
+  const [selectedAgent, setSelectedAgent] = useState<string>('');
+  const [selectedEvaluation, setSelectedEvaluation] = useState<string>('');
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -237,6 +242,49 @@ const CallHistory = () => {
     });
   };
 
+  // Helper function to get unique agents
+  const getUniqueAgents = () => {
+    const agents = conversations.reduce((acc, conv) => {
+      if (!acc.find(a => a.id === conv.agent_id)) {
+        acc.push({ id: conv.agent_id, name: conv.agent_name });
+      }
+      return acc;
+    }, [] as { id: string; name: string }[]);
+    return agents.sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  // Helper function to remove filter
+  const removeFilter = (filterType: string) => {
+    switch (filterType) {
+      case 'dateAfter':
+        setDateAfter('');
+        break;
+      case 'dateBefore':
+        setDateBefore('');
+        break;
+      case 'agent':
+        setSelectedAgent('');
+        break;
+      case 'evaluation':
+        setSelectedEvaluation('');
+        break;
+      case 'status':
+        setFilterStatus(null);
+        break;
+    }
+  };
+
+  // Update active filters when filters change
+  useEffect(() => {
+    const filters = [];
+    if (dateAfter) filters.push('dateAfter');
+    if (dateBefore) filters.push('dateBefore');
+    if (selectedAgent) filters.push('agent');
+    if (selectedEvaluation) filters.push('evaluation');
+    if (filterStatus) filters.push('status');
+    setActiveFilters(filters);
+  }, [dateAfter, dateBefore, selectedAgent, selectedEvaluation, filterStatus]);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "success":
@@ -274,12 +322,31 @@ const CallHistory = () => {
 
   const filteredConversations = conversations
     .filter((conversation) => {
-      const matchesSearch = conversation.agent_name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesFilter =
-        !filterStatus || conversation.call_successful === filterStatus;
-      return matchesSearch && matchesFilter;
+      // Search filter - search in agent name, agent ID, and conversation ID
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery || 
+        conversation.agent_name.toLowerCase().includes(searchLower) ||
+        conversation.agent_id.toLowerCase().includes(searchLower) ||
+        conversation.conversation_id.toLowerCase().includes(searchLower);
+      
+      // Status filter
+      const matchesStatus = !filterStatus || conversation.call_successful === filterStatus;
+      
+      // Date after filter
+      const matchesDateAfter = !dateAfter || 
+        conversation.start_time_unix_secs >= new Date(dateAfter).getTime() / 1000;
+      
+      // Date before filter
+      const matchesDateBefore = !dateBefore || 
+        conversation.start_time_unix_secs <= new Date(dateBefore).getTime() / 1000;
+      
+      // Agent filter
+      const matchesAgent = !selectedAgent || conversation.agent_id === selectedAgent;
+      
+      // Evaluation filter
+      const matchesEvaluation = !selectedEvaluation || conversation.call_successful === selectedEvaluation;
+      
+      return matchesSearch && matchesStatus && matchesDateAfter && matchesDateBefore && matchesAgent && matchesEvaluation;
     })
     .sort((a, b) => {
       if (sortOrder === 'latest') {
@@ -317,23 +384,140 @@ const CallHistory = () => {
         </div>
 
         {/* Filter Tags */}
-        <div className="mt-6 flex items-center space-x-2 flex-wrap">
-          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
-            <Plus className="w-3 h-3" />
-            <span>Date After</span>
-          </button>
-          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
-            <Plus className="w-3 h-3" />
-            <span>Date Before</span>
-          </button>
-          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
-            <Plus className="w-3 h-3" />
-            <span>Evaluation</span>
-          </button>
-          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-50 transition-colors">
-            <Plus className="w-3 h-3" />
-            <span>Agent</span>
-          </button>
+        <div className="mt-6 space-y-3">
+          {/* Filter Buttons */}
+          <div className="flex items-center space-x-2 flex-wrap gap-2">
+            {/* Date After Filter */}
+            <div className="flex items-center space-x-1">
+              <input
+                type="date"
+                value={dateAfter}
+                onChange={(e) => setDateAfter(e.target.value)}
+                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Date After"
+              />
+              {dateAfter && (
+                <button
+                  onClick={() => removeFilter('dateAfter')}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Date Before Filter */}
+            <div className="flex items-center space-x-1">
+              <input
+                type="date"
+                value={dateBefore}
+                onChange={(e) => setDateBefore(e.target.value)}
+                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Date Before"
+              />
+              {dateBefore && (
+                <button
+                  onClick={() => removeFilter('dateBefore')}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Agent Filter */}
+            <div className="flex items-center space-x-1">
+              <select
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="">All Agents</option>
+                {getUniqueAgents().map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </option>
+                ))}
+              </select>
+              {selectedAgent && (
+                <button
+                  onClick={() => removeFilter('agent')}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Evaluation Filter */}
+            <div className="flex items-center space-x-1">
+              <select
+                value={selectedEvaluation}
+                onChange={(e) => setSelectedEvaluation(e.target.value)}
+                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-dark-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="">All Evaluations</option>
+                <option value="success">Successful</option>
+                <option value="failed">Failed</option>
+                <option value="unknown">Unknown</option>
+              </select>
+              {selectedEvaluation && (
+                <button
+                  onClick={() => removeFilter('evaluation')}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Active Filters Display */}
+          {activeFilters.length > 0 && (
+            <div className="flex items-center space-x-2 flex-wrap">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Active filters:</span>
+              {dateAfter && (
+                <span className="inline-flex items-center space-x-1 px-2 py-1 text-xs bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-400 rounded-full">
+                  <span>After {new Date(dateAfter).toLocaleDateString()}</span>
+                  <button onClick={() => removeFilter('dateAfter')} className="hover:text-primary-800 dark:hover:text-primary-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {dateBefore && (
+                <span className="inline-flex items-center space-x-1 px-2 py-1 text-xs bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-400 rounded-full">
+                  <span>Before {new Date(dateBefore).toLocaleDateString()}</span>
+                  <button onClick={() => removeFilter('dateBefore')} className="hover:text-primary-800 dark:hover:text-primary-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedAgent && (
+                <span className="inline-flex items-center space-x-1 px-2 py-1 text-xs bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-400 rounded-full">
+                  <span>{getUniqueAgents().find(a => a.id === selectedAgent)?.name}</span>
+                  <button onClick={() => removeFilter('agent')} className="hover:text-primary-800 dark:hover:text-primary-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedEvaluation && (
+                <span className="inline-flex items-center space-x-1 px-2 py-1 text-xs bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-400 rounded-full">
+                  <span>{selectedEvaluation === 'success' ? 'Successful' : selectedEvaluation === 'failed' ? 'Failed' : 'Unknown'}</span>
+                  <button onClick={() => removeFilter('evaluation')} className="hover:text-primary-800 dark:hover:text-primary-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {filterStatus && (
+                <span className="inline-flex items-center space-x-1 px-2 py-1 text-xs bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-400 rounded-full">
+                  <span>{statusOptions.find(s => s.value === filterStatus)?.label}</span>
+                  <button onClick={() => removeFilter('status')} className="hover:text-primary-800 dark:hover:text-primary-300">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search and Filter */}
@@ -344,7 +528,7 @@ const CallHistory = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search conversations..."
+              placeholder="Search by agent name, agent ID, or conversation ID..."
               className="input input-with-icon pl-10"
             />
           </div>
@@ -420,7 +604,7 @@ const CallHistory = () => {
               No conversations found
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {searchQuery || filterStatus
+              {searchQuery || activeFilters.length > 0
                 ? "Try adjusting your search or filters"
                 : "Start a conversation with one of your agents to see the history here"}
             </p>
