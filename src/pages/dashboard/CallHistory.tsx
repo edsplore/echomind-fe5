@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -60,6 +59,7 @@ interface ConversationDetails {
     }[];
     metadata: {
       start_time_unix_secs: number;
+      call_duration_secs: number;
       call_duration_secs: number;
     };
     analysis: {
@@ -315,21 +315,21 @@ const CallHistory = () => {
         conversation.agent_name.toLowerCase().includes(searchLower) ||
         conversation.agent_id.toLowerCase().includes(searchLower) ||
         conversation.conversation_id.toLowerCase().includes(searchLower);
-      
+
       // Date after filter
       const matchesDateAfter = !dateAfter || 
         conversation.start_time_unix_secs >= new Date(dateAfter).getTime() / 1000;
-      
+
       // Date before filter
       const matchesDateBefore = !dateBefore || 
         conversation.start_time_unix_secs <= new Date(dateBefore).getTime() / 1000;
-      
+
       // Agent filter
       const matchesAgent = !selectedAgent || conversation.agent_id === selectedAgent;
-      
+
       // Evaluation filter
       const matchesEvaluation = !selectedEvaluation || conversation.call_successful === selectedEvaluation;
-      
+
       return matchesSearch && matchesDateAfter && matchesDateBefore && matchesAgent && matchesEvaluation;
     })
     .sort((a, b) => {
@@ -415,7 +415,8 @@ const CallHistory = () => {
                   </button>
                 )}
               </div>
-            </div></div>
+            </div>
+          
 
             {/* Agent Filter */}
             <div className="flex items-center space-x-1">
