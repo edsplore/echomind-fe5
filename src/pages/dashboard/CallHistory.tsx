@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bot,
   Clock,
   MessageSquare,
   X,
   Play,
   Pause,
   Download,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
   BarChart,
-  Filter,
   Search,
   Activity,
   User,
@@ -20,7 +15,6 @@ import {
   Volume2,
   Phone,
   Calendar,
-  Plus,
   Copy,
   Check,
   Database,
@@ -28,15 +22,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Loader, PageLoader } from "../../components/Loader";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 interface Conversation {
   agent_id: string;
@@ -244,7 +229,6 @@ const CallHistory = () => {
 
       const data = await response.json();
       setConversationDetails(data);
-      console.log(data)
 
       // Create audio element with time update handling
       if (data.audio) {
@@ -934,14 +918,9 @@ const CallHistory = () => {
 
                     {/* Data Collection Results */}
                     {(() => {
-                      console.log('Full conversation object:', conversationDetails.conversation);
-                      console.log('Data collection results:', conversationDetails.conversation.data_collection_results);
-                      
                       // Check if data_collection_results exists and has content
-                      const dataCollection = conversationDetails.conversation.data_collection_results;
+                      const dataCollection = conversationDetails.conversation.analysis.data_collection_results;
                       const hasDataCollection = dataCollection && typeof dataCollection === 'object' && Object.keys(dataCollection).length > 0;
-                      
-                      console.log('Has data collection:', hasDataCollection);
                       
                       return hasDataCollection ? (
                         <DataCollectionSection 
