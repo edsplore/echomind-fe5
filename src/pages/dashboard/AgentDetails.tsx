@@ -190,7 +190,8 @@ const getAgentIcon = (agentId: string) => {
 
 const AgentDetails = () => {
   const { agentId } = useParams<{ agentId: string }>();
-  const { user } = useAuth();
+  const { getEffectiveUser, user: originalUser } = useAuth();
+  const user = getEffectiveUser();
 
   const [agent, setAgent] = useState<AgentDetails | null>(null);
   const [voice, setVoice] = useState<Voice | null>(null);
@@ -258,7 +259,7 @@ const AgentDetails = () => {
         `${BACKEND_URL}/agents/${user.uid}/${agentId}`,
         {
           headers: {
-            Authorization: `Bearer ${await user.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser.getIdToken()}`,
           },
         },
       );
@@ -318,7 +319,7 @@ const AgentDetails = () => {
         `${BACKEND_URL}/voices/get-voice/${agentData.conversation_config.tts.voice_id}`,
         {
           headers: {
-            Authorization: `Bearer ${await user.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser.getIdToken()}`,
           },
         },
       );
@@ -331,7 +332,7 @@ const AgentDetails = () => {
       setLoadingVoices(true);
       const voicesResponse = await fetch(`${BACKEND_URL}/voices/list-voices`, {
         headers: {
-          Authorization: `Bearer ${await user.getIdToken()}`,
+          Authorization: `Bearer ${await originalUser.getIdToken()}`,
         },
       });
       if (voicesResponse.ok) {
@@ -347,7 +348,7 @@ const AgentDetails = () => {
         `${BACKEND_URL}/knowledge-base/${user.uid}`,
         {
           headers: {
-            Authorization: `Bearer ${await user.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser.getIdToken()}`,
           },
         },
       );
@@ -383,7 +384,7 @@ const AgentDetails = () => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${await user.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser.getIdToken()}`,
           },
           body: JSON.stringify({
             name: editedForm.name,
