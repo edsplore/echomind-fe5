@@ -1,9 +1,10 @@
+
 import { useAuth } from '../contexts/AuthContext';
 import AdminDashboard from './dashboard/AdminDashboard';
 import UserDashboard from './dashboard/UserDashboard';
 
 const Dashboard = () => {
-  const { getEffectiveUser, getEffectiveUserData, loading } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, loading, isAdmin } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
 
