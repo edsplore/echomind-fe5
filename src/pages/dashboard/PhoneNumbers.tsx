@@ -42,7 +42,7 @@ interface PhoneNumber {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const PhoneNumbers = () => {
-  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin, user: originalUser } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
   const [isCreating, setIsCreating] = useState(false);
@@ -79,7 +79,7 @@ const PhoneNumbers = () => {
       setLoadingAgents(true);
       const response = await fetch(`${BACKEND_URL}/agents/${user.uid}`, {
         headers: {
-          Authorization: `Bearer ${await user.getIdToken()}`,
+          Authorization: `Bearer ${await originalUser.getIdToken()}`,
         },
       });
 
@@ -103,7 +103,7 @@ const PhoneNumbers = () => {
       setLoadingNumbers(true);
       const response = await fetch(`${BACKEND_URL}/phone-numbers/${user.uid}`, {
         headers: {
-          Authorization: `Bearer ${await user.getIdToken()}`,
+          Authorization: `Bearer ${await originalUser.getIdToken()}`,
         },
       });
 
@@ -159,7 +159,7 @@ const PhoneNumbers = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${await user.getIdToken()}`,
+          Authorization: `Bearer ${await originalUser.getIdToken()}`,
         },
         body: JSON.stringify(requestBody),
       });
@@ -203,7 +203,7 @@ const PhoneNumbers = () => {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${await user.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser.getIdToken()}`,
           },
           body: JSON.stringify({
             agent_id: assignFormData.assigned_agent_id,
@@ -245,7 +245,7 @@ const PhoneNumbers = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${await user.getIdToken()}`,
+          Authorization: `Bearer ${await originalUser.getIdToken()}`,
         },
         body: JSON.stringify({
           agentId: isOutboundCalling.assigned_agent.agent_id,
