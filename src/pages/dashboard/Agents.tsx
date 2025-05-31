@@ -42,7 +42,7 @@ interface CreateAgentPayload {
     tts: {
       voice_id: string;
       model_id: string;
-     
+
     };
     turn: Record<string, never>;
     agent: {
@@ -182,7 +182,9 @@ const getAgentIcon = (agentId: string) => {
 };
 
 const Agents = () => {
-  const { user } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const user = getEffectiveUser();
+  const userData = getEffectiveUserData();
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingAgents, setLoadingAgents] = useState(false);
@@ -351,7 +353,7 @@ const Agents = () => {
           tts: {
             voice_id: formData.voiceId,
             model_id: getModelId(formData.modelType, formData.language),
-            
+
           },
           turn: {},
           agent: {

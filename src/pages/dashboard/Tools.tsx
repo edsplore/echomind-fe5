@@ -11,7 +11,9 @@ const Tools = () => {
   const [editingGhl, setEditingGhl] = useState(false);
   const [editingCal, setEditingCal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const { user } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const user = getEffectiveUser();
+  const userData = getEffectiveUserData();
 
   // Current values
   const [ghlKey, setGhlKey] = useState('');

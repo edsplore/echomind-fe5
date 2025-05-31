@@ -11,7 +11,11 @@ import ToolDetails from './ToolDetails';
 import BatchCalling from './BatchCalling';
 import { useAuth } from '../../contexts/AuthContext';
 
-const UserDashboard = () => {
+export default function UserDashboard() {
+  const { getEffectiveUser, getEffectiveUserData } = useAuth();
+  const user = getEffectiveUser();
+  const userData = getEffectiveUserData();
+
   return (
     <div className="h-screen flex bg-gray-50 dark:bg-dark-300">
       <Sidebar />
@@ -35,5 +39,3 @@ const UserDashboard = () => {
     </div>
   );
 };
-
-export default UserDashboard;

@@ -32,7 +32,7 @@ export const DashboardNavbar = () => {
               <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-primary-400 border-2 border-white dark:border-dark-200 rounded-full ring-4 ring-primary/20 animate-pulse" />
             </div>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-primary dark:group-hover:text-primary-400 transition-colors">
-              {user?.email?.split('@')[0]}
+              {effectiveUser?.email?.split('@')[0]}
             </span>
           </motion.button>
         </div>

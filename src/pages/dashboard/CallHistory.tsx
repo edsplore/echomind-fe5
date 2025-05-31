@@ -152,7 +152,9 @@ const DataCollectionSection = ({ dataCollection }: { dataCollection: any }) => {
 };
 
 const CallHistory = () => {
-  const { user } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const user = getEffectiveUser();
+  const userData = getEffectiveUserData();
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<
@@ -503,7 +505,7 @@ const CallHistory = () => {
                 )}
               </div>
             </div>
-          
+
 
             {/* Agent Filter */}
             <div className="flex flex-col space-y-1">
@@ -761,8 +763,7 @@ const CallHistory = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(conversation.call_successful)}
-                    </td>
-                  </motion.tr>
+                    </td>                  </motion.tr>
                 ))}
               </tbody>
             </table>
@@ -921,7 +922,7 @@ const CallHistory = () => {
                       // Check if data_collection_results exists and has content
                       const dataCollection = conversationDetails.conversation.analysis.data_collection_results;
                       const hasDataCollection = dataCollection && typeof dataCollection === 'object' && Object.keys(dataCollection).length > 0;
-                      
+
                       return hasDataCollection ? (
                         <DataCollectionSection 
                           dataCollection={dataCollection} 

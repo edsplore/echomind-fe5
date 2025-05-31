@@ -40,7 +40,9 @@ interface KnowledgeBaseListResponse {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const KnowledgeBase = () => {
-  const { user } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const user = getEffectiveUser();
+  const userData = getEffectiveUserData();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(false);

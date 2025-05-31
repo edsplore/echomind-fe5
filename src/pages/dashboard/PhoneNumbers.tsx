@@ -42,7 +42,9 @@ interface PhoneNumber {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const PhoneNumbers = () => {
-  const { user } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const user = getEffectiveUser();
+  const userData = getEffectiveUserData();
   const [isCreating, setIsCreating] = useState(false);
   const [isAssigning, setIsAssigning] = useState<string | null>(null);
   const [isOutboundCalling, setIsOutboundCalling] = useState<PhoneNumber | null>(null);
