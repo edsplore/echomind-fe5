@@ -891,7 +891,6 @@ export default function BatchCalling() {
                 </div>
               </motion.div>
             </motion.div>
-          </motion.div>
         )}
       </AnimatePresence>
 
