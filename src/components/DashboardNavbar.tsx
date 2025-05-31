@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogOut, X, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import UserImpersonationDropdown from './UserImpersonationDropdown';
 
 export const DashboardNavbar = () => {
   const { user, logout, getEffectiveUser, getEffectiveUserData, isImpersonating } = useAuth();
@@ -13,7 +14,10 @@ export const DashboardNavbar = () => {
   return (
     <>
       <div className="h-14 bg-white dark:bg-dark-200 border-b border-gray-100 dark:border-dark-100">
-        <div className="h-full px-4 flex items-center justify-end">
+        <div className="h-full px-4 flex items-center justify-end space-x-4">
+          {/* User Impersonation Dropdown */}
+          <UserImpersonationDropdown />
+          
           {/* User Menu */}
           <motion.button
             onClick={() => setIsProfileOpen(true)}
