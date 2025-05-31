@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -822,75 +823,75 @@ export default function BatchCalling() {
 
                       {/* Phone Numbers Preview */}
                       {formData.recipients.length > 0 && (
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Phone Numbers Preview ({formData.recipients.length} total)
-                            </label>
-                            <div className="max-h-32 overflow-y-auto p-3 bg-gray-50 dark:bg-dark-100 rounded-lg border">
-                              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                                {formData.recipients.slice(0, 10).map((recipient, index) => (
-                                  <div key={index} className="font-mono">{recipient.phone_number}</div>
-                                ))}
-                                {formData.recipients.length > 10 && (
-                                  <div className="text-gray-500 dark:text-gray-400 italic">
-                                    ...and {formData.recipients.length - 10} more
-                                  </div>
-                                )}
-                              </div>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Phone Numbers Preview ({formData.recipients.length} total)
+                          </label>
+                          <div className="max-h-32 overflow-y-auto p-3 bg-gray-50 dark:bg-dark-100 rounded-lg border">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                              {formData.recipients.slice(0, 10).map((recipient, index) => (
+                                <div key={index} className="font-mono">{recipient.phone_number}</div>
+                              ))}
+                              {formData.recipients.length > 10 && (
+                                <div className="text-gray-500 dark:text-gray-400 italic">
+                                  ...and {formData.recipients.length - 10} more
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="scheduled_at"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Schedule (Optional)
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="scheduled_at"
-                        value={formData.scheduled_at}
-                        onChange={(e) =>
-                          setFormData({ ...formData, scheduled_at: e.target.value })
-                        }
-                        className="input"
-                      />
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Leave empty to start immediately
-                      </p>
-                    </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="scheduled_at"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Schedule (Optional)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="scheduled_at"
+                      value={formData.scheduled_at}
+                      onChange={(e) =>
+                        setFormData({ ...formData, scheduled_at: e.target.value })
+                      }
+                      className="input"
+                    />
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Leave empty to start immediately
+                    </p>
+                  </div>
 
-                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-dark-100">
-                      <button
-                        type="button"
-                        onClick={() => setIsCreating(false)}
-                        className="btn btn-secondary"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn btn-primary"
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Creating...
-                          </>
-                        ) : (
-                          'Create Campaign'
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </motion.div>
+                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-dark-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreating(false)}
+                      className="btn btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="btn btn-primary"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        'Create Campaign'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -1138,3 +1139,4 @@ export default function BatchCalling() {
       </AnimatePresence>
     </div>
   );
+}
