@@ -818,7 +818,6 @@ export default function BatchCalling() {
                             </div>
                           )}
                         </div>
-                      )}
 
                         {/* Phone Numbers Preview */}
                         {formData.recipients.length > 0 && (
