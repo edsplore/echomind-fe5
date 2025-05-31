@@ -26,6 +26,13 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: () => boolean;
+  impersonatedUser: User | null;
+  impersonatedUserData: UserData | null;
+  isImpersonating: boolean;
+  impersonateUser: (userId: string) => Promise<void>;
+  stopImpersonation: () => void;
+  getEffectiveUser: () => User | null;
+  getEffectiveUserData: () => UserData | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,6 +49,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
+  const [impersonatedUserData, setImpersonatedUserData] = useState<UserData | null>(null);
 
   const fetchUserData = async (uid: string) => {
     try {
@@ -138,6 +147,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return userData?.role === 'admin';
   };
 
+  const impersonateUser = async (userId: string) => {
+    if (!isAdmin()) {
+      throw new Error('Only admins can impersonate users');
+    }
+
+    try {
+      // Fetch the impersonated user's data
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
+
+      const impersonatedUserData = userDoc.data() as UserData;
+      
+      // Create a mock User object for the impersonated user
+      const mockUser: User = {
+        uid: userId,
+        email: impersonatedUserData.email,
+        emailVerified: true,
+        isAnonymous: false,
+        metadata: {
+          creationTime: impersonatedUserData.createdAt.toString(),
+          lastSignInTime: new Date().toString(),
+        },
+        providerData: [],
+        refreshToken: '',
+        tenantId: null,
+        delete: async () => {},
+        getIdToken: async () => '',
+        getIdTokenResult: async () => ({} as any),
+        reload: async () => {},
+        toJSON: () => ({}),
+        displayName: null,
+        phoneNumber: null,
+        photoURL: null,
+        providerId: 'firebase'
+      };
+
+      setImpersonatedUser(mockUser);
+      setImpersonatedUserData(impersonatedUserData);
+    } catch (error) {
+      console.error('Error impersonating user:', error);
+      throw error;
+    }
+  };
+
+  const stopImpersonation = () => {
+    setImpersonatedUser(null);
+    setImpersonatedUserData(null);
+  };
+
+  const getEffectiveUser = () => {
+    return impersonatedUser || user;
+  };
+
+  const getEffectiveUserData = () => {
+    return impersonatedUserData || userData;
+  };
+
+  const isImpersonating = impersonatedUser !== null;
+
   const value = {
     user,
     userData,
@@ -146,6 +216,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     logout,
     isAdmin,
+    impersonatedUser,
+    impersonatedUserData,
+    isImpersonating,
+    impersonateUser,
+    stopImpersonation,
+    getEffectiveUser,
+    getEffectiveUserData,
   };
 
   return (

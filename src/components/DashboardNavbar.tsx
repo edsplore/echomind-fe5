@@ -4,8 +4,11 @@ import { User, LogOut, X, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const DashboardNavbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, getEffectiveUser, getEffectiveUserData, isImpersonating } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const effectiveUser = getEffectiveUser();
+  const effectiveUserData = getEffectiveUserData();
 
   return (
     <>

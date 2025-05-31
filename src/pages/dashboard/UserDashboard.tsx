@@ -9,6 +9,7 @@ import KnowledgeBase from './KnowledgeBase';
 import Tools from './Tools';
 import ToolDetails from './ToolDetails';
 import BatchCalling from './BatchCalling';
+import { useAuth } from '../../contexts/AuthContext';
 
 const UserDashboard = () => {
   return (
