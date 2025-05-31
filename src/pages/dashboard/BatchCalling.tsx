@@ -810,16 +810,15 @@ export default function BatchCalling() {
                                   </option>
                                 ))}
                               </select>
-                              ```text
-                                {selectedPhoneColumn && formData.recipients.length > 0 && (
-                                  <p className="text-sm text-green-600 dark:text-green-400">
-                                    Found {formData.recipients.length} phone numbers
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                              {selectedPhoneColumn && formData.recipients.length > 0 && (
+                                <p className="text-sm text-green-600 dark:text-green-400">
+                                  Found {formData.recipients.length} phone numbers
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                         {/* Phone Numbers Preview */}
                         {formData.recipients.length > 0 && (
