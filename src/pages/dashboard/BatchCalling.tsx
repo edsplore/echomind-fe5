@@ -818,9 +818,10 @@ export default function BatchCalling() {
                             </div>
                           )}
                         </div>
+                      )}
 
-                        {/* Phone Numbers Preview */}
-                        {formData.recipients.length > 0 && (
+                      {/* Phone Numbers Preview */}
+                      {formData.recipients.length > 0 && (
                           <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                               Phone Numbers Preview ({formData.recipients.length} total)
