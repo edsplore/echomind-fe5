@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, ChevronDown, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +20,7 @@ const UserImpersonationDropdown: React.FC = () => {
     impersonatedUserData,
     user 
   } = useAuth();
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,7 +40,7 @@ const UserImpersonationDropdown: React.FC = () => {
     try {
       const usersRef = collection(db, 'users');
       const snapshot = await getDocs(usersRef);
-      
+
       const usersData = snapshot.docs
         .map(doc => ({
           id: doc.id,
@@ -98,7 +97,7 @@ const UserImpersonationDropdown: React.FC = () => {
                 className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 px-3 py-1 rounded-md transition-colors"
               >
                 <X className="w-4 h-4" />
-                <span className="text-sm font-medium">Stop Impersonation</span>
+                <span className="text-sm font-medium">Switch Back</span>
               </button>
             </div>
           </motion.div>
@@ -148,7 +147,7 @@ const UserImpersonationDropdown: React.FC = () => {
                     className="w-full flex items-center space-x-2 px-3 py-2 bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 rounded-md hover:bg-amber-200 dark:hover:bg-amber-900/30 transition-colors"
                   >
                     <X className="w-4 h-4" />
-                    <span className="text-sm font-medium">Stop Impersonation</span>
+                    <span className="text-sm font-medium">Switch Back</span>
                   </button>
                 </div>
               )}
