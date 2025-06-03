@@ -175,7 +175,14 @@ export const VoiceModal = ({
 
   // Filter + search logic
   const filteredVoices = useMemo(() => {
-    const currentVoices = activeTab === 'my-voices' ? voices : sharedVoices;
+    let currentVoices = activeTab === 'my-voices' ? voices : sharedVoices;
+    
+    // If on custom voices tab, filter out voices that are already in user's collection
+    if (activeTab === 'custom-voices') {
+      const userVoiceIds = new Set(voices.map(v => v.voice_id));
+      currentVoices = sharedVoices.filter(v => !userVoiceIds.has(v.voice_id));
+    }
+    
     return currentVoices.filter((v) => {
       // Normalize accent and gender
       const rawAccent = v.labels?.accent || '';
