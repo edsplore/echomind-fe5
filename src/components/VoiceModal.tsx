@@ -121,7 +121,7 @@ export const VoiceModal = ({
         body: JSON.stringify({ 
           voice_id: voiceId,
           name: voice.name,
-          public_owner_id: voice.public_owner_id || voice.owner_email
+          public_owner_id: voice.public_owner_id
         }),
       });
 
@@ -313,7 +313,6 @@ export const VoiceModal = ({
                     <tr>
                       <th className="py-2 w-8"></th>
                       <th className="py-2">Voice</th>
-                      <th className="py-2">Trait</th>
                       <th className="py-2">Voice ID</th>
                       {activeTab === 'custom-voices' && <th className="py-2 w-16">Add</th>}
                     </tr>
@@ -332,12 +331,6 @@ export const VoiceModal = ({
                       <>
                         {filteredVoices.map((voice) => {
                           const isSelected = voice.voice_id === selectedVoiceId;
-                          const rawAccent = voice.labels?.accent || '';
-                          const accentNormalized = rawAccent.toLowerCase().replace(/^en-/, '');
-                          const age = voice.labels?.age || '';
-                          const gender = voice.labels?.gender || '';
-                          const descriptor = voice.labels?.description || '';
-                          const traits = [accentNormalized, age, descriptor, gender].filter(Boolean);
                           const isAdding = addingVoices.has(voice.voice_id);
                           
                           return (
@@ -359,24 +352,8 @@ export const VoiceModal = ({
                               </td>
                               <td className="py-2 font-medium text-gray-900 dark:text-gray-100 align-middle">
                                 {voice.name}
-                                {'owner_email' in voice && voice.owner_email && (
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    by {voice.owner_email}
-                                  </div>
-                                )}
                               </td>
-                              <td className="py-2 align-middle">
-                                <div className="flex flex-wrap gap-1">
-                                  {traits.map((t) => (
-                                    <span
-                                      key={t}
-                                      className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-gray-300"
-                                    >
-                                      {t}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
+                              
                               <td className="py-2 align-middle text-gray-500 dark:text-gray-400">
                                 {voice.voice_id}
                               </td>
@@ -412,14 +389,6 @@ export const VoiceModal = ({
               </div>
               {/* Footer */}
               <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-dark-100">
-                {activeTab === 'custom-voices' && (
-                  <button
-                    onClick={handleDone}
-                    className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary-600 rounded transition-colors"
-                  >
-                    Done
-                  </button>
-                )}
                 <button
                   onClick={onClose}
                   className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-dark-100 rounded hover:bg-gray-200 dark:hover:bg-dark-50"
