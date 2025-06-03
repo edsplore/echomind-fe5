@@ -68,12 +68,12 @@ export const VoiceModal = ({
   
   const { getEffectiveUser } = useAuth();
 
-  // Fetch shared voices when custom voices tab is opened
+  // Fetch shared voices when custom voices tab is opened or filters change
   useEffect(() => {
     if (activeTab === 'custom-voices' && isOpen) {
       fetchSharedVoices();
     }
-  }, [activeTab, isOpen]);
+  }, [activeTab, isOpen, genderFilter, accentFilter]);
 
   const fetchSharedVoices = async () => {
     setLoadingSharedVoices(true);
@@ -81,7 +81,12 @@ export const VoiceModal = ({
       const user = getEffectiveUser();
       if (!user) return;
 
-      const response = await fetch(`${BACKEND_URL}/voices/shared-voices?page=0`, {
+      // Build query parameters
+      const params = new URLSearchParams({ page: '0' });
+      if (genderFilter) params.append('gender', genderFilter);
+      if (accentFilter) params.append('accent', accentFilter);
+
+      const response = await fetch(`${BACKEND_URL}/voices/shared-voices?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
