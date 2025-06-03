@@ -1479,6 +1479,7 @@ const AgentDetails = () => {
         voices={voices}
         selectedVoiceId={editedForm.voice_id}
         onVoiceChange={handleVoiceChange}
+        onVoicesUpdate={fetchAgentDetails}
       />
 
       {/* Tool Configuration Modal */}
