@@ -27,6 +27,7 @@ interface SharedVoice {
   labels?: VoiceLabels;
   owner_email?: string;
   created_at?: string;
+  public_owner_id?: string;
 }
 
 interface VoiceModalProps {
@@ -104,6 +105,10 @@ export const VoiceModal = ({
     const user = getEffectiveUser();
     if (!user) return;
 
+    // Find the voice to get its name and public_owner_id
+    const voice = sharedVoices.find(v => v.voice_id === voiceId);
+    if (!voice) return;
+
     setAddingVoices(prev => new Set([...prev, voiceId]));
     
     try {
@@ -113,7 +118,11 @@ export const VoiceModal = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
-        body: JSON.stringify({ voice_id: voiceId }),
+        body: JSON.stringify({ 
+          voice_id: voiceId,
+          name: voice.name,
+          public_owner_id: voice.public_owner_id || voice.owner_email
+        }),
       });
 
       if (response.ok) {
