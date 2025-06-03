@@ -47,10 +47,6 @@ export const VoiceModal = ({
   onVoicesUpdate,
 }: VoiceModalProps) => {
   // Tab state
-
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-  
   const [activeTab, setActiveTab] = useState<'my-voices' | 'custom-voices'>('my-voices');
   
   // Basic filters
@@ -86,7 +82,7 @@ export const VoiceModal = ({
       if (genderFilter) params.append('gender', genderFilter);
       if (accentFilter) params.append('accent', accentFilter);
 
-      const response = await fetch(`${BACKEND_URL}/voices/shared-voices?${params.toString()}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/voices/shared-voices?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${await user.getIdToken()}`,
         },
@@ -111,7 +107,7 @@ export const VoiceModal = ({
     setAddingVoices(prev => new Set([...prev, voiceId]));
     
     try {
-      const response = await fetch(`${BACKEND_URL}/voices/add-custom-voice`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/voices/add-custom-voice`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
