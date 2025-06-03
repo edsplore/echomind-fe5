@@ -89,7 +89,7 @@ const UserImpersonationDropdown: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <AlertCircle className="w-5 h-5" />
                 <span className="font-medium">
-                  Impersonating: {impersonatedUserData?.email}
+                  Workspace: {impersonatedUserData?.email}
                 </span>
               </div>
               <button
@@ -112,7 +112,7 @@ const UserImpersonationDropdown: React.FC = () => {
         >
           <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
           <span className="text-sm text-gray-700 dark:text-gray-300">
-            {isImpersonating ? 'Switch User' : 'Impersonate User'}
+            {isImpersonating ? 'Switch User' : 'Switch Workspace'}
           </span>
           <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
@@ -127,7 +127,7 @@ const UserImpersonationDropdown: React.FC = () => {
             >
               <div className="p-3 border-b border-gray-200 dark:border-dark-100">
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                  Select User to Impersonate
+                  Select User to Switch Workspace
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   The app will operate as the selected user
