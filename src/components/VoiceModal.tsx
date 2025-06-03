@@ -50,10 +50,15 @@ export const VoiceModal = ({
   // Tab state
   const [activeTab, setActiveTab] = useState<'my-voices' | 'custom-voices'>('my-voices');
   
-  // Basic filters
+  // Basic filters for My Voices
   const [genderFilter, setGenderFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [accentFilter, setAccentFilter] = useState('');
+  
+  // Separate filters for Custom Voices
+  const [customGenderFilter, setCustomGenderFilter] = useState('');
+  const [customSearchTerm, setCustomSearchTerm] = useState('');
+  const [customAccentFilter, setCustomAccentFilter] = useState('');
 
   // Custom voices state
   const [sharedVoices, setSharedVoices] = useState<SharedVoice[]>([]);
@@ -70,7 +75,7 @@ export const VoiceModal = ({
     if (activeTab === 'custom-voices' && isOpen) {
       fetchSharedVoices();
     }
-  }, [activeTab, isOpen, genderFilter, accentFilter]);
+  }, [activeTab, isOpen, customGenderFilter, customAccentFilter]);
 
   const fetchSharedVoices = async () => {
     setLoadingSharedVoices(true);
@@ -80,8 +85,8 @@ export const VoiceModal = ({
 
       // Build query parameters
       const params = new URLSearchParams({ page: '0' });
-      if (genderFilter) params.append('gender', genderFilter);
-      if (accentFilter) params.append('accent', accentFilter);
+      if (customGenderFilter) params.append('gender', customGenderFilter);
+      if (customAccentFilter) params.append('accent', customAccentFilter);
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/voices/shared-voices?${params.toString()}`, {
         headers: {
@@ -147,17 +152,37 @@ export const VoiceModal = ({
     setActiveTab('my-voices');
   };
 
-  // Dynamically gather all unique accents from the data (normalized)
-  const allAccents = useMemo(() => {
-    const currentVoices = activeTab === 'my-voices' ? voices : sharedVoices;
+  // Dynamically gather all unique accents for My Voices
+  const myVoicesAccents = useMemo(() => {
     const accentSet = new Set<string>();
-    currentVoices.forEach((v) => {
+    voices.forEach((v) => {
       const rawAccent = v.labels?.accent || '';
       const normalized = rawAccent.toLowerCase().replace(/^en-/, '');
       if (normalized) accentSet.add(normalized);
     });
     return Array.from(accentSet);
-  }, [voices, sharedVoices, activeTab]);
+  }, [voices]);
+
+  // Dynamically gather all unique accents for Custom Voices
+  const customVoicesAccents = useMemo(() => {
+    const accentSet = new Set<string>();
+    sharedVoices.forEach((v) => {
+      const rawAccent = v.labels?.accent || '';
+      const normalized = rawAccent.toLowerCase().replace(/^en-/, '');
+      if (normalized) accentSet.add(normalized);
+    });
+    return Array.from(accentSet);
+  }, [sharedVoices]);
+
+  // Dynamically gather all unique genders for Custom Voices
+  const customVoicesGenders = useMemo(() => {
+    const genderSet = new Set<string>();
+    sharedVoices.forEach((v) => {
+      const gender = v.labels?.gender?.toLowerCase() || '';
+      if (gender) genderSet.add(gender);
+    });
+    return Array.from(genderSet);
+  }, [sharedVoices]);
 
   // Helper to play audio preview ensuring only one plays at a time
   const handlePlay = (url: string, e: React.MouseEvent) => {
@@ -183,17 +208,22 @@ export const VoiceModal = ({
       currentVoices = sharedVoices.filter(v => !userVoiceIds.has(v.voice_id));
     }
     
+    // Use appropriate filters based on active tab
+    const currentGenderFilter = activeTab === 'my-voices' ? genderFilter : customGenderFilter;
+    const currentAccentFilter = activeTab === 'my-voices' ? accentFilter : customAccentFilter;
+    const currentSearchTerm = activeTab === 'my-voices' ? searchTerm : customSearchTerm;
+    
     return currentVoices.filter((v) => {
       // Normalize accent and gender
       const rawAccent = v.labels?.accent || '';
       const accent = rawAccent.toLowerCase().replace(/^en-/, '');
       const gender = v.labels?.gender?.toLowerCase() || '';
 
-      if (genderFilter && gender !== genderFilter.toLowerCase()) return false;
-      if (accentFilter && accent !== accentFilter.toLowerCase()) return false;
+      if (currentGenderFilter && gender !== currentGenderFilter.toLowerCase()) return false;
+      if (currentAccentFilter && accent !== currentAccentFilter.toLowerCase()) return false;
 
-      if (searchTerm) {
-        const st = searchTerm.toLowerCase();
+      if (currentSearchTerm) {
+        const st = currentSearchTerm.toLowerCase();
         const nameMatch = v.name.toLowerCase().includes(st);
         const idMatch = v.voice_id.toLowerCase().includes(st);
         const accentMatch = accent.includes(st);
@@ -202,7 +232,7 @@ export const VoiceModal = ({
       }
       return true;
     });
-  }, [voices, sharedVoices, activeTab, genderFilter, accentFilter, searchTerm]);
+  }, [voices, sharedVoices, activeTab, genderFilter, accentFilter, searchTerm, customGenderFilter, customAccentFilter, customSearchTerm]);
 
   if (!isOpen) return null;
 
@@ -276,25 +306,47 @@ export const VoiceModal = ({
                 {/* Gender Filter */}
                 <div className="relative">
                   <select
-                    value={genderFilter}
-                    onChange={(e) => setGenderFilter(e.target.value)}
+                    value={activeTab === 'my-voices' ? genderFilter : customGenderFilter}
+                    onChange={(e) => {
+                      if (activeTab === 'my-voices') {
+                        setGenderFilter(e.target.value);
+                      } else {
+                        setCustomGenderFilter(e.target.value);
+                      }
+                    }}
                     className="text-sm border border-gray-200 dark:border-dark-100 rounded-md px-3 py-1.5 bg-white dark:bg-dark-100 focus:outline-none"
                   >
                     <option value="">Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="non-binary">Non-binary</option>
+                    {activeTab === 'my-voices' ? (
+                      <>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="non-binary">Non-binary</option>
+                      </>
+                    ) : (
+                      customVoicesGenders.map((gender) => (
+                        <option key={gender} value={gender}>
+                          {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
                 {/* Dynamic Accent Filter */}
                 <div className="relative">
                   <select
-                    value={accentFilter}
-                    onChange={(e) => setAccentFilter(e.target.value)}
+                    value={activeTab === 'my-voices' ? accentFilter : customAccentFilter}
+                    onChange={(e) => {
+                      if (activeTab === 'my-voices') {
+                        setAccentFilter(e.target.value);
+                      } else {
+                        setCustomAccentFilter(e.target.value);
+                      }
+                    }}
                     className="text-sm border border-gray-200 dark:border-dark-100 rounded-md px-3 py-1.5 bg-white dark:bg-dark-100 focus:outline-none"
                   >
                     <option value="">Accent</option>
-                    {allAccents.map((accent) => (
+                    {(activeTab === 'my-voices' ? myVoicesAccents : customVoicesAccents).map((accent) => (
                       <option key={accent} value={accent}>
                         {accent.charAt(0).toUpperCase() + accent.slice(1)}
                       </option>
@@ -306,8 +358,14 @@ export const VoiceModal = ({
                   <Search className="w-4 h-4 text-gray-400 mr-1" />
                   <input
                     type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={activeTab === 'my-voices' ? searchTerm : customSearchTerm}
+                    onChange={(e) => {
+                      if (activeTab === 'my-voices') {
+                        setSearchTerm(e.target.value);
+                      } else {
+                        setCustomSearchTerm(e.target.value);
+                      }
+                    }}
                     placeholder="Search..."
                     className="text-sm focus:outline-none bg-transparent"
                   />
