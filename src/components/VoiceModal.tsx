@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Search, Plus, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
-import { BACKEND_URL } from '../lib/constants';
 
 interface VoiceLabels {
   accent?: string;
@@ -48,6 +47,10 @@ export const VoiceModal = ({
   onVoicesUpdate,
 }: VoiceModalProps) => {
   // Tab state
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  
   const [activeTab, setActiveTab] = useState<'my-voices' | 'custom-voices'>('my-voices');
   
   // Basic filters
