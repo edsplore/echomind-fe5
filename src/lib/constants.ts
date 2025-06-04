@@ -71,6 +71,11 @@ export const modelOptions = [
 export const getModelId = (modelType: string, language: string) => {
   // If modelType is already a full model ID, return it directly
   if (modelType.startsWith('eleven_')) {
+    // For English, ensure we only use v2 models
+    if (language === 'en') {
+      if (modelType === 'eleven_turbo_v2_5') return 'eleven_turbo_v2';
+      if (modelType === 'eleven_flash_v2_5') return 'eleven_flash_v2';
+    }
     return modelType;
   }
   
