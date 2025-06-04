@@ -37,7 +37,6 @@ import { LanguageSelect } from "../../components/LanguageSelect";
 import { Loader, PageLoader } from "../../components/Loader";
 import {
   getModelId,
-  getModelTypeFromId,
   getLanguageName,
   llmOptions,
   getAvailableModels,
@@ -311,10 +310,7 @@ const AgentDetails = () => {
       const agentData: AgentDetails = await response.json();
       setAgent(agentData);
 
-      // Extract model type from model_id
-      const modelType = getModelTypeFromId(
-        agentData.conversation_config.tts.model_id,
-      );
+      const modelType = agentData.conversation_config.tts.model_id;
 
       const initialForm = {
         name: agentData.name,
@@ -400,7 +396,7 @@ const AgentDetails = () => {
         `${BACKEND_URL}/knowledge-base/${user.uid}`,
         {
           headers: {
-            Authorization: `Bearer ${await originalUser.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser?.getIdToken()}`,
           },
         },
       );
@@ -436,7 +432,7 @@ const AgentDetails = () => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${await originalUser.getIdToken()}`,
+            Authorization: `Bearer ${await originalUser?.getIdToken()}`,
           },
           body: JSON.stringify({
             name: editedForm.name,
