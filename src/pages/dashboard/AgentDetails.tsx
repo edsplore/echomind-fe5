@@ -826,21 +826,6 @@ const AgentDetails = () => {
                 </button>
               </div>
 
-              {/* Voice Model Selection */}
-              <div className="space-y-4 mt-6">
-                <div className="flex items-center space-x-2">
-                  <Settings className="w-4 h-4 text-primary dark:text-primary-400" />
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                    Voice Model
-                  </h3>
-                </div>
-                <ModelSelect
-                  modelType={editedForm.modelType}
-                  onChange={(value) => handleChange("modelType", value)}
-                  availableModels={getAvailableModels(editedForm.language)}
-                />
-              </div>
-
               {/* Custom LLM Configuration */}
               {editedForm.llm === "custom-llm" && (
                 <div className="space-y-4 mt-6">
@@ -923,6 +908,21 @@ const AgentDetails = () => {
                   </div>
                 </div>
               )}
+
+              {/* Voice Model Selection */}
+              <div className="space-y-4 mt-6">
+                <div className="flex items-center space-x-2">
+                  <Settings className="w-4 h-4 text-primary dark:text-primary-400" />
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    Voice Model
+                  </h3>
+                </div>
+                <ModelSelect
+                  modelType={editedForm.modelType}
+                  onChange={(value) => handleChange("modelType", value)}
+                  availableModels={getAvailableModels(editedForm.language)}
+                />
+              </div>
 
               {/* Temperature Slider */}
               <div className="space-y-4 mt-6">
