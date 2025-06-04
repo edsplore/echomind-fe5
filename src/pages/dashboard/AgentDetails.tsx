@@ -265,6 +265,7 @@ const AgentDetails = () => {
   const [editedForm, setEditedForm] = useState<EditForm>(editForm);
 
   const [conversationInitiationMode, setConversationInitiationMode] = useState(editForm.first_message === "" ? "user" : "bot");
+  const [asrKeywordsInput, setAsrKeywordsInput] = useState("");
 
 
   // Fetch agent details
@@ -333,6 +334,7 @@ const AgentDetails = () => {
       setEditForm(initialForm);
       setEditedForm(initialForm);
       setConversationInitiationMode(initialForm.first_message === "" ? "user" : "bot");
+      setAsrKeywordsInput(initialForm.asr?.keywords?.join(", ") || "");
 
 
       // 2) Fetch details of the currently selected voice
@@ -480,6 +482,9 @@ const AgentDetails = () => {
   const handleCancel = () => {
     setEditedForm(editForm);
     setHasChanges(false);
+    
+    // Reset ASR keywords input
+    setAsrKeywordsInput(editForm.asr?.keywords?.join(", ") || "");
 
     // Reset voice display to original voice
     const originalVoice = voices.find((v) => v.voice_id === editForm.voice_id);
@@ -1071,13 +1076,28 @@ const AgentDetails = () => {
                   </p>
                   <input
                     type="text"
-                    value={editedForm.asr?.keywords?.join(", ") || ""}
+                    value={asrKeywordsInput}
                     onChange={(e) => {
+                      setAsrKeywordsInput(e.target.value);
+                    }}
+                    onBlur={(e) => {
+                      // Process keywords when user finishes editing
                       const keywords = e.target.value
                         .split(",")
                         .map((keyword) => keyword.trim())
-                        .filter(Boolean); // Remove empty strings
+                        .filter(Boolean);
                       handleChange("asr", { ...editedForm.asr, keywords });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // Process keywords when user presses Enter
+                        const keywords = e.currentTarget.value
+                          .split(",")
+                          .map((keyword) => keyword.trim())
+                          .filter(Boolean);
+                        handleChange("asr", { ...editedForm.asr, keywords });
+                      }
                     }}
                     className="input"
                     placeholder="Enter keywords, separated by commas"
