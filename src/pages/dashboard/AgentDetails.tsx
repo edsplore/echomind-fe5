@@ -98,10 +98,13 @@ interface AgentDetails {
       similarity_boost: number; // The similarity boost for generated speech ( double, >=0 to <=1, defaults to 0.8)
     };
     turn: {
-      turn_timeout: number; //Maximum wait time for the user’s reply before re-engaging the user (double, defaults to 7)
+      turn_timeout: number; //Maximum wait time for the user's reply before re-engaging the user (double, defaults to 7)
       silence_end_call_timeout: number; // Maximum wait time since the user last spoke before terminating the call (double, defaults to -1)
       mode: string; // enum: "silence" or "turn"
-    }
+    };
+    asr?: {
+      keywords?: string[];
+    };
   };
 }
 
@@ -174,6 +177,9 @@ interface EditForm {
     silence_end_call_timeout?: number;
     mode?: string;
   };
+  asr?: {
+    keywords?: string[];
+  };
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -230,6 +236,17 @@ const AgentDetails = () => {
     modelType: "turbo",
     knowledge_base: [],
     tools: [],
+    platform_settings: {
+      data_collection: {},
+      workspace_overrides: {
+        conversation_initiation_client_data_webhook: {
+          url: '',
+          request_headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      }
+    },
     tts: {
       optimize_streaming_latency: 0,
       stability: 0.5,
@@ -240,6 +257,9 @@ const AgentDetails = () => {
       turn_timeout: 7,
       silence_end_call_timeout: -1,
       mode: "silence"
+    },
+    asr: {
+      keywords: []
     }
   });
   const [editedForm, setEditedForm] = useState<EditForm>(editForm);
@@ -307,7 +327,8 @@ const AgentDetails = () => {
           turn_timeout: agentData.conversation_config.turn.turn_timeout || 7,
           silence_end_call_timeout: agentData.conversation_config.turn.silence_end_call_timeout || -1,
           mode: agentData.conversation_config.turn.mode || "silence"
-        }
+        },
+        asr: agentData.conversation_config.asr ? { ...agentData.conversation_config.asr } : { keywords: [] }
       };
       setEditForm(initialForm);
       setEditedForm(initialForm);
@@ -413,6 +434,9 @@ const AgentDetails = () => {
                 silence_end_call_timeout: editedForm.turn?.silence_end_call_timeout || -1,
                 mode: editedForm.turn?.mode || "silence",
               },
+              asr: {
+                keywords: editedForm.asr?.keywords || []
+              }
             },
             platform_settings: {
               data_collection: Object.fromEntries(
@@ -1031,6 +1055,34 @@ const AgentDetails = () => {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* ASR Keywords Section */}
+              <div className="space-y-4 mt-8">
+                <div className="flex items-center space-x-2">
+                  <Speech className="w-5 h-5 text-primary dark:text-primary-400" />
+                  <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white">
+                    ASR Keywords
+                  </h3>
+                </div>
+                <div className="space-y-3 pl-4 border-l-2 border-primary/20 dark:border-primary/30">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Enter keywords to improve speech recognition accuracy.
+                  </p>
+                  <input
+                    type="text"
+                    value={editedForm.asr?.keywords?.join(", ") || ""}
+                    onChange={(e) => {
+                      const keywords = e.target.value
+                        .split(",")
+                        .map((keyword) => keyword.trim())
+                        .filter(Boolean); // Remove empty strings
+                      handleChange("asr", { ...editedForm.asr, keywords });
+                    }}
+                    className="input"
+                    placeholder="Enter keywords, separated by commas"
+                  />
+                </div>
               </div>
 
               {/* First Message Section */}
