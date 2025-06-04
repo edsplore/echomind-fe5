@@ -96,6 +96,7 @@ export const VoiceModal = ({
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched shared voices:', data.voices);
         setSharedVoices(data.voices || []);
       }
     } catch (error) {
@@ -171,6 +172,7 @@ export const VoiceModal = ({
       const normalized = rawAccent.toLowerCase().replace(/^en-/, '');
       if (normalized) accentSet.add(normalized);
     });
+    console.log('Custom voices accents:', Array.from(accentSet));
     return Array.from(accentSet);
   }, [sharedVoices]);
 
