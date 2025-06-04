@@ -306,6 +306,7 @@ const AgentDetails = () => {
   const [secretName, setSecretName] = useState("");
   const [secretValue, setSecretValue] = useState("");
   const [generatingSecret, setGeneratingSecret] = useState(false);
+  const [updatingSecret, setUpdatingSecret] = useState(false);
 
 
   // Fetch agent details
@@ -391,6 +392,7 @@ const AgentDetails = () => {
       // Reset secret fields
       setSecretName("");
       setSecretValue("");
+      setUpdatingSecret(false);
 
 
       // 2) Fetch details of the currently selected voice
@@ -674,6 +676,69 @@ const AgentDetails = () => {
     }
   };
 
+  // Start updating secret - show input fields
+  const handleStartUpdate = () => {
+    setUpdatingSecret(true);
+    // Clear the input fields when starting update
+    setSecretName("");
+    setSecretValue("");
+  };
+
+  // Cancel updating secret - hide input fields
+  const handleCancelUpdate = () => {
+    setUpdatingSecret(false);
+    setSecretName("");
+    setSecretValue("");
+  };
+
+  // Update existing secret via API call
+  const handleUpdateSecret = async () => {
+    if (!user || !secretName.trim() || !secretValue.trim() || !editedForm.custom_llm?.api_key?.secret_id) return;
+
+    try {
+      setGeneratingSecret(true);
+      setError("");
+
+      const response = await fetch(`${BACKEND_URL}/secrets/${editedForm.custom_llm.api_key.secret_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${await originalUser?.getIdToken()}`,
+        },
+        body: JSON.stringify({
+          name: secretName.trim(),
+          value: secretValue.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update secret");
+      }
+
+      const data = await response.json();
+      
+      // Update the custom_llm configuration with the updated secret_id
+      handleChange("custom_llm", {
+        ...editedForm.custom_llm,
+        api_key: {
+          secret_id: data.secret_id
+        }
+      });
+
+      // Clear the input fields and exit update mode
+      setSecretName("");
+      setSecretValue("");
+      setUpdatingSecret(false);
+      
+    } catch (err) {
+      console.error("Error updating secret:", err);
+      setError(err instanceof Error ? err.message : "Failed to update secret. Please try again.");
+    } finally {
+      setGeneratingSecret(false);
+    }
+  };
+
   if (loading) {
     return <PageLoader />;
   }
@@ -941,38 +1006,41 @@ const AgentDetails = () => {
                         API Key Secret <span className="text-red-500">*</span>
                       </label>
                       
-                      {/* Secret Name Field */}
-                      <div className="space-y-2">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                          Secret Name
-                        </label>
-                        <input
-                          type="text"
-                          value={secretName}
-                          onChange={(e) => setSecretName(e.target.value)}
-                          className="input"
-                          placeholder="my-api-key"
-                          disabled={!!editedForm.custom_llm?.api_key?.secret_id}
-                        />
-                      </div>
+                      {/* Show input fields only when no secret ID exists or when updating */}
+                      {(!editedForm.custom_llm?.api_key?.secret_id || updatingSecret) && (
+                        <>
+                          {/* Secret Name Field */}
+                          <div className="space-y-2">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                              Secret Name
+                            </label>
+                            <input
+                              type="text"
+                              value={secretName}
+                              onChange={(e) => setSecretName(e.target.value)}
+                              className="input"
+                              placeholder="my-api-key"
+                            />
+                          </div>
 
-                      {/* Secret Value Field */}
-                      <div className="space-y-2">
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                          Secret Value (API Key)
-                        </label>
-                        <input
-                          type="password"
-                          value={secretValue}
-                          onChange={(e) => setSecretValue(e.target.value)}
-                          className="input"
-                          placeholder="sk-..."
-                          disabled={!!editedForm.custom_llm?.api_key?.secret_id}
-                        />
-                      </div>
+                          {/* Secret Value Field */}
+                          <div className="space-y-2">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                              Secret Value (API Key)
+                            </label>
+                            <input
+                              type="password"
+                              value={secretValue}
+                              onChange={(e) => setSecretValue(e.target.value)}
+                              className="input"
+                              placeholder="sk-..."
+                            />
+                          </div>
+                        </>
+                      )}
 
                       {/* Generated Secret ID Display */}
-                      {editedForm.custom_llm?.api_key?.secret_id ? (
+                      {editedForm.custom_llm?.api_key?.secret_id && (
                         <div className="space-y-2">
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                             Generated Secret ID
@@ -983,7 +1051,10 @@ const AgentDetails = () => {
                             </code>
                           </div>
                         </div>
-                      ) : (
+                      )}
+
+                      {/* Action Buttons */}
+                      {!editedForm.custom_llm?.api_key?.secret_id ? (
                         /* Generate Secret Button */
                         <button
                           type="button"
@@ -1002,6 +1073,46 @@ const AgentDetails = () => {
                               <span>Generate Secret ID</span>
                             </>
                           )}
+                        </button>
+                      ) : updatingSecret ? (
+                        /* Update and Cancel Buttons when in update mode */
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCancelUpdate}
+                            className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                            <span>Cancel</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleUpdateSecret}
+                            disabled={!secretName.trim() || !secretValue.trim() || generatingSecret}
+                            className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {generatingSecret ? (
+                              <>
+                                <Loader />
+                                <span>Updating...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Check className="w-4 h-4" />
+                                <span>Update</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        /* Update Button when secret exists and not in update mode */
+                        <button
+                          type="button"
+                          onClick={handleStartUpdate}
+                          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>Update Secret</span>
                         </button>
                       )}
 
