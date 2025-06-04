@@ -81,6 +81,7 @@ interface AgentDetails {
         prompt: string;
         llm: string;
         temperature: number;
+        custom_llm?: CustomLlm;
         knowledge_base: {
           id: string;
           name: string;
@@ -140,6 +141,14 @@ interface KnowledgeBaseDocument {
   extracted_inner_html: string;
 }
 
+interface CustomLlm {
+  url: string;
+  model_id?: string;
+  api_key: {
+    secret_id: string;
+  };
+}
+
 interface EditForm {
   name: string;
   prompt: string;
@@ -149,6 +158,7 @@ interface EditForm {
   voice_id: string;
   language: string;
   modelType: string;
+  custom_llm?: CustomLlm;
   platform_settings?: {
     data_collection: {
       [key: string]: DynamicVariable;
@@ -246,6 +256,13 @@ const AgentDetails = () => {
     voice_id: "",
     language: "en",
     modelType: "turbo",
+    custom_llm: {
+      url: "",
+      model_id: "",
+      api_key: {
+        secret_id: ""
+      }
+    },
     knowledge_base: [],
     tools: [],
     platform_settings: {
@@ -321,6 +338,13 @@ const AgentDetails = () => {
         voice_id: agentData.conversation_config.tts.voice_id,
         language: agentData.conversation_config.agent.language || "en",
         modelType,
+        custom_llm: agentData.conversation_config.agent.prompt.custom_llm || {
+          url: "",
+          model_id: "",
+          api_key: {
+            secret_id: ""
+          }
+        },
         knowledge_base:
           agentData.conversation_config.agent.prompt.knowledge_base || [],
         tools: agentData.conversation_config.agent.prompt.tools || [],
@@ -442,6 +466,9 @@ const AgentDetails = () => {
                   prompt: editedForm.prompt,
                   llm: editedForm.llm,
                   temperature: editedForm.temperature,
+                  ...(editedForm.llm === "custom-llm" && editedForm.custom_llm ? {
+                    custom_llm: editedForm.custom_llm
+                  } : {}),
                   knowledge_base: editedForm.knowledge_base,
                   tools: editedForm.tools,
                 },
@@ -813,6 +840,89 @@ const AgentDetails = () => {
                   availableModels={getAvailableModels(editedForm.language)}
                 />
               </div>
+
+              {/* Custom LLM Configuration */}
+              {editedForm.llm === "custom-llm" && (
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center space-x-2">
+                    <Settings className="w-4 h-4 text-primary dark:text-primary-400" />
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                      Custom LLM Configuration
+                    </h3>
+                  </div>
+                  <div className="space-y-4 pl-4 border-l-2 border-primary/20 dark:border-primary/30">
+                    {/* URL Field - Required */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                        URL <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={editedForm.custom_llm?.url || ""}
+                        onChange={(e) =>
+                          handleChange("custom_llm", {
+                            ...editedForm.custom_llm,
+                            url: e.target.value
+                          })
+                        }
+                        className="input"
+                        placeholder="https://api.example.com/v1/chat/completions"
+                        required
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        The URL of the Chat Completions compatible endpoint
+                      </p>
+                    </div>
+
+                    {/* Model ID Field - Optional */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                        Model ID
+                      </label>
+                      <input
+                        type="text"
+                        value={editedForm.custom_llm?.model_id || ""}
+                        onChange={(e) =>
+                          handleChange("custom_llm", {
+                            ...editedForm.custom_llm,
+                            model_id: e.target.value
+                          })
+                        }
+                        className="input"
+                        placeholder="gpt-4"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        The model ID to be used if URL serves multiple models
+                      </p>
+                    </div>
+
+                    {/* API Key Secret ID Field - Required */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                        API Key Secret ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editedForm.custom_llm?.api_key?.secret_id || ""}
+                        onChange={(e) =>
+                          handleChange("custom_llm", {
+                            ...editedForm.custom_llm,
+                            api_key: {
+                              secret_id: e.target.value
+                            }
+                          })
+                        }
+                        className="input"
+                        placeholder="your-api-key-secret-id"
+                        required
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        The API key for authentication
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Temperature Slider */}
               <div className="space-y-4 mt-6">
