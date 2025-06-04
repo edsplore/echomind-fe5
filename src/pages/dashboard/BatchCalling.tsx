@@ -80,48 +80,7 @@ export default function BatchCalling() {
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [loadingPhoneNumbers, setLoadingPhoneNumbers] = useState(false);
-  const [batchJobs, setBatchJobs] = useState<BatchCallingJob[]>([
-    {
-      batch_call_id: 'batch_001',
-      agent_id: 'agent_001',
-      agent_name: 'John Smith',
-      call_name: 'Holiday Promotion Campaign',
-      created_at: '2024-01-15T10:30:00Z',
-      status: 'completed'
-    },
-    {
-      batch_call_id: 'batch_002',
-      agent_id: 'agent_002',
-      agent_name: 'Sarah Johnson',
-      call_name: 'Customer Survey Call',
-      created_at: '2024-01-16T14:45:00Z',
-      status: 'running'
-    },
-    {
-      batch_call_id: 'batch_003',
-      agent_id: 'agent_001',
-      agent_name: 'John Smith',
-      call_name: 'Product Launch Announcement',
-      created_at: '2024-01-17T09:15:00Z',
-      status: 'pending'
-    },
-    {
-      batch_call_id: 'batch_004',
-      agent_id: 'agent_003',
-      agent_name: 'Mike Davis',
-      call_name: 'Appointment Reminder',
-      created_at: '2024-01-18T16:20:00Z',
-      status: 'failed'
-    },
-    {
-      batch_call_id: 'batch_005',
-      agent_id: 'agent_002',
-      agent_name: 'Sarah Johnson',
-      call_name: 'Payment Due Notice',
-      created_at: '2024-01-19T11:00:00Z',
-      status: 'created'
-    }
-  ]);
+  const [batchJobs, setBatchJobs] = useState<BatchCallingJob[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [phoneNumbers, setPhoneNumbers] = useState<any[]>([]);
   const [selectedBatchCall, setSelectedBatchCall] = useState<BatchCallDetails | null>(null);
@@ -197,20 +156,21 @@ export default function BatchCalling() {
 
     try {
       setLoadingJobs(true);
-      // Using sample data for testing - commented out API call
-      // const userDocRef = doc(db, 'users', user.uid);
-      // const userDoc = await getDoc(userDocRef);
+      const response = await fetch(`${BACKEND_URL}/batch-calls/${user.uid}`, {
+        headers: {
+          Authorization: `Bearer ${await user.getIdToken()}`,
+        },
+      });
 
-      // if (userDoc.exists()) {
-      //   const userData = userDoc.data();
-      //   setBatchJobs(userData.batch_calls || []);
-      // } else {
-      //   setBatchJobs([]);
-      // }
+      if (!response.ok) {
+        throw new Error('Failed to fetch batch calling jobs');
+      }
 
-      // Sample data is already set in useState initialization
+      const data = await response.json();
+      setBatchJobs(data.batch_calls || []);
     } catch (error) {
       console.error('Error fetching batch calling jobs:', error);
+      setBatchJobs([]);
     } finally {
       setLoadingJobs(false);
     }
@@ -221,98 +181,18 @@ export default function BatchCalling() {
 
     try {
       setLoadingDetails(true);
+      const response = await fetch(`${BACKEND_URL}/batch-call/${batchCallId}`, {
+        headers: {
+          Authorization: `Bearer ${await user.getIdToken()}`,
+        },
+      });
 
-      // Sample data for testing
-      const sampleBatchCallDetails: BatchCallDetails = {
-        id: batchCallId,
-        phone_number_id: 'phone_123',
-        name: batchJobs.find(job => job.batch_call_id === batchCallId)?.call_name || 'Test Campaign',
-        agent_id: 'agent_001',
-        created_at_unix: Math.floor(Date.now() / 1000) - 86400, // 1 day ago
-        scheduled_time_unix: 1,
-        total_calls_dispatched: 25,
-        total_calls_scheduled: 50,
-        last_updated_at_unix: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
-        status: batchJobs.find(job => job.batch_call_id === batchCallId)?.status || 'pending',
-        agent_name: batchJobs.find(job => job.batch_call_id === batchCallId)?.agent_name || 'John Smith',
-        recipients: [
-          {
-            id: 'rec_001',
-            phone_number: '+1234567890',
-            status: 'completed',
-            created_at_unix: Math.floor(Date.now() / 1000) - 86400,
-            updated_at_unix: Math.floor(Date.now() / 1000) - 3600,
-            conversation_id: 'conv_001',
-            conversation_initiation_client_data: {
-              conversation_config_override: {
-                tts: { voice_id: 'cjVigY5qzO86Huf0OWal' },
-                agent: {
-                  first_message: 'Hello, how can I help you today?',
-                  language: 'en',
-                  prompt: { prompt: 'You are a helpful assistant.' }
-                }
-              }
-            }
-          },
-          {
-            id: 'rec_002',
-            phone_number: '+1987654321',
-            status: 'pending',
-            created_at_unix: Math.floor(Date.now() / 1000) - 86400,
-            updated_at_unix: Math.floor(Date.now() / 1000) - 7200,
-            conversation_id: 'conv_002',
-            conversation_initiation_client_data: {
-              conversation_config_override: {
-                tts: { voice_id: 'cjVigY5qzO86Huf0OWal' },
-                agent: {
-                  first_message: 'Hi there! This is a test call.',
-                  language: 'en',
-                  prompt: { prompt: 'You are a sales assistant.' }
-                }
-              }
-            }
-          },
-          {
-            id: 'rec_003',
-            phone_number: '+1555123456',
-            status: 'failed',
-            created_at_unix: Math.floor(Date.now() / 1000) - 86400,
-            updated_at_unix: Math.floor(Date.now() / 1000) - 1800,
-            conversation_id: 'conv_003',
-            conversation_initiation_client_data: {
-              conversation_config_override: {
-                tts: { voice_id: 'cjVigY5qzO86Huf0OWal' },
-                agent: {
-                  first_message: 'Good morning! How are you today?',
-                  language: 'en',
-                  prompt: { prompt: 'You are a customer service representative.' }
-                }
-              }
-            }
-          },
-          {
-            id: 'rec_004',
-            phone_number: '+1666789012',
-            status: 'running',
-            created_at_unix: Math.floor(Date.now() / 1000) - 86400,
-            updated_at_unix: Math.floor(Date.now() / 1000) - 300,
-            conversation_id: 'conv_004',
-            conversation_initiation_client_data: {
-              conversation_config_override: {
-                tts: { voice_id: 'cjVigY5qzO86Huf0OWal' },
-                agent: {
-                  first_message: 'Hello! Thank you for your time.',
-                  language: 'en',
-                  prompt: { prompt: 'You are a survey conductor.' }
-                }
-              }
-            }
-          }
-        ],
-        phone_provider: 'twilio'
-      };
+      if (!response.ok) {
+        throw new Error('Failed to fetch batch call details');
+      }
 
-      setSelectedBatchCall(sampleBatchCallDetails);
+      const data = await response.json();
+      setSelectedBatchCall(data);
     } catch (error) {
       console.error('Error fetching batch call details:', error);
       setError('Failed to fetch batch call details. Please try again.');
