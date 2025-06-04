@@ -1006,7 +1006,7 @@ const AgentDetails = () => {
                       )}
 
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Create a secret in ElevenLabs to securely store your API key
+                        Create a secret in Workspace to securely store your API key
                       </p>
                     </div>
                   </div>
