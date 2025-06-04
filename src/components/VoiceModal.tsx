@@ -168,7 +168,8 @@ export const VoiceModal = ({
   const customVoicesAccents = useMemo(() => {
     const accentSet = new Set<string>();
     sharedVoices.forEach((v) => {
-      const rawAccent = v.labels?.accent || '';
+      // For shared voices, accent is directly on the object, not in labels
+      const rawAccent = (v as any).accent || v.labels?.accent || '';
       const normalized = rawAccent.toLowerCase().replace(/^en-/, '');
       if (normalized) accentSet.add(normalized);
     });
@@ -180,7 +181,8 @@ export const VoiceModal = ({
   const customVoicesGenders = useMemo(() => {
     const genderSet = new Set<string>();
     sharedVoices.forEach((v) => {
-      const gender = v.labels?.gender?.toLowerCase() || '';
+      // For shared voices, gender is directly on the object, not in labels
+      const gender = ((v as any).gender || v.labels?.gender || '').toLowerCase();
       if (gender) genderSet.add(gender);
     });
     return Array.from(genderSet);
@@ -216,10 +218,11 @@ export const VoiceModal = ({
     const currentSearchTerm = activeTab === 'my-voices' ? searchTerm : customSearchTerm;
     
     return currentVoices.filter((v) => {
-      // Normalize accent and gender
-      const rawAccent = v.labels?.accent || '';
+      // Handle both shared voice structure (direct properties) and regular voice structure (labels)
+      const isSharedVoice = activeTab === 'custom-voices';
+      const rawAccent = isSharedVoice ? (v as any).accent || '' : v.labels?.accent || '';
       const accent = rawAccent.toLowerCase().replace(/^en-/, '');
-      const gender = v.labels?.gender?.toLowerCase() || '';
+      const gender = isSharedVoice ? ((v as any).gender || '').toLowerCase() : (v.labels?.gender || '').toLowerCase();
 
       if (currentGenderFilter && gender !== currentGenderFilter.toLowerCase()) return false;
       if (currentAccentFilter && accent !== currentAccentFilter.toLowerCase()) return false;
@@ -229,7 +232,9 @@ export const VoiceModal = ({
         const nameMatch = v.name.toLowerCase().includes(st);
         const idMatch = v.voice_id.toLowerCase().includes(st);
         const accentMatch = accent.includes(st);
-        const descMatch = (v.labels?.description || "").toLowerCase().includes(st);
+        const descMatch = isSharedVoice 
+          ? ((v as any).description || "").toLowerCase().includes(st)
+          : (v.labels?.description || "").toLowerCase().includes(st);
         if (!nameMatch && !idMatch && !accentMatch && !descMatch) return false;
       }
       return true;
