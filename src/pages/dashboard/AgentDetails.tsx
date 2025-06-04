@@ -475,7 +475,9 @@ const AgentDetails = () => {
                   prompt: editedForm.prompt,
                   llm: editedForm.llm,
                   temperature: editedForm.temperature,
-                  custom_llm: editedForm.llm === "custom-llm" ? editedForm.custom_llm : {},
+                  ...(editedForm.llm === "custom-llm" && editedForm.custom_llm ? {
+                    custom_llm: editedForm.custom_llm
+                  } : {}),
                   knowledge_base: editedForm.knowledge_base,
                   tools: editedForm.tools,
                 },
