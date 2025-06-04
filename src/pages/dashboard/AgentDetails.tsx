@@ -568,14 +568,6 @@ const AgentDetails = () => {
     field: keyof EditForm,
     value: string | number | any[],
   ) => {
-    // If changing LLM from custom-llm to something else, delete the secret
-    if (field === "llm" && editedForm.llm === "custom-llm" && value !== "custom-llm") {
-      const secretId = editedForm.custom_llm?.api_key?.secret_id;
-      if (secretId) {
-        handleDeleteSecret(secretId);
-      }
-    }
-    
     setEditedForm((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
@@ -744,42 +736,6 @@ const AgentDetails = () => {
       setError(err instanceof Error ? err.message : "Failed to update secret. Please try again.");
     } finally {
       setGeneratingSecret(false);
-    }
-  };
-
-  // Delete secret via API call
-  const handleDeleteSecret = async (secretId: string) => {
-    if (!user || !secretId) return;
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/secrets/${secretId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${await originalUser?.getIdToken()}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to delete secret:", errorData.message || "Unknown error");
-        // Don't show error to user as this is automatic cleanup
-        return;
-      }
-
-      // Clear the custom_llm secret_id since it's been deleted
-      setEditedForm(prev => ({
-        ...prev,
-        custom_llm: {
-          ...prev.custom_llm,
-          api_key: {
-            secret_id: ""
-          }
-        }
-      }));
-      
-    } catch (err) {
-      console.error("Error deleting secret:", err);
-      // Don't show error to user as this is automatic cleanup
     }
   };
 
