@@ -75,7 +75,7 @@ export const VoiceModal = ({
     if (activeTab === 'custom-voices' && isOpen) {
       fetchSharedVoices();
     }
-  }, [activeTab, isOpen, customGenderFilter, customAccentFilter]);
+  }, [activeTab, isOpen, customGenderFilter, customAccentFilter, customSearchTerm]);
 
   const fetchSharedVoices = async () => {
     setLoadingSharedVoices(true);
@@ -87,6 +87,7 @@ export const VoiceModal = ({
       const params = new URLSearchParams({ page: '0' });
       if (customGenderFilter) params.append('gender', customGenderFilter);
       if (customAccentFilter) params.append('accent', customAccentFilter);
+      if (customSearchTerm) params.append('search', customSearchTerm);
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/voices/shared-voices?${params.toString()}`, {
         headers: {
@@ -225,14 +226,13 @@ export const VoiceModal = ({
       if (currentGenderFilter && gender !== currentGenderFilter.toLowerCase()) return false;
       if (currentAccentFilter && accent !== currentAccentFilter.toLowerCase()) return false;
 
-      if (currentSearchTerm) {
+      // Only apply client-side search for my voices (custom voices search is handled by API)
+      if (currentSearchTerm && activeTab === 'my-voices') {
         const st = currentSearchTerm.toLowerCase();
         const nameMatch = v.name.toLowerCase().includes(st);
         const idMatch = v.voice_id.toLowerCase().includes(st);
         const accentMatch = accent.includes(st);
-        const descMatch = isSharedVoice 
-          ? ((v as any).description || "").toLowerCase().includes(st)
-          : (v.labels?.description || "").toLowerCase().includes(st);
+        const descMatch = (v.labels?.description || "").toLowerCase().includes(st);
         if (!nameMatch && !idMatch && !accentMatch && !descMatch) return false;
       }
       return true;
