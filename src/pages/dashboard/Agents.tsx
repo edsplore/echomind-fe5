@@ -4,24 +4,9 @@ import {
   Plus,
   Trash2,
   X,
-  Bot,
   Loader2,
   ArrowRight,
   Database,
-  MessageSquare,
-  Phone,
-  FileText,
-  LinkIcon,
-  CheckCircle2,
-  Cpu,
-  Atom,
-  Brain,
-  Sparkles,
-  Zap,
-  Star,
-  Lightbulb,
-  Microscope,
-  AlertCircle,
   Speech,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -31,8 +16,6 @@ import { KnowledgeBaseSelect } from "../../components/KnowledgeBaseSelect";
 import { cn } from "../../lib/utils";
 import {
   getModelId,
-  getModelTypeFromId,
-  getLanguageName,
   getAvailableModels,
   llmOptions,
 } from "../../lib/constants";
