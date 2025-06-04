@@ -49,6 +49,15 @@ interface DynamicVariable {
   constant_value?: string; // "string" | "integer" | "double" | "boolean"
 }
 
+interface PrivacySettings {
+  record_voice?: boolean;
+  retention_days?: number;
+  delete_transcript_and_pii?: boolean;
+  delete_audio?: boolean;
+  apply_to_existing_conversations?: boolean;
+  zero_retention_mode?: boolean;
+}
+
 interface AgentDetails {
   agent_id: string;
   name: string;
@@ -64,6 +73,7 @@ interface AgentDetails {
         };
       }
     };
+    privacy?: PrivacySettings;
   }
   conversation_config: {
     agent: {
@@ -151,6 +161,7 @@ interface EditForm {
         };
       }
     };
+    privacy?: PrivacySettings;
   };
   knowledge_base: Array<{
     id: string;
@@ -220,6 +231,7 @@ const AgentDetails = () => {
   const [isCreatingTool, setIsCreatingTool] = useState(false);
   const [showAdvancedVoiceSettings, setShowAdvancedVoiceSettings] = useState(false);
   const [showAdvancedConversationSettings, setShowAdvancedConversationSettings] = useState(false);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
   const [editingVarName, setEditingVarName] = useState<string | null>(null);
   const [editingVarValue, setEditingVarValue] = useState<string>("");
@@ -245,6 +257,14 @@ const AgentDetails = () => {
             "Content-Type": "application/json"
           }
         }
+      },
+      privacy: {
+        record_voice: true,
+        retention_days: -1,
+        delete_transcript_and_pii: false,
+        delete_audio: false,
+        apply_to_existing_conversations: false,
+        zero_retention_mode: false
       }
     },
     tts: {
@@ -316,6 +336,14 @@ const AgentDetails = () => {
                 "Content-Type": "application/json"
               }
             }
+          },
+          privacy: agentData.platform_settings?.privacy || {
+            record_voice: true,
+            retention_days: -1,
+            delete_transcript_and_pii: false,
+            delete_audio: false,
+            apply_to_existing_conversations: false,
+            zero_retention_mode: false
           }
         },
         tts: {
@@ -460,7 +488,15 @@ const AgentDetails = () => {
                   };
                 }
                 return {};
-              })()
+              })(),
+              privacy: editedForm.platform_settings?.privacy || {
+                record_voice: true,
+                retention_days: -1,
+                delete_transcript_and_pii: false,
+                delete_audio: false,
+                apply_to_existing_conversations: false,
+                zero_retention_mode: false
+              }
             },
           }),
         },
@@ -1103,6 +1139,214 @@ const AgentDetails = () => {
                     placeholder="Enter keywords, separated by commas"
                   />
                 </div>
+              </div>
+
+              {/* Privacy Settings */}
+              <div className="space-y-4 mt-8">
+                <button
+                  onClick={() => setShowPrivacySettings(!showPrivacySettings)}
+                  className="flex items-center justify-between w-full p-4 bg-gray-50 dark:bg-dark-100 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Settings className="w-5 h-5 text-primary dark:text-primary-400" />
+                    <h3 className="text-lg font-heading font-medium text-gray-900 dark:text-white">
+                      Privacy Settings
+                    </h3>
+                  </div>
+                  {showPrivacySettings ? (
+                    <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  )}
+                </button>
+
+                {showPrivacySettings && (
+                  <div className="space-y-6 pl-4 border-l-2 border-primary/20 dark:border-primary/30">
+                    {/* Record Voice */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Record Voice
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Whether to record the conversation
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedForm.platform_settings?.privacy?.record_voice ?? true}
+                            onChange={(e) => {
+                              handleChange("platform_settings", {
+                                ...editedForm.platform_settings,
+                                privacy: {
+                                  ...editedForm.platform_settings?.privacy,
+                                  record_voice: e.target.checked
+                                }
+                              });
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/50 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${editedForm.platform_settings?.privacy?.record_voice ? 'peer-checked:bg-primary' : ''}`}></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Retention Days */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Retention Days ({editedForm.platform_settings?.privacy?.retention_days === -1 ? 'No limit' : `${editedForm.platform_settings?.privacy?.retention_days || 0} days`})
+                        </h4>
+                      </div>
+                      <input
+                        type="range"
+                        min="-1"
+                        max="365"
+                        step="1"
+                        value={editedForm.platform_settings?.privacy?.retention_days ?? -1}
+                        onChange={(e) => {
+                          handleChange("platform_settings", {
+                            ...editedForm.platform_settings,
+                            privacy: {
+                              ...editedForm.platform_settings?.privacy,
+                              retention_days: parseInt(e.target.value)
+                            }
+                          });
+                        }}
+                        className="w-full"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        The number of days to retain the conversation. -1 indicates no retention limit
+                      </p>
+                    </div>
+
+                    {/* Delete Transcript and PII */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Delete Transcript and PII
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Whether to delete the transcript and PII
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedForm.platform_settings?.privacy?.delete_transcript_and_pii ?? false}
+                            onChange={(e) => {
+                              handleChange("platform_settings", {
+                                ...editedForm.platform_settings,
+                                privacy: {
+                                  ...editedForm.platform_settings?.privacy,
+                                  delete_transcript_and_pii: e.target.checked
+                                }
+                              });
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/50 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${editedForm.platform_settings?.privacy?.delete_transcript_and_pii ? 'peer-checked:bg-primary' : ''}`}></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Delete Audio */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Delete Audio
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Whether to delete the audio
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedForm.platform_settings?.privacy?.delete_audio ?? false}
+                            onChange={(e) => {
+                              handleChange("platform_settings", {
+                                ...editedForm.platform_settings,
+                                privacy: {
+                                  ...editedForm.platform_settings?.privacy,
+                                  delete_audio: e.target.checked
+                                }
+                              });
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/50 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${editedForm.platform_settings?.privacy?.delete_audio ? 'peer-checked:bg-primary' : ''}`}></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Apply to Existing Conversations */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Apply to Existing Conversations
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Whether to apply the privacy settings to existing conversations
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedForm.platform_settings?.privacy?.apply_to_existing_conversations ?? false}
+                            onChange={(e) => {
+                              handleChange("platform_settings", {
+                                ...editedForm.platform_settings,
+                                privacy: {
+                                  ...editedForm.platform_settings?.privacy,
+                                  apply_to_existing_conversations: e.target.checked
+                                }
+                              });
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/50 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${editedForm.platform_settings?.privacy?.apply_to_existing_conversations ? 'peer-checked:bg-primary' : ''}`}></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Zero Retention Mode */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Zero Retention Mode
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Whether to enable zero retention mode - no PII data is stored
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editedForm.platform_settings?.privacy?.zero_retention_mode ?? false}
+                            onChange={(e) => {
+                              handleChange("platform_settings", {
+                                ...editedForm.platform_settings,
+                                privacy: {
+                                  ...editedForm.platform_settings?.privacy,
+                                  zero_retention_mode: e.target.checked
+                                }
+                              });
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/50 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${editedForm.platform_settings?.privacy?.zero_retention_mode ? 'peer-checked:bg-primary' : ''}`}></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* First Message Section */}
