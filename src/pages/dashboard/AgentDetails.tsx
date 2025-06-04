@@ -303,6 +303,9 @@ const AgentDetails = () => {
 
   const [conversationInitiationMode, setConversationInitiationMode] = useState(editForm.first_message === "" ? "user" : "bot");
   const [asrKeywordsInput, setAsrKeywordsInput] = useState("");
+  const [secretName, setSecretName] = useState("");
+  const [secretValue, setSecretValue] = useState("");
+  const [generatingSecret, setGeneratingSecret] = useState(false);
 
 
   // Fetch agent details
@@ -384,6 +387,10 @@ const AgentDetails = () => {
       setEditedForm(initialForm);
       setConversationInitiationMode(initialForm.first_message === "" ? "user" : "bot");
       setAsrKeywordsInput(initialForm.asr?.keywords?.join(", ") || "");
+      
+      // Reset secret fields
+      setSecretName("");
+      setSecretValue("");
 
 
       // 2) Fetch details of the currently selected voice
@@ -618,6 +625,53 @@ const AgentDetails = () => {
     handleChange("voice_id", voiceId);
     const newVoice = voices.find((v) => v.voice_id === voiceId) || null;
     setVoice(newVoice);
+  };
+
+  // Generate secret ID via API call
+  const handleGenerateSecret = async () => {
+    if (!user || !secretName.trim() || !secretValue.trim()) return;
+
+    try {
+      setGeneratingSecret(true);
+      setError("");
+
+      const response = await fetch(`${BACKEND_URL}/secrets/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${await originalUser?.getIdToken()}`,
+        },
+        body: JSON.stringify({
+          name: secretName.trim(),
+          value: secretValue.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create secret");
+      }
+
+      const data = await response.json();
+      
+      // Update the custom_llm configuration with the received secret_id
+      handleChange("custom_llm", {
+        ...editedForm.custom_llm,
+        api_key: {
+          secret_id: data.secret_id
+        }
+      });
+
+      // Clear the input fields since secret is now generated
+      setSecretName("");
+      setSecretValue("");
+      
+    } catch (err) {
+      console.error("Error generating secret:", err);
+      setError(err instanceof Error ? err.message : "Failed to generate secret. Please try again.");
+    } finally {
+      setGeneratingSecret(false);
+    }
   };
 
   if (loading) {
@@ -881,28 +935,78 @@ const AgentDetails = () => {
                       </p>
                     </div>
 
-                    {/* API Key Secret ID Field - Required */}
-                    <div className="space-y-2">
+                    {/* API Key Secret Configuration */}
+                    <div className="space-y-4">
                       <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                        API Key Secret ID <span className="text-red-500">*</span>
+                        API Key Secret <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={editedForm.custom_llm?.api_key?.secret_id || ""}
-                        onChange={(e) =>
-                          handleChange("custom_llm", {
-                            ...editedForm.custom_llm,
-                            api_key: {
-                              secret_id: e.target.value
-                            }
-                          })
-                        }
-                        className="input"
-                        placeholder="your-api-key-secret-id"
-                        required
-                      />
+                      
+                      {/* Secret Name Field */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Secret Name
+                        </label>
+                        <input
+                          type="text"
+                          value={secretName}
+                          onChange={(e) => setSecretName(e.target.value)}
+                          className="input"
+                          placeholder="my-api-key"
+                          disabled={!!editedForm.custom_llm?.api_key?.secret_id}
+                        />
+                      </div>
+
+                      {/* Secret Value Field */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Secret Value (API Key)
+                        </label>
+                        <input
+                          type="password"
+                          value={secretValue}
+                          onChange={(e) => setSecretValue(e.target.value)}
+                          className="input"
+                          placeholder="sk-..."
+                          disabled={!!editedForm.custom_llm?.api_key?.secret_id}
+                        />
+                      </div>
+
+                      {/* Generated Secret ID Display */}
+                      {editedForm.custom_llm?.api_key?.secret_id ? (
+                        <div className="space-y-2">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                            Generated Secret ID
+                          </label>
+                          <div className="p-3 bg-gray-50 dark:bg-dark-100 rounded-lg border">
+                            <code className="text-sm text-gray-900 dark:text-gray-100">
+                              {editedForm.custom_llm.api_key.secret_id}
+                            </code>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Generate Secret Button */
+                        <button
+                          type="button"
+                          onClick={handleGenerateSecret}
+                          disabled={!secretName.trim() || !secretValue.trim() || generatingSecret}
+                          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {generatingSecret ? (
+                            <>
+                              <Loader />
+                              <span>Generating Secret...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4" />
+                              <span>Generate Secret ID</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        The API key for authentication
+                        Create a secret in ElevenLabs to securely store your API key
                       </p>
                     </div>
                   </div>
