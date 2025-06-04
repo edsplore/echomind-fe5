@@ -86,19 +86,6 @@ export const getModelId = (modelType: string, language: string) => {
   return language === 'en' ? 'eleven_flash_v2' : 'eleven_flash_v2_5';
 };
 
-export const getModelTypeFromId = (modelId: string) => {
-  // Return the exact model ID if it's one of the supported ones
-  if (['eleven_turbo_v2', 'eleven_turbo_v2_5', 'eleven_flash_v2', 'eleven_flash_v2_5'].includes(modelId)) {
-    return modelId;
-  }
-  
-  // Legacy support - return simplified type for backwards compatibility
-  if (modelId.includes('turbo')) {
-    return 'turbo';
-  }
-  return 'flash';
-};
-
 export const getAvailableModels = (language: string) => {
   if (language === 'en') {
     // For English, only v2 models are available
@@ -108,9 +95,4 @@ export const getAvailableModels = (language: string) => {
   }
   // For all other languages, all models are available
   return modelOptions;
-};
-
-export const getLanguageName = (code: string) => {
-  const language = languages.find(lang => lang.code === code);
-  return language ? language.name : code;
 };
