@@ -99,6 +99,17 @@ export const getModelTypeFromId = (modelId: string) => {
   return 'flash';
 };
 
+export const getAvailableModels = (language: string) => {
+  if (language === 'en') {
+    // For English, only v2 models are available
+    return modelOptions.filter(model => 
+      model.id === 'eleven_turbo_v2' || model.id === 'eleven_flash_v2'
+    );
+  }
+  // For all other languages, all models are available
+  return modelOptions;
+};
+
 export const getLanguageName = (code: string) => {
   const language = languages.find(lang => lang.code === code);
   return language ? language.name : code;

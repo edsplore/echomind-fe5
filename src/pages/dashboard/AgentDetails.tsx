@@ -40,6 +40,7 @@ import {
   getModelTypeFromId,
   getLanguageName,
   llmOptions,
+  getAvailableModels,
 } from "../../lib/constants";
 
 interface DynamicVariable {
@@ -518,7 +519,7 @@ const AgentDetails = () => {
   const handleCancel = () => {
     setEditedForm(editForm);
     setHasChanges(false);
-    
+
     // Reset ASR keywords input
     setAsrKeywordsInput(editForm.asr?.keywords?.join(", ") || "");
 
@@ -813,6 +814,7 @@ const AgentDetails = () => {
                 <ModelSelect
                   modelType={editedForm.modelType}
                   onChange={(value) => handleChange("modelType", value)}
+                  availableModels={getAvailableModels(editedForm.language)}
                 />
               </div>
 
@@ -1574,7 +1576,7 @@ const AgentDetails = () => {
                               ...prev,
                               platform_settings: {
                                 ...prev.platform_settings,
-                                data_collection: newDataCollection
+                                data_collection: newDatacollection
                               }
                             }));
                             setEditingVarName(null);

@@ -4,12 +4,13 @@ import { modelOptions } from '../lib/constants';
 interface ModelSelectProps {
   modelType: string;
   onChange: (value: string) => void;
+  availableModels?: typeof modelOptions;
 }
 
-export const ModelSelect = ({ modelType, onChange }: ModelSelectProps) => {
+export const ModelSelect = ({ modelType, onChange, availableModels = modelOptions }: ModelSelectProps) => {
   return (
     <div className="grid grid-cols-2 gap-4">
-      {modelOptions.map((model) => (
+      {availableModels.map((model) => (
         <button
           key={model.id}
           type="button"

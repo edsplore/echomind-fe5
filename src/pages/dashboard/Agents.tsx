@@ -29,6 +29,13 @@ import { Link } from "react-router-dom";
 import { AudioPlayer } from "../../components/AudioPlayer";
 import { KnowledgeBaseSelect } from "../../components/KnowledgeBaseSelect";
 import { cn } from "../../lib/utils";
+import {
+  getModelId,
+  getModelTypeFromId,
+  getLanguageName,
+  getAvailableModels,
+  llmOptions,
+} from "../../lib/constants";
 
 interface Voice {
   voice_id: string;
@@ -322,7 +329,17 @@ const Agents = () => {
 
   useEffect(() => {
     fetchAgents();
-  }, [user]);
+  }, []);
+
+  // Update model type when language changes to ensure compatibility
+  useEffect(() => {
+    const availableModels = getAvailableModels(formData.language);
+    const isCurrentModelAvailable = availableModels.some(model => model.id === formData.modelType);
+
+    if (!isCurrentModelAvailable && availableModels.length > 0) {
+      setFormData({ ...formData, modelType: availableModels[0].id });
+    }
+  }, [formData.language]);
 
   const handleCreateAgent = async (e: React.FormEvent) => {
     e.preventDefault();
