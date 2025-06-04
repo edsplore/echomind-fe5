@@ -96,3 +96,8 @@ export const getAvailableModels = (language: string) => {
   // For all other languages, all models are available
   return modelOptions;
 };
+
+export const getLanguageName = (code: string) => {
+  const language = languages.find(lang => lang.code === code);
+  return language ? language.name : code;
+};

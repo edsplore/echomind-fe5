@@ -19,7 +19,6 @@ import {
   getAvailableModels,
   llmOptions,
   languages,
-  modelOptions,
 } from "../../lib/constants";
 
 interface Voice {
