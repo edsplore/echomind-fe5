@@ -47,18 +47,34 @@ export const llmOptions = [
 
 export const modelOptions = [
   { 
-    id: 'turbo', 
-    name: 'Eleven Turbo', 
-    description: 'Fast, high quality'
+    id: 'eleven_turbo_v2', 
+    name: 'Eleven Turbo v2', 
+    description: 'Fast, high quality (English)'
   },
   { 
-    id: 'flash', 
-    name: 'Eleven Flash', 
-    description: 'Fastest, medium quality'
+    id: 'eleven_turbo_v2_5', 
+    name: 'Eleven Turbo v2.5', 
+    description: 'Fast, high quality (Multilingual)'
+  },
+  { 
+    id: 'eleven_flash_v2', 
+    name: 'Eleven Flash v2', 
+    description: 'Fastest, medium quality (English)'
+  },
+  { 
+    id: 'eleven_flash_v2_5', 
+    name: 'Eleven Flash v2.5', 
+    description: 'Fastest, medium quality (Multilingual)'
   }
 ];
 
 export const getModelId = (modelType: string, language: string) => {
+  // If modelType is already a full model ID, return it directly
+  if (modelType.startsWith('eleven_')) {
+    return modelType;
+  }
+  
+  // Legacy support for old 'turbo'/'flash' format
   if (modelType === 'turbo') {
     return language === 'en' ? 'eleven_turbo_v2' : 'eleven_turbo_v2_5';
   }
@@ -66,6 +82,12 @@ export const getModelId = (modelType: string, language: string) => {
 };
 
 export const getModelTypeFromId = (modelId: string) => {
+  // Return the exact model ID if it's one of the supported ones
+  if (['eleven_turbo_v2', 'eleven_turbo_v2_5', 'eleven_flash_v2', 'eleven_flash_v2_5'].includes(modelId)) {
+    return modelId;
+  }
+  
+  // Legacy support - return simplified type for backwards compatibility
   if (modelId.includes('turbo')) {
     return 'turbo';
   }
