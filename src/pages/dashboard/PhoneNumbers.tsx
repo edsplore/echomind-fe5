@@ -1065,30 +1065,26 @@ const PhoneNumbers = () => {
                         )}
                       </div>
                       
-                      {/* Encrypted Link Section */}
                       {number.provider === 'twilio' && (
-                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-dark-100">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 min-h-[2rem]">
                             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                              Agent Link:
+                              Link:
                             </span>
                             {number.assigned_agent && generatedLinks[number.phone_number_id] ? (
-                              <div className="flex items-center space-x-2 flex-1">
-                                <div className="flex-1 bg-gray-50 dark:bg-dark-100 px-3 py-2 rounded-lg">
-                                  <span className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
-                                    {generatedLinks[number.phone_number_id].length > 60 
-                                      ? `${generatedLinks[number.phone_number_id].substring(0, 60)}...`
-                                      : generatedLinks[number.phone_number_id]
-                                    }
-                                  </span>
-                                </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-dark-100 px-2 py-1 rounded font-mono">
+                                  {generatedLinks[number.phone_number_id].length > 40 
+                                    ? `${generatedLinks[number.phone_number_id].substring(0, 40)}...`
+                                    : generatedLinks[number.phone_number_id]
+                                  }
+                                </span>
                                 <button
                                   onClick={() => copyToClipboard(generatedLinks[number.phone_number_id], number.phone_number_id)}
                                   className={cn(
-                                    "p-2 rounded-lg transition-colors",
+                                    "p-1 rounded transition-colors",
                                     copiedLink === number.phone_number_id
-                                      ? "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400"
-                                      : "bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                                      ? "text-green-600 dark:text-green-400"
+                                      : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                                   )}
                                 >
                                   {copiedLink === number.phone_number_id ? (
@@ -1099,13 +1095,12 @@ const PhoneNumbers = () => {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-dark-100 px-3 py-2 rounded-lg">
+                              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-dark-100 px-2 py-1 rounded">
                                 Assign an agent to generate a link
                               </span>
                             )}
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
