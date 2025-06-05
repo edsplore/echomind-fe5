@@ -75,7 +75,6 @@ const PhoneNumbers = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [importType, setImportType] = useState<'twilio' | 'sip_trunk'>('twilio'); // Added importType state
   const [generatedLinks, setGeneratedLinks] = useState<Record<string, string>>({});
-  const [generatingLink, setGeneratingLink] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   const fetchAgents = async () => {
@@ -119,6 +118,24 @@ const PhoneNumbers = () => {
 
       const data = await response.json();
       setPhoneNumbers(data);
+      
+      // Auto-generate links for numbers with assigned agents
+      const newLinks: Record<string, string> = {};
+      data.forEach((number: PhoneNumber) => {
+        if (number.assigned_agent && number.provider === 'twilio') {
+          // In a real app, you'd fetch the stored credentials from the backend
+          // For now, using formData as placeholder - this should come from the stored phone number data
+          const storedCredentials = {
+            sid: formData.sid || 'stored-sid', // This should be retrieved from backend
+            token: formData.token || 'stored-token'
+          };
+          const link = generateEncryptedLink(number, storedCredentials);
+          if (link) {
+            newLinks[number.phone_number_id] = link;
+          }
+        }
+      });
+      setGeneratedLinks(newLinks);
     } catch (error) {
       console.error('Error fetching phone numbers:', error);
     } finally {
@@ -227,6 +244,28 @@ const PhoneNumbers = () => {
       });
 
       await fetchPhoneNumbers();
+      
+      // Auto-generate link for the newly assigned agent
+      const updatedNumber = phoneNumbers.find(n => n.phone_number_id === isAssigning);
+      if (updatedNumber && assignFormData.assigned_agent_id && updatedNumber.provider === 'twilio') {
+        const storedCredentials = {
+          sid: formData.sid || 'stored-sid', // This should be retrieved from backend
+          token: formData.token || 'stored-token'
+        };
+        const link = generateEncryptedLink({
+          ...updatedNumber,
+          assigned_agent: {
+            agent_id: assignFormData.assigned_agent_id,
+            agent_name: agents.find(a => a.agent_id === assignFormData.assigned_agent_id)?.name || ''
+          }
+        }, storedCredentials);
+        if (link) {
+          setGeneratedLinks(prev => ({
+            ...prev,
+            [isAssigning]: link
+          }));
+        }
+      }
     } catch (error) {
       console.error('Error assigning agent:', error);
       setError('Failed to assign agent. Please try again.');
@@ -274,36 +313,26 @@ const PhoneNumbers = () => {
     }
   };
 
-  const generateEncryptedLink = async (phoneNumber: PhoneNumber) => {
-    if (!phoneNumber.assigned_agent || phoneNumber.provider !== 'twilio') return;
-    
-    setGeneratingLink(phoneNumber.phone_number_id);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const generateEncryptedLink = (phoneNumber: PhoneNumber, storedCredentials: any) => {
+    if (!phoneNumber.assigned_agent || phoneNumber.provider !== 'twilio') return null;
     
     try {
-      // Create payload with all required data
+      // Create payload with all required data - using deterministic timestamp for same credentials
       const payload = {
         twilioNumber: phoneNumber.phone_number,
-        authId: formData.sid, // This would come from the stored phone number data
-        sid: formData.sid,
+        authId: storedCredentials.sid,
+        sid: storedCredentials.sid,
         agentId: phoneNumber.assigned_agent.agent_id,
         baseUrl: BACKEND_URL,
-        timestamp: Date.now()
+        // Use a deterministic value based on credentials so same link is generated
+        timestamp: new Date(phoneNumber.created_at || 0).getTime()
       };
       
       const encryptedData = encrypt(JSON.stringify(payload));
-      const link = `${window.location.origin}/agent-link/${encryptedData}`;
-      
-      setGeneratedLinks(prev => ({
-        ...prev,
-        [phoneNumber.phone_number_id]: link
-      }));
+      return `${window.location.origin}/agent-link/${encryptedData}`;
     } catch (error) {
       console.error('Error generating link:', error);
-    } finally {
-      setGeneratingLink(null);
+      return null;
     }
   };
 
@@ -1043,52 +1072,32 @@ const PhoneNumbers = () => {
                             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                               Agent Link:
                             </span>
-                            {number.assigned_agent ? (
-                              generatedLinks[number.phone_number_id] ? (
-                                <div className="flex items-center space-x-2 flex-1">
-                                  <div className="flex-1 bg-gray-50 dark:bg-dark-100 px-3 py-2 rounded-lg">
-                                    <span className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
-                                      {generatedLinks[number.phone_number_id].length > 60 
-                                        ? `${generatedLinks[number.phone_number_id].substring(0, 60)}...`
-                                        : generatedLinks[number.phone_number_id]
-                                      }
-                                    </span>
-                                  </div>
-                                  <button
-                                    onClick={() => copyToClipboard(generatedLinks[number.phone_number_id], number.phone_number_id)}
-                                    className={cn(
-                                      "p-2 rounded-lg transition-colors",
-                                      copiedLink === number.phone_number_id
-                                        ? "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400"
-                                        : "bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                                    )}
-                                  >
-                                    {copiedLink === number.phone_number_id ? (
-                                      <Check className="w-4 h-4" />
-                                    ) : (
-                                      <Copy className="w-4 h-4" />
-                                    )}
-                                  </button>
+                            {number.assigned_agent && generatedLinks[number.phone_number_id] ? (
+                              <div className="flex items-center space-x-2 flex-1">
+                                <div className="flex-1 bg-gray-50 dark:bg-dark-100 px-3 py-2 rounded-lg">
+                                  <span className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
+                                    {generatedLinks[number.phone_number_id].length > 60 
+                                      ? `${generatedLinks[number.phone_number_id].substring(0, 60)}...`
+                                      : generatedLinks[number.phone_number_id]
+                                    }
+                                  </span>
                                 </div>
-                              ) : (
                                 <button
-                                  onClick={() => generateEncryptedLink(number)}
-                                  disabled={generatingLink === number.phone_number_id}
-                                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-primary dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 bg-primary-50/50 dark:bg-primary-400/10 hover:bg-primary-100/50 dark:hover:bg-primary-400/20 rounded-lg transition-colors"
+                                  onClick={() => copyToClipboard(generatedLinks[number.phone_number_id], number.phone_number_id)}
+                                  className={cn(
+                                    "p-2 rounded-lg transition-colors",
+                                    copiedLink === number.phone_number_id
+                                      ? "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400"
+                                      : "bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                                  )}
                                 >
-                                  {generatingLink === number.phone_number_id ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                      <span>Generating...</span>
-                                    </>
+                                  {copiedLink === number.phone_number_id ? (
+                                    <Check className="w-4 h-4" />
                                   ) : (
-                                    <>
-                                      <LinkIcon className="w-4 h-4" />
-                                      <span>Generate Link</span>
-                                    </>
+                                    <Copy className="w-4 h-4" />
                                   )}
                                 </button>
-                              )
+                              </div>
                             ) : (
                               <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-dark-100 px-3 py-2 rounded-lg">
                                 Assign an agent to generate a link
