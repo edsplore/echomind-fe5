@@ -36,7 +36,6 @@ export interface TwilioAgentPayload {
   sid: string;
   agentId: string;
   baseUrl: string;
-  timestamp: number;
 }
 
 // Helper function to decrypt and parse payload

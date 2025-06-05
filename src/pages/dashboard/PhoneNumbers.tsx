@@ -317,15 +317,13 @@ const PhoneNumbers = () => {
     if (!phoneNumber.assigned_agent || phoneNumber.provider !== 'twilio') return null;
     
     try {
-      // Create payload with all required data - using deterministic timestamp for same credentials
+      // Create payload with all required data - no timestamp to ensure consistent links
       const payload = {
         twilioNumber: phoneNumber.phone_number,
         authId: storedCredentials.sid,
         sid: storedCredentials.sid,
         agentId: phoneNumber.assigned_agent.agent_id,
-        baseUrl: BACKEND_URL,
-        // Use a deterministic value based on credentials so same link is generated
-        timestamp: new Date(phoneNumber.created_at || 0).getTime()
+        baseUrl: BACKEND_URL
       };
       
       const encryptedData = encrypt(JSON.stringify(payload));
