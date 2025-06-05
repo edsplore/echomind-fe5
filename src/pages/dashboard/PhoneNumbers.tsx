@@ -17,7 +17,6 @@ import {
   Check,
   Info,
   PhoneOutgoing,
-  Link as LinkIcon,
   Copy
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -43,6 +42,7 @@ interface PhoneNumber {
 }
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const VITE_TWILIO_OUTBOUND_URL = import.meta.env.VITE_TWILIO_OUTBOUND_URL;
 
 const PhoneNumbers = () => {
   const { getEffectiveUser, getEffectiveUserData, isAdmin, user: originalUser } = useAuth();
@@ -317,17 +317,16 @@ const PhoneNumbers = () => {
     if (!phoneNumber.assigned_agent || phoneNumber.provider !== 'twilio') return null;
     
     try {
-      // Create payload with all required data - no timestamp to ensure consistent links
       const payload = {
         twilioNumber: phoneNumber.phone_number,
         authId: storedCredentials.sid,
         sid: storedCredentials.sid,
         agentId: phoneNumber.assigned_agent.agent_id,
-        baseUrl: BACKEND_URL
+        baseUrl: window.location.origin
       };
       
       const encryptedData = encrypt(JSON.stringify(payload));
-      return `${window.location.origin}/agent-link/${encryptedData}`;
+      return `${VITE_TWILIO_OUTBOUND_URL}/agent-link/${encryptedData}`;
     } catch (error) {
       console.error('Error generating link:', error);
       return null;
