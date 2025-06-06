@@ -146,7 +146,7 @@ const PhoneNumbers = () => {
   useEffect(() => {
     fetchPhoneNumbers();
     fetchAgents();
-  }, [user?.uid, isImpersonating]);
+  }, [user]);
 
   const handleCreatePhoneNumber = async (e: React.FormEvent) => {
     e.preventDefault();

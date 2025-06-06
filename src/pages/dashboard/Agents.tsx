@@ -106,7 +106,7 @@ const getAgentIcon = (agentId: string) => {
 };
 
 const Agents = () => {
-  const { getEffectiveUser, getEffectiveUserData, isAdmin, isImpersonating } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
   const [isCreating, setIsCreating] = useState(false);
@@ -246,7 +246,7 @@ const Agents = () => {
 
   useEffect(() => {
     fetchAgents();
-  }, [user?.uid, isImpersonating]);
+  }, []);
 
   // Update model type when language changes to ensure compatibility
   useEffect(() => {

@@ -152,7 +152,7 @@ const DataCollectionSection = ({ dataCollection }: { dataCollection: any }) => {
 };
 
 const CallHistory = () => {
-  const { getEffectiveUser, getEffectiveUserData, isAdmin, isImpersonating } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
   const [loading, setLoading] = useState(true);
@@ -256,7 +256,7 @@ const CallHistory = () => {
 
   useEffect(() => {
     fetchConversations();
-  }, [user?.uid, isImpersonating]);
+  }, [user]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -761,7 +761,7 @@ const CallHistory = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {conversation.message_count}
                     </td>
-                    <td className="px-6 py-4whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(conversation.call_successful)}
                     </td>                  </motion.tr>
                 ))}
