@@ -11,7 +11,7 @@ const Tools = () => {
   const [editingGhl, setEditingGhl] = useState(false);
   const [editingCal, setEditingCal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const { getEffectiveUser, user: originalUser, isImpersonating } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
 
@@ -32,7 +32,7 @@ const Tools = () => {
     if (user) {
       fetchToolSettings();
     }
-  }, [user]);
+  }, [user?.uid, isImpersonating]);
 
   const fetchToolSettings = async () => {
     if (!user) return;

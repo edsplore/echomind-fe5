@@ -40,7 +40,7 @@ interface KnowledgeBaseListResponse {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const KnowledgeBase = () => {
-  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const { getEffectiveUser, user: originalUser, isImpersonating } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
   const navigate = useNavigate();
@@ -88,7 +88,7 @@ const KnowledgeBase = () => {
 
   useEffect(() => {
     fetchDocuments();
-  }, [user]);
+  }, [user?.uid, isImpersonating]);
 
   const handleCreateDocument = async (e: React.FormEvent) => {
     e.preventDefault();

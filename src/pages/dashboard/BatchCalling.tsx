@@ -72,7 +72,7 @@ interface Recipient {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function BatchCalling() {
-  const { getEffectiveUser, getEffectiveUserData, isAdmin } = useAuth();
+  const { getEffectiveUser, getEffectiveUserData, isAdmin, user: originalUser, isImpersonating } = useAuth();
   const user = getEffectiveUser();
   const userData = getEffectiveUserData();
   const [isCreating, setIsCreating] = useState(false);
@@ -205,7 +205,7 @@ export default function BatchCalling() {
     fetchBatchJobs();
     fetchAgents();
     fetchPhoneNumbers();
-  }, [user]);
+  }, [user?.uid, isImpersonating]);
 
   const handleCreateBatchJob = async (e: React.FormEvent) => {
     e.preventDefault();
