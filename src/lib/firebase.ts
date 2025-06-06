@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCwxtNAUJgw2QsKbKpkceRz7usb4Y4yIVY",
-  authDomain: "xpress-voice.firebaseapp.com",
-  projectId: "xpress-voice",
-  storageBucket: "xpress-voice.firebasestorage.app",
-  messagingSenderId: "206497091675",
-  appId: "1:206497091675:web:8d32cfce3cbd772f86ef7e",
-  measurementId: "G-VHEEE3KFPT",
+  apiKey: "AIzaSyBM_uKOOXqp5-dxYksDovUUjrL2LJJceKU",
+  authDomain: "allied-global-236.firebaseapp.com",
+  projectId: "allied-global-236",
+  storageBucket: "allied-global-236.firebasestorage.app",
+  messagingSenderId: "719332723416",
+  appId: "1:719332723416:web:eabdfd2cc3ca1afe0425ad",
+  measurementId: "G-S01B231K1K"
 };
 
 const app = initializeApp(firebaseConfig);

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
-import { encrypt } from '../../lib/encryption';
+import { decryptTwilioPayload, encrypt } from '../../lib/encryption';
 
 interface Agent {
   agent_id: string;
