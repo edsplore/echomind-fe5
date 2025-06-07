@@ -342,9 +342,8 @@ const PhoneNumbers = () => {
     try {
       const payload = {
         twilioNumber: phoneNumber.phone_number,
-        authId: storedCredentials.token,  // Using token as authId
+        authId: storedCredentials.token,
         sid: storedCredentials.sid,
-        token: storedCredentials.token,
         agentId: phoneNumber.assigned_agent.agent_id,
         baseUrl: window.location.origin
       };
