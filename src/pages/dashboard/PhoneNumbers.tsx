@@ -361,17 +361,6 @@ const PhoneNumbers = () => {
       const encryptedLink = generateEncryptedLink(linkConfiguration);
       setGeneratedLink(encryptedLink);
 
-      // Test decryption (log the decrypted payload)
-      try {
-        const urlParams = new URLSearchParams(new URL(encryptedLink).search);
-        const token = urlParams.get('token');
-        if (token) {
-          decryptLinkConfiguration(decodeURIComponent(token));
-        }
-      } catch (decryptError) {
-        console.error('Decryption test failed:', decryptError);
-      }
-
       // Copy to clipboard
       await navigator.clipboard.writeText(encryptedLink);
       setCopied(true);
