@@ -1,7 +1,9 @@
+
 // Encryption/Decryption utilities for Twilio agent links
 // This file can be imported in backend for decryption
 
 const VITE_TWILIO_OUTBOUND_SECRET = import.meta.env.VITE_TWILIO_OUTBOUND_SECRET;
+const VITE_TWILIO_OUTBOUND_URL = import.meta.env.VITE_TWILIO_OUTBOUND_URL;
 
 export const encrypt = (text: string): string => {
   const key = VITE_TWILIO_OUTBOUND_SECRET;
@@ -14,24 +16,23 @@ export const encrypt = (text: string): string => {
   return btoa(result);
 };
 
-export const generateEncryptedLink = (payload: TwilioAgentPayload):string => {
-  
+// Type definition for the link configuration payload
+export interface LinkConfiguration {
+  agent_id: string;
+  agent_phone_number_id: string;
+  conversation_initiation_client_data: {
+    dynamic_variables: Record<string, string | number | boolean>;
+  };
 }
 
-
-// Type definition for the encrypted payload
-export interface TwilioAgentPayload {
-  twilioNumber: string;
-  authId: string;
-  sid: string;
-  agentId: string;
-  baseUrl: string;
-}
-
+export const generateEncryptedLink = (payload: LinkConfiguration): string => {
+  const encryptedPayload = encrypt(JSON.stringify(payload));
+  return `${VITE_TWILIO_OUTBOUND_URL}?token=${encodeURIComponent(encryptedPayload)}`;
+};
 
 export const decrypt = (encryptedText: string): string => {
   try {
-    const key = VITE_TWILIO_OUTBOUND_SECRET; // In production, use env variable
+    const key = VITE_TWILIO_OUTBOUND_SECRET;
     const decoded = atob(encryptedText);
     let result = '';
     for (let i = 0; i < decoded.length; i++) {
@@ -46,7 +47,8 @@ export const decrypt = (encryptedText: string): string => {
 };
 
 // Helper function to decrypt and parse payload
-export const decryptTwilioPayload = (encryptedData: string): TwilioAgentPayload => {
+export const decryptLinkConfiguration = (encryptedData: string): LinkConfiguration => {
   const decryptedString = decrypt(encryptedData);
-  return JSON.parse(decryptedString) as TwilioAgentPayload;
+  console.log('Decrypted payload:', decryptedString);
+  return JSON.parse(decryptedString) as LinkConfiguration;
 };

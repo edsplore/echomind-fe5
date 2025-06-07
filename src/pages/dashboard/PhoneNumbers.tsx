@@ -18,10 +18,12 @@ import {
   Info,
   PhoneOutgoing,
   Link2,
-  Minus
+  Minus,
+  Copy
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
+import { generateEncryptedLink, decryptLinkConfiguration, type LinkConfiguration } from '../../lib/encryption';
 
 interface Agent {
   agent_id: string;
@@ -90,6 +92,8 @@ const PhoneNumbers = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [importType, setImportType] = useState<'twilio' | 'sip_trunk'>('twilio'); // Added importType state
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const fetchAgents = async () => {
     if (!user) return;
@@ -353,27 +357,28 @@ const PhoneNumbers = () => {
         }
       };
 
-      // Store the configuration (you can send this to your backend)
-      console.log('Link Configuration:', linkConfiguration);
+      // Generate encrypted link
+      const encryptedLink = generateEncryptedLink(linkConfiguration);
+      setGeneratedLink(encryptedLink);
 
-      // You can replace this with an actual API call to store the configuration
-      const response = await fetch(`${BACKEND_URL}/phone-numbers/generate-link`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await originalUser.getIdToken()}`,
-        },
-        body: JSON.stringify(linkConfiguration),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Generated link:', result.link);
-        // You can show the generated link to the user
+      // Test decryption (log the decrypted payload)
+      try {
+        const urlParams = new URLSearchParams(new URL(encryptedLink).search);
+        const token = urlParams.get('token');
+        if (token) {
+          decryptLinkConfiguration(decodeURIComponent(token));
+        }
+      } catch (decryptError) {
+        console.error('Decryption test failed:', decryptError);
       }
 
-      setIsGeneratingLink(null);
-      setDynamicVariables([]);
+      // Copy to clipboard
+      await navigator.clipboard.writeText(encryptedLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+
+      console.log('Generated encrypted link:', encryptedLink);
+
     } catch (error) {
       console.error('Error generating link:', error);
       setError('Failed to generate link. Please try again.');
@@ -382,7 +387,7 @@ const PhoneNumbers = () => {
     }
   };
 
-  
+
 
   const filteredNumbers = phoneNumbers.filter((number) => {
     const matchesSearch = 
@@ -1052,6 +1057,8 @@ const PhoneNumbers = () => {
                   onClick={() => {
                     setIsGeneratingLink(null);
                     setDynamicVariables([]);
+                    setGeneratedLink('');
+                    setCopied(false);
                   }}
                   className="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-100"
                 >
@@ -1191,12 +1198,45 @@ const PhoneNumbers = () => {
                     </button>
                   </div>
 
+                  {generatedLink && (
+                    <div className="p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                          Link Generated Successfully
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={generatedLink}
+                          readOnly
+                          className="flex-1 px-3 py-2 text-sm bg-white dark:bg-dark-100 border border-gray-200 dark:border-dark-50 rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(generatedLink);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                          }}
+                          className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-500/20 hover:bg-green-200 dark:hover:bg-green-500/30 rounded-lg transition-colors"
+                        >
+                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          <span>{copied ? 'Copied!' : 'Copy'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-dark-100">
                     <button
                       type="button"
                       onClick={() => {
                         setIsGeneratingLink(null);
                         setDynamicVariables([]);
+                        setGeneratedLink('');
+                        setCopied(false);
                       }}
                       className="btn btn-secondary"
                     >
@@ -1363,6 +1403,8 @@ const PhoneNumbers = () => {
                                 }
                                 setIsGeneratingLink(number);
                                 setDynamicVariables([]);
+                                setGeneratedLink('');
+                                setCopied(false);
                               }}
                               className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-50/50 dark:bg-green-400/10 hover:bg-green-100/50 dark:hover:bg-green-400/20 rounded-lg transition-colors"
                             >
