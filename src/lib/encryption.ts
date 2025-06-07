@@ -1,4 +1,3 @@
-
 // Encryption/Decryption utilities for Twilio agent links
 // This file can be imported in backend for decryption
 
@@ -27,7 +26,9 @@ export interface LinkConfiguration {
 
 export const generateEncryptedLink = (payload: LinkConfiguration): string => {
   const encryptedPayload = encrypt(JSON.stringify(payload));
-  return `${VITE_TWILIO_OUTBOUND_URL}?token=${encodeURIComponent(encryptedPayload)}`;
+  // URL encode the encrypted payload to handle special characters
+  const encodedToken = encodeURIComponent(encryptedPayload);
+  return `${VITE_TWILIO_OUTBOUND_URL}?token=${encodedToken}`;
 };
 
 export const decrypt = (encryptedText: string): string => {
@@ -48,7 +49,13 @@ export const decrypt = (encryptedText: string): string => {
 
 // Helper function to decrypt and parse payload
 export const decryptLinkConfiguration = (encryptedData: string): LinkConfiguration => {
-  const decryptedString = decrypt(encryptedData);
-  console.log('Decrypted payload:', decryptedString);
-  return JSON.parse(decryptedString) as LinkConfiguration;
+  try {
+    // URL decode the token first
+    const decodedToken = decodeURIComponent(encryptedData);
+    const decryptedString = decrypt(decodedToken);
+    console.log('Decrypted payload:', decryptedString);
+    return JSON.parse(decryptedString) as LinkConfiguration;
+  } catch (error) {
+    throw new Error('Invalid encrypted token');
+  }
 };
