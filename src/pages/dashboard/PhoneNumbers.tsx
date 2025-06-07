@@ -141,7 +141,7 @@ const PhoneNumbers = () => {
 
       const data = await response.json();
       setPhoneNumbers(data);
-      
+
       // Auto-generate links for numbers with assigned agents
       const newLinks: Record<string, string> = {};
       data.forEach((number: PhoneNumber) => {
@@ -267,7 +267,7 @@ const PhoneNumbers = () => {
       });
 
       await fetchPhoneNumbers();
-      
+
       // Auto-generate link for the newly assigned agent
       const updatedNumber = phoneNumbers.find(n => n.phone_number_id === isAssigning);
       if (updatedNumber && assignFormData.assigned_agent_id && updatedNumber.provider === 'twilio') {
@@ -338,16 +338,17 @@ const PhoneNumbers = () => {
 
   const generateEncryptedLink = (phoneNumber: PhoneNumber, storedCredentials: any) => {
     if (!phoneNumber.assigned_agent || phoneNumber.provider !== 'twilio') return null;
-    
+
     try {
       const payload = {
         twilioNumber: phoneNumber.phone_number,
-        authId: storedCredentials.sid,
+        authId: storedCredentials.token,  // Using token as authId
         sid: storedCredentials.sid,
+        token: storedCredentials.token,
         agentId: phoneNumber.assigned_agent.agent_id,
         baseUrl: window.location.origin
       };
-      
+
       const encryptedData = encrypt(JSON.stringify(payload));
       return `${VITE_TWILIO_OUTBOUND_URL}/agent-link/${encryptedData}`;
     } catch (error) {
@@ -1084,7 +1085,7 @@ const PhoneNumbers = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       {number.provider === 'twilio' && (
                           <div className="flex items-center space-x-2 min-h-[2rem]">
                             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
