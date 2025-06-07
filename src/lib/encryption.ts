@@ -38,9 +38,6 @@ export const encrypt = (text: string): string => {
 export interface LinkConfiguration {
   agent_id: string;
   agent_phone_number_id: string;
-  conversation_initiation_client_data: {
-    dynamic_variables: Record<string, string | number | boolean>;
-  };
 }
 
 export const generateEncryptedLink = (payload: LinkConfiguration): string => {
