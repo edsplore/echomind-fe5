@@ -1330,6 +1330,28 @@ const PhoneNumbers = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Generate Link Button */}
+                    {number.assigned_agent && number.provider === 'twilio' && (
+                      <div className="mt-4 flex justify-start">
+                        <button
+                          onClick={() => {
+                            if (!number.assigned_agent) {
+                              setError('Please assign an agent to this phone number first.');
+                              return;
+                            }
+                            setIsGeneratingLink(number);
+                            setDynamicVariables([]);
+                            setGeneratedLink('');
+                            setCopied(false);
+                          }}
+                          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-50/50 dark:bg-green-400/10 hover:bg-green-100/50 dark:hover:bg-green-400/20 rounded-lg transition-colors"
+                        >
+                          <Link2 className="w-4 h-4" />
+                          <span>Generate Link</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center space-x-4">
                     {number.assigned_agent ? (
