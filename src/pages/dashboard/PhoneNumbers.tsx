@@ -16,7 +16,9 @@ import {
   ExternalLink,
   Check,
   Info,
-  PhoneOutgoing
+  PhoneOutgoing,
+  Link2,
+  Minus
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
@@ -39,6 +41,20 @@ interface PhoneNumber {
   };
 }
 
+interface DynamicVariable {
+  key: string;
+  value: string | number | boolean;
+  type: 'string' | 'double' | 'integer' | 'boolean';
+}
+
+interface LinkConfiguration {
+  agent_id: string;
+  agent_phone_number_id: string;
+  conversation_initiation_client_data: {
+    dynamic_variables: Record<string, string | number | boolean>;
+  };
+}
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const VITE_TWILIO_OUTBOUND_URL = import.meta.env.VITE_TWILIO_OUTBOUND_URL;
 
@@ -49,6 +65,8 @@ const PhoneNumbers = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isAssigning, setIsAssigning] = useState<string | null>(null);
   const [isOutboundCalling, setIsOutboundCalling] = useState<PhoneNumber | null>(null);
+  const [isGeneratingLink, setIsGeneratingLink] = useState<PhoneNumber | null>(null);
+  const [dynamicVariables, setDynamicVariables] = useState<DynamicVariable[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingNumbers, setLoadingNumbers] = useState(false);
   const [loadingAgents, setLoadingAgents] = useState(false);
@@ -264,6 +282,101 @@ const PhoneNumbers = () => {
     } catch (error) {
       console.error('Error initiating outbound call:', error);
       setError('Failed to initiate outbound call. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addDynamicVariable = () => {
+    setDynamicVariables([...dynamicVariables, { key: '', value: '', type: 'string' }]);
+  };
+
+  const removeDynamicVariable = (index: number) => {
+    setDynamicVariables(dynamicVariables.filter((_, i) => i !== index));
+  };
+
+  const updateDynamicVariable = (index: number, field: keyof DynamicVariable, value: any) => {
+    const updated = [...dynamicVariables];
+    if (field === 'type') {
+      // Reset value when type changes
+      updated[index] = { ...updated[index], [field]: value, value: getDefaultValueForType(value) };
+    } else if (field === 'value') {
+      // Convert value based on type
+      updated[index] = { ...updated[index], [field]: convertValueByType(value, updated[index].type) };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    setDynamicVariables(updated);
+  };
+
+  const getDefaultValueForType = (type: string) => {
+    switch (type) {
+      case 'string': return '';
+      case 'integer': return 0;
+      case 'double': return 0.0;
+      case 'boolean': return false;
+      default: return '';
+    }
+  };
+
+  const convertValueByType = (value: any, type: string) => {
+    switch (type) {
+      case 'string': return String(value);
+      case 'integer': return parseInt(value) || 0;
+      case 'double': return parseFloat(value) || 0.0;
+      case 'boolean': return Boolean(value);
+      default: return value;
+    }
+  };
+
+  const handleGenerateLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !isGeneratingLink || !isGeneratingLink.assigned_agent) return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // Convert dynamic variables to the required format
+      const dynamicVariablesObject: Record<string, string | number | boolean> = {};
+      dynamicVariables.forEach(variable => {
+        if (variable.key.trim()) {
+          dynamicVariablesObject[variable.key] = variable.value;
+        }
+      });
+
+      const linkConfiguration: LinkConfiguration = {
+        agent_id: isGeneratingLink.assigned_agent.agent_id,
+        agent_phone_number_id: isGeneratingLink.phone_number_id,
+        conversation_initiation_client_data: {
+          dynamic_variables: dynamicVariablesObject
+        }
+      };
+
+      // Store the configuration (you can send this to your backend)
+      console.log('Link Configuration:', linkConfiguration);
+
+      // You can replace this with an actual API call to store the configuration
+      const response = await fetch(`${BACKEND_URL}/phone-numbers/generate-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await originalUser.getIdToken()}`,
+        },
+        body: JSON.stringify(linkConfiguration),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Generated link:', result.link);
+        // You can show the generated link to the user
+      }
+
+      setIsGeneratingLink(null);
+      setDynamicVariables([]);
+    } catch (error) {
+      console.error('Error generating link:', error);
+      setError('Failed to generate link. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -913,6 +1026,204 @@ const PhoneNumbers = () => {
         )}
       </AnimatePresence>
 
+      {/* Generate Link Modal */}
+      <AnimatePresence>
+        {isGeneratingLink && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white dark:bg-dark-200 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-100">
+                <div className="flex items-center space-x-2">
+                  <Link2 className="w-6 h-6 text-primary dark:text-primary-400" />
+                  <h2 className="text-xl font-heading font-bold text-gray-900 dark:text-white">
+                    Generate Link with Dynamic Variables
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsGeneratingLink(null);
+                    setDynamicVariables([]);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    Dynamic Variables
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    Map from strings to optional strings or doubles or integers or booleans
+                  </p>
+                </div>
+
+                <form onSubmit={handleGenerateLink} className="space-y-6">
+                  {error && (
+                    <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-lg flex items-center space-x-2 text-red-600 dark:text-red-400">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {dynamicVariables.map((variable, index) => (
+                      <div key={index} className="border border-gray-200 dark:border-dark-100 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-4 flex-1">
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                key
+                              </label>
+                              <input
+                                type="text"
+                                value={variable.key}
+                                onChange={(e) => updateDynamicVariable(index, 'key', e.target.value)}
+                                placeholder="name"
+                                className="input w-full"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                value
+                              </label>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex bg-gray-100 dark:bg-dark-100 rounded-lg p-1">
+                                  {['string', 'double', 'integer', 'boolean'].map((type) => (
+                                    <button
+                                      key={type}
+                                      type="button"
+                                      onClick={() => updateDynamicVariable(index, 'type', type)}
+                                      className={cn(
+                                        "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                                        variable.type === type
+                                          ? 'bg-white dark:bg-dark-200 text-gray-900 dark:text-white shadow-sm'
+                                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                      )}
+                                    >
+                                      {type === 'double' ? 'doub...' : 
+                                       type === 'integer' ? 'integ...' : 
+                                       type === 'boolean' ? 'bool...' : 
+                                       type}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDynamicVariable(index)}
+                            className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-100 ml-2"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-2">
+                          {variable.type === 'boolean' ? (
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(variable.value)}
+                                onChange={(e) => updateDynamicVariable(index, 'value', e.target.checked)}
+                                className="rounded border-gray-300 dark:border-dark-100 text-primary focus:ring-primary"
+                              />
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {Boolean(variable.value) ? 'true' : 'false'}
+                              </span>
+                            </div>
+                          ) : variable.type === 'integer' ? (
+                            <div className="flex items-center space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => updateDynamicVariable(index, 'value', Math.max(0, Number(variable.value) - 1))}
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg border border-gray-200 dark:border-dark-100 hover:bg-gray-50 dark:hover:bg-dark-100"
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <input
+                                type="number"
+                                value={variable.value}
+                                onChange={(e) => updateDynamicVariable(index, 'value', e.target.value)}
+                                className="input flex-1 text-center font-mono"
+                                step="1"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateDynamicVariable(index, 'value', Number(variable.value) + 1)}
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg border border-gray-200 dark:border-dark-100 hover:bg-gray-50 dark:hover:bg-dark-100"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <input
+                              type={variable.type === 'double' ? 'number' : 'text'}
+                              value={variable.value}
+                              onChange={(e) => updateDynamicVariable(index, 'value', e.target.value)}
+                              className="input w-full"
+                              step={variable.type === 'double' ? '0.01' : undefined}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={addDynamicVariable}
+                      className="w-full flex items-center justify-center space-x-2 p-4 border-2 border-dashed border-gray-200 dark:border-dark-100 rounded-lg text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-dark-50 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span>Add new item</span>
+                    </button>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-dark-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGeneratingLink(null);
+                        setDynamicVariables([]);
+                      }}
+                      className="btn btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="btn btn-primary"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating Link...
+                        </>
+                      ) : (
+                        'Generate Link'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Phone Numbers List */}
       <div className="bg-white dark:bg-dark-200 rounded-xl shadow-sm border border-gray-100 dark:border-dark-100 overflow-hidden">
         {loadingNumbers ? (
@@ -1035,12 +1346,42 @@ const PhoneNumbers = () => {
                         <span>{number.assigned_agent ? 'Change Agent' : 'Assign Agent'}</span>
                       </button>
                       {number.assigned_agent && (
+                        <>
+                          <button
+                            onClick={() => setIsOutboundCalling(number)}
+                            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-primary dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 bg-primary-50/50 dark:bg-primary-400/10 hover:bg-primary-100/50 dark:hover:bg-primary-400/20 rounded-lg transition-colors"
+                          >
+                            <PhoneOutgoing className="w-4 h-4" />
+                            <span>Outbound Call</span>
+                          </button>
+                          {number.provider === 'twilio' && (
+                            <button
+                              onClick={() => {
+                                if (!number.assigned_agent) {
+                                  setError('Please assign an agent to this phone number first.');
+                                  return;
+                                }
+                                setIsGeneratingLink(number);
+                                setDynamicVariables([]);
+                              }}
+                              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 bg-green-50/50 dark:bg-green-400/10 hover:bg-green-100/50 dark:hover:bg-green-400/20 rounded-lg transition-colors"
+                            >
+                              <Link2 className="w-4 h-4" />
+                              <span>Generate Link</span>
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {number.provider === 'twilio' && !number.assigned_agent && (
                         <button
-                          onClick={() => setIsOutboundCalling(number)}
-                          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-primary dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 bg-primary-50/50 dark:bg-primary-400/10 hover:bg-primary-100/50 dark:hover:bg-primary-400/20 rounded-lg transition-colors"
+                          onClick={() => {
+                            setError('Please assign an agent to this phone number first.');
+                            setTimeout(() => setError(''), 3000);
+                          }}
+                          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-dark-100 rounded-lg cursor-not-allowed"
                         >
-                          <PhoneOutgoing className="w-4 h-4" />
-                          <span>Outbound Call</span>
+                          <Link2 className="w-4 h-4" />
+                          <span>Generate Link</span>
                         </button>
                       )}
                     </div>
