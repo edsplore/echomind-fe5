@@ -21,12 +21,35 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
-import { decryptTwilioPayload, encrypt } from '../../lib/encryption';
+import { encrypt } from '../../lib/encryption';
 
 interface Agent {
   agent_id: string;
   name: string;
 }
+
+const DECRYPTION_SECRET = "twilio-agent-link-secret-key-2024";
+
+const decrypt = (encryptedText) => {
+  try {
+    const key = DECRYPTION_SECRET;
+    const decoded = Buffer.from(encryptedText, 'base64').toString('binary');
+    let result = '';
+    for (let i = 0; i < decoded.length; i++) {
+      result += String.fromCharCode(
+        decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+      );
+    }
+    return result;
+  } catch (error) {
+    throw new Error('Invalid encrypted payload');
+  }
+};
+
+const decryptTwilioPayload = (encryptedData) => {
+  const decryptedString = decrypt(encryptedData);
+  return JSON.parse(decryptedString);
+};
 
 interface PhoneNumber {
   phone_number: string;
