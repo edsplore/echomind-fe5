@@ -14,6 +14,10 @@ export const encrypt = (text: string): string => {
   return btoa(result);
 };
 
+export const generateEncryptedLink = (payload: TwilioAgentPayload):string => {
+  
+}
+
 
 // Type definition for the encrypted payload
 export interface TwilioAgentPayload {
