@@ -41,6 +41,7 @@ import {
   llmOptions,
   getAvailableModels,
 } from "../../lib/constants";
+import { generateEncryptedLink } from "../../lib/encryption";
 
 interface DynamicVariable {
   type: string;  // "boolean" | "string" | "number" | "integer"
@@ -810,6 +811,33 @@ const AgentDetails = () => {
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Generate Link Button */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      const linkConfig = {
+                        agent_id: agent.agent_id,
+                        agent_phone_number_id: "", // Will be filled by backend
+                        conversation_initiation_client_data: {
+                          dynamic_variables: {}
+                        }
+                      };
+                      
+                      try {
+                        const encryptedLink = generateEncryptedLink(linkConfig);
+                        navigator.clipboard.writeText(encryptedLink);
+                        // You could add a toast notification here
+                        console.log("Link copied to clipboard:", encryptedLink);
+                      } catch (error) {
+                        console.error("Error generating link:", error);
+                      }
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-primary hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 bg-primary-50/50 dark:bg-primary-400/10 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-400/20 transition-colors"
+                  >
+                    <span>Generate Link</span>
+                  </button>
                 </div>
               </div>
             </div>
