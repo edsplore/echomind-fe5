@@ -452,12 +452,35 @@ const AgentDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, agentId]);
 
+  // Validate data collection variables
+  const validateDataCollectionVariables = () => {
+    const dataCollection = editedForm.platform_settings?.data_collection || {};
+    for (const [varName, varConfig] of Object.entries(dataCollection)) {
+      if (varConfig.description !== undefined) {
+        if (!varConfig.description || varConfig.description.trim() === '') {
+          throw new Error(`Description is required for variable "${varName}"`);
+        }
+      } else if (varConfig.constant_value !== undefined) {
+        if (!varConfig.constant_value || varConfig.constant_value.trim() === '') {
+          throw new Error(`Constant value is required for variable "${varName}"`);
+        }
+      } else if (varConfig.dynamic_variable !== undefined) {
+        if (!varConfig.dynamic_variable || varConfig.dynamic_variable.trim() === '') {
+          throw new Error(`Dynamic variable is required for variable "${varName}"`);
+        }
+      }
+    }
+  };
+
   // Save changes to backend
   const handleSave = async () => {
     if (!user || !agentId) return;
     try {
       setSaving(true);
       setError("");
+
+      // Validate data collection variables before saving
+      validateDataCollectionVariables();
 
       const response = await fetch(
         `${BACKEND_URL}/agents/${user.uid}/${agentId}`,
