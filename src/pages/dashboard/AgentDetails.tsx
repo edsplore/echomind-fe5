@@ -1897,7 +1897,7 @@ const AgentDetails = () => {
                               ...prev,
                               platform_settings: {
                                 ...prev.platform_settings,
-                                data_collection: newDatacollection
+                                data_collection: newDataCollection
                               }
                             }));
                             setEditingVarName(null);
