@@ -45,7 +45,6 @@ interface PhoneNumber {
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-const VITE_TWILIO_OUTBOUND_URL = import.meta.env.VITE_TWILIO_OUTBOUND_URL;
 
 const PhoneNumbers = () => {
   const { getEffectiveUser, getEffectiveUserData, isAdmin, user: originalUser } = useAuth();
