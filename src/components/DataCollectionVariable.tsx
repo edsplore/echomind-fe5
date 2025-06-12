@@ -147,11 +147,6 @@ export const DataCollectionVariable: React.FC<Props> = ({
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {varName}
                   </span>
-                  {hasValidationError && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300">
-                      Missing Value
-                    </span>
-                  )}
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {varConfig.type} - {variableType}
